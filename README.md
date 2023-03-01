@@ -6,7 +6,7 @@ The JPO Connected Vehicle Portal is a web-based portal that acts as a single app
 
 Each modular application has a corresponding API that is deployed alongside the web portal to serve as a backend. The APIs may have third party requirements associated with them to take full advantage of their functionality. Examples of possible requirements could be a required backend database or OAuth2.0 provider. Exact requirements and limitations for each application can be found in the README of their API directory.
 
-To provide feedback, we recommend that you create an "issue" in this repository (<https://github.com/usdot-jpo-ode/jpo-conflictvisualizer/issues>). You will need a GitHub account to create an issue. If you don’t have an account, a dialog will be presented to you to create one at no cost.
+To provide feedback, we recommend that you create an "issue" in this repository (<https://github.com/usdot-jpo-ode/jpo-cvportal/issues>). You will need a GitHub account to create an issue. If you don’t have an account, a dialog will be presented to you to create one at no cost.
 
 ## Modular Applications
 The JPO CV Portal is capable of hosting the full set or a subset of the following modular applications.
