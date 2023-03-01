@@ -1,15 +1,15 @@
-# jpo-conflictvisualizer
+# jpo-cvportal
 
-**US Department of Transportation (USDOT) Intelligent Transportation Systems (ITS) Joint Program Office (JPO) Conflict Visualizer Portal**
+**US Department of Transportation (USDOT) Intelligent Transportation Systems (ITS) Joint Program Office (JPO) Connected Vehicle Portal**
 
-The JPO Conflict Visualizer Portal is a web-based portal that acts as a single application that is made up of multiple modular applications. Currently, these modular applications include the Connected Vehicle Manager (CV Manager) and the CIMMS Conflict Monitor. More modular applications can and will most likely be added in the future. The JPO Conflict Visualizer can be deployed with a customized subset of these modular applications based on the needs of the user or organization. 
+The JPO Connected Vehicle Portal is a web-based portal that acts as a single application that is made up of multiple modular applications. Currently, these modular applications include the Connected Vehicle Manager (CV Manager) and the CIMMS Conflict Monitor. More modular applications can and will most likely be added in the future. The JPO CV Portal can be deployed with a customized subset of these modular applications based on the needs of the user or organization. 
 
 Each modular application has a corresponding API that is deployed alongside the web portal to serve as a backend. The APIs may have third party requirements associated with them to take full advantage of their functionality. Examples of possible requirements could be a required backend database or OAuth2.0 provider. Exact requirements and limitations for each application can be found in the README of their API directory.
 
 To provide feedback, we recommend that you create an "issue" in this repository (<https://github.com/usdot-jpo-ode/jpo-conflictvisualizer/issues>). You will need a GitHub account to create an issue. If you don’t have an account, a dialog will be presented to you to create one at no cost.
 
 ## Modular Applications
-The JPO Conflict Visualizer Portal is capable of hosting the full set or a subset of the following modular applications.
+The JPO CV Portal is capable of hosting the full set or a subset of the following modular applications.
 
 ### CV Manager
 <b>GUI:</b> ReactJS with Redux Toolkit and Mapbox GL
@@ -43,7 +43,7 @@ The JPO Conflict Visualizer Portal is capable of hosting the full set or a subse
 - Alert users when conflicts occur
 
 ## Current State of the Project
-Currently the JPO Conflict Visualizer Portal is broken into two independent projects. The CV Manager is being developed for CDOT and the CIMMS Conflict Monitor is being developed for CIMMS. The goal of this project is to combine these into a single portal solution that allows users to take advantage of both applications in one project, as described in the sections above. The current state of the project is missing the portal component so the two applications function as two separate applications. This will be implemented in the near future and both modular applications will see their GUIs receive streamlining changes to ensure they are being developed in the same framework. Eventually, the APIs may also be streamlined to a single language, but this is not a priority.
+Currently the JPO CV Portal is broken into two independent projects. The CV Manager is being developed for CDOT and the CIMMS Conflict Monitor is being developed for CIMMS. The goal of this project is to combine these into a single portal solution that allows users to take advantage of both applications in one project, as described in the sections above. The current state of the project is missing the portal component so the two applications function as two separate applications. This will be implemented in the near future and both modular applications will see their GUIs receive streamlining changes to ensure they are being developed in the same framework. Eventually, the APIs may also be streamlined to a single language, but this is not a priority.
 
 ## License Information
 
