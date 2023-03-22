@@ -1,0 +1,22 @@
+[
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_minimum_speed_threshold",
+    "value": 1,
+    "unit": "seconds",
+    "description": "minimum speed threshold (lane_direction_of_travel)",
+    "intersectionID": 1234,
+    "roadRegulatorID": "5678",
+    "rsuID": "9012"
+  },
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_minimum_number_of_points",
+    "value": 1,
+    "unit": "seconds",
+    "description": "minimum number of points (lane_direction_of_travel)",
+    "intersectionID": 1234,
+    "roadRegulatorID": "5678",
+    "rsuID": "9012"
+  }
+]

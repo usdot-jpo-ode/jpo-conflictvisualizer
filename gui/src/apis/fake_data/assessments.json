@@ -1,0 +1,81 @@
+{
+  "signalStateAssessment": {
+    "assessmentGeneratedAt": 1677171701,
+    "assessmentType": "signalStateAssessment",
+    "timestamp": 1677171701,
+    "signalStateAssessmentGroup": [
+      {
+        "signalGroup": 121212,
+        "redEvents": 7,
+        "yellowEvents": 20,
+        "greenEvents": 100
+      },
+      {
+        "signalGroup": 121213,
+        "redEvents": 1,
+        "yellowEvents": 20,
+        "greenEvents": 100
+      },
+      {
+        "signalGroup": 121214,
+        "redEvents": 0,
+        "yellowEvents": 25,
+        "greenEvents": 120
+      }
+    ]
+  },
+  "connectionOfTravelAssessment": {
+    "assessmentGeneratedAt": 1677171701,
+    "assessmentType": "ConnectionOfTravelAssessment",
+    "timestamp": 1677171701,
+    "connectionOfTravelAssessmentGroups": [
+      {
+        "ingressLaneID": 4,
+        "egressLaneID": 7,
+        "connectionID": 20,
+        "eventCount": 2
+      },
+      {
+        "ingressLaneID": 4,
+        "egressLaneID": 9,
+        "connectionID": 22,
+        "eventCount": 48
+      }
+    ]
+  },
+  "laneDirectionOfTravelAssessment": {
+    "assessmentGeneratedAt": 1677171701,
+    "assessmentType": "LaneDirectionOfTravelAssessment",
+    "timestamp": 1677171701,
+    "roadRegulatorID": 1,
+    "intersectionID": 2,
+    "laneDirectionOfTravelAssessmentGroup": [
+      {
+        "laneID": 11233,
+        "segmentID": 1,
+        "inToleranceEvents": 24,
+        "outOfToleranceEvents": 28,
+        "medianInToleranceHeading": 1,
+        "medianInToleranceCenterlineDistance": 1,
+        "medianHeading": 1,
+        "medianCenterlineDistance": 1,
+        "expectedHeading": 1,
+        "tolerance": 1,
+        "distanceFromCenterlineTolerance": 12
+      },
+      {
+        "laneID": 11275,
+        "segmentID": 1,
+        "inToleranceEvents": 1890,
+        "outOfToleranceEvents": 24,
+        "medianInToleranceHeading": 1,
+        "medianInToleranceCenterlineDistance": 1,
+        "medianHeading": 1,
+        "medianCenterlineDistance": 1,
+        "expectedHeading": 1,
+        "tolerance": 1,
+        "distanceFromCenterlineTolerance": 12
+      }
+    ]
+  }
+}

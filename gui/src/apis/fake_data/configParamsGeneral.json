@@ -1,0 +1,154 @@
+[
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_minimum_speed_threshold",
+    "value": 1,
+    "unit": "mph",
+    "description": "minimum speed threshold (lane_direction_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_minimum_number_of_points",
+    "value": 1,
+    "unit": "number",
+    "description": "minimum number of points (lane_direction_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_minimum_number_of_events",
+    "value": 1,
+    "unit": "number",
+    "description": "minimum number of events (lane_direction_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_look_back_period",
+    "value": 1,
+    "unit": "seconds",
+    "description": "lookback period (lane_direction_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "lane_direction_of_travel",
+    "key": "ldot_heading_tolerance",
+    "value": 1,
+    "unit": "degrees",
+    "description": "heading tolerance (lane_direction_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "maximum_distance_from_stopbar",
+    "value": 1,
+    "unit": "meters",
+    "description": "maximum distance from stopbar (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "heading_tolerance",
+    "value": 1,
+    "unit": "degrees",
+    "description": "heading tolerance (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "look_back_period",
+    "value": 1,
+    "unit": "seconds",
+    "description": "look-back period (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "minimum_red_light_percentage_threshold",
+    "value": 1,
+    "unit": "percent",
+    "description": "minimum red light percentage threshold (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "minimum_number_of_events",
+    "value": 1,
+    "unit": "number",
+    "description": "minimum number of events (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "signal_state",
+    "key": "red_light_running_minimum_speed",
+    "value": 1,
+    "unit": "mph",
+    "description": "red light running minimum speed (signal_state)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "connection_of_travel",
+    "key": "cot_look_back_period",
+    "value": 1,
+    "unit": "seconds",
+    "description": "look-back period (connection_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "connection_of_travel",
+    "key": "cot_minimum_number_of_events",
+    "value": 1,
+    "unit": "seconds",
+    "description": "minimum number of events (connection_of_travel)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_v2x_message_processing_frequency",
+    "value": 1,
+    "unit": "seconds",
+    "description": "V2X message processing frequency (general)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_message_storage_period",
+    "value": 1,
+    "unit": "seconds",
+    "description": "message storage period (general)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_spat_minimum_10_second_reception",
+    "value": 1,
+    "unit": "seconds",
+    "description": "SPaT Minimum 10-second Reception (general)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_spat_maximum_10_second_reception",
+    "value": 1,
+    "unit": "seconds",
+    "description": "SPaT Maximum 10-second Reception (general)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_map_minimum_10_second_reception",
+    "value": 1,
+    "unit": "seconds",
+    "description": "MAP Minimum 10-second Reception (general)",
+    "roadRegulatorID": "1"
+  },
+  {
+    "category": "general",
+    "key": "gen_map_maximum_10_second_reception",
+    "value": 1,
+    "unit": "seconds",
+    "description": "MAP Maximum 10-second Reception (general)",
+    "roadRegulatorID": "1"
+  }
+]

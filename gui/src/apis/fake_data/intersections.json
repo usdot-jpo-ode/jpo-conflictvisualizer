@@ -1,0 +1,41 @@
+[
+  {
+    "ingressLanes": [],
+    "egressLanes": [],
+    "stopLines": [],
+    "startLines": [],
+    "referencePoint": {
+      "x": 40.014629,
+      "y": -105.240808
+    },
+    "intersectionId": 12109,
+    "roadRegulatorId": 0,
+    "laneConnections": []
+  },
+  {
+    "ingressLanes": [],
+    "egressLanes": [],
+    "stopLines": [],
+    "startLines": [],
+    "referencePoint": {
+      "x": 40.014698,
+      "y": -105.213163
+    },
+    "intersectionId": 12110,
+    "roadRegulatorId": 0,
+    "laneConnections": []
+  },
+  {
+    "ingressLanes": [],
+    "egressLanes": [],
+    "stopLines": [],
+    "startLines": [],
+    "referencePoint": {
+      "x": 39.958535,
+      "y": -105.090251
+    },
+    "intersectionId": 12111,
+    "roadRegulatorId": 0,
+    "laneConnections": []
+  }
+]
