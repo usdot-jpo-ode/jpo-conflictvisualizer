@@ -1,49 +1,86 @@
-# jpo-cvportal
+# jpo-conflictvisualizer
 
-**US Department of Transportation (USDOT) Intelligent Transportation Systems (ITS) Joint Program Office (JPO) Connected Vehicle Portal**
+The CIMMS Conflict Visualizer is a web-based user interface for configuring the [CIMMS Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor), as well as displaying notifications, downloading data, and visualizing conflicts. This repository also contains the associated API, which hosts endpoints for the GUI to access data from the jpo-conflicmonitor MongoDB database.
 
-The JPO Connected Vehicle Portal is a web-based portal that acts as a single application that is made up of multiple modular applications. Currently, these modular applications include the Connected Vehicle Manager (CV Manager) and the CIMMS Conflict Monitor. More modular applications can and will most likely be added in the future. The JPO CV Portal can be deployed with a customized subset of these modular applications based on the needs of the user or organization. 
+This application is fully dockerized, with the API and GUI expected to be deployed separately, alongside an instance of the [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode), [jpo-geojsonconverter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter), [jpo-conflictmonitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor), and [Keycloak](https://www.keycloak.org/getting-started/getting-started-docker). Information on how to build and run those projects is available in their repositories.
 
-Each modular application has a corresponding API that is deployed alongside the web portal to serve as a backend. The APIs may have third party requirements associated with them to take full advantage of their functionality. Examples of possible requirements could be a required backend database or OAuth2.0 provider. Exact requirements and limitations for each application can be found in the README of their API directory.
+This application is a part of the [JPO Connected Vehicle Portal](https://github.com/usdot-jpo-ode/jpo-cvportal), which is made up of this repository and others, to provide a single application with access to other connected intersection tools.
 
-To provide feedback, we recommend that you create an "issue" in this repository (<https://github.com/usdot-jpo-ode/jpo-cvportal/issues>). You will need a GitHub account to create an issue. If you don’t have an account, a dialog will be presented to you to create one at no cost.
+To provide feedback, we recommend that you create an "issue" in this repository (<https://github.com/usdot-jpo-ode/jpo-conflictvisualizer/issues>). You will need a GitHub account to create an issue. If you don’t have an account, a dialog will be presented to you to create one at no cost.
 
-## Modular Applications
-The JPO CV Portal is capable of hosting the full set or a subset of the following modular applications.
+## Repository Contents
 
-### CV Manager
-<b>GUI:</b> ReactJS with Redux Toolkit and Mapbox GL
+<b>GUI:</b> ReactJS with Typescript, NextJS,
 
-<b>API:</b> Python
-
-<b>Description:</b> An application that helps an organization manage their deployed CV devices (Roadside Units and Onboard Units) through an interactive, graphical user interface using Mapbox. 
-
-<b>Features:</b>
-- Visualize devices on a Mapbox map
-- Display the current statuses of devices 
-  - Latest online status
-  - ISS SCMS certificate expiration
-  - Other identifying values tracked on a PostgreSQL database
-- jpo-ode supported message counts, sorted by RSU IP (BSM, MAP, SPaT, SRM, SSM, TIM)
-- Visualize an RSU's currently active MAP message
-- Visualize Basic Safety Messages (BSMs) relative to a specified geofence and time period
-- Device configuration over SNMP (v3) for message forwarding
-- Device firmware upgrade support for Kapsch, Commsignia and Yunex devices
-- Admin controls for adding, modifying and removing devices and users
-
-### CIMMS Conflict Monitor
-<b>GUI:</b> ReactJS with Redux Toolkit and Mapbox GL
-
-<b>API:</b> Java Spring Boot
+<b>API:</b> Java Spring Boot REST application. Contains submodule of [jpo-conflictmonitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) repo
 
 <b>Description:</b> An application that helps an organization monitor their connected intersections alerting when conflicts occur and visualizing the conflicts to identify real vehicle incidents and issues within RSU message configuration.
 
 <b>Features:</b>
-- Visualize MAP and SPaT messages for a specified conflict on a Mapbox map
-- Alert users when conflicts occur
+
+- Login Authentication hosted by
+- View and accept Notifications
+- View and update configuration parameters
+- Visualize Notifications (SPATs, MAPs, and BSMs)
+- Query and download data (events/assessments/SPATs/MAPs/BSMs)
+
+## Installation
+
+### 1. Initialize and update submodules
+
+```
+git submodule update --init --recursive
+```
+
+### 2. Clone and Run jpo-ode, jpo-geonjsonconverter, and jpo-conflictmonitor docker images
+
+Run ODE, then GeoJSONConverter, then ConflictMonitor
+
+### 3. Run Keycloak Server
+
+a. Run Keycloak Server Docker Image
+
+```
+docker run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:20.0.2 start-dev
+```
+
+b. Configure keycloak server
+
+- https://www.keycloak.org/getting-started/getting-started-docker
+
+### 4. Configure and Run API
+
+a. Create application.properties file in api/jpo-conflictvisualizer-api/src/main/resources
+
+b. Run API
+
+- from VS Code: (select C:\Users\rando\Github\jpo-conflictvisualizer\api\jpo-conflictvisualizer-api\src\main\java\us\dot\its\jpo\ode\api\ConflictApiApplication.java and Run)
+- from Docker
+
+```
+cd api
+docker compose up -d
+```
+
+### 5. Configure and Run GUI
+
+a. Create .env file in gui
+b. Install node modules
+
+```
+cd gui
+npm install
+```
+
+c. Run GUI
+
+```
+npm run dev
+```
 
 ## Current State of the Project
-Currently the JPO CV Portal is broken into two independent projects. The CV Manager is being developed for CDOT and the CIMMS Conflict Monitor is being developed for CIMMS. The goal of this project is to combine these into a single portal solution that allows users to take advantage of both applications in one project, as described in the sections above. The current state of the project is missing the portal component so the two applications function as two separate applications. This will be implemented in the near future and both modular applications will see their GUIs receive streamlining changes to ensure they are being developed in the same framework. Eventually, the APIs may also be streamlined to a single language, but this is not a priority.
+
+Currently the CIMMS Conflict Visualizer is under active development.
 
 ## License Information
 
