@@ -1,8 +1,6 @@
 /// <reference path="Event.d.ts" />
 type LaneDirectionOfTravelEvent = MessageMonitor.Event & {
   timestamp: number
-  roadRegulatorID: number
-  intersectionID: number
   laneID: number
   laneSegmentNumber: number
   laneSegmentInitialLatitude: number

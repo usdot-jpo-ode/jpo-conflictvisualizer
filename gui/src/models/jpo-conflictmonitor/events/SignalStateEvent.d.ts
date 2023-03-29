@@ -1,7 +1,6 @@
 /// <reference path="Event.d.ts" />
 type SignalStateEvent = MessageMonitor.Event & {
   timestamp: number
-  roadRegulatorID: number
   ingressLane: number
   egressLane: number
   connectionID: number
