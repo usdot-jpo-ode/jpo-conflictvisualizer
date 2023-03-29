@@ -105,7 +105,7 @@ const Page = () => {
 
   const getParameters = async () => {
     try {
-      const data = await configParamApi.getAllParameters("token", dbIntersectionId);
+      const data = await configParamApi.getAllParameters("token", dbIntersectionId.toString());
 
       setParameters(data);
     } catch (err) {

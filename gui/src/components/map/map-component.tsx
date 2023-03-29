@@ -216,12 +216,12 @@ const MapTab = (props: MyProps) => {
   const [spatSignalGroups, setSpatSignalGroups] = useState<SpatSignalGroups>();
   const [currentSignalGroups, setCurrentSignalGroups] = useState<SpatSignalGroup[]>();
   const [currentBsms, setCurrentBsms] = useState<BsmFeatureCollection>({
-    type: "FeatureCollection",
+    type: "FeatureCollection" as "FeatureCollection",
     features: [],
   });
   const [connectingLanes, setConnectingLanes] = useState<ConnectingLanesFeatureCollection>();
   const [bsmData, setBsmData] = useState<BsmFeatureCollection>({
-    type: "FeatureCollection",
+    type: "FeatureCollection" as "FeatureCollection",
     features: [],
   });
   //   const mapRef = useRef<mapboxgl.Map>();
@@ -266,7 +266,7 @@ const MapTab = (props: MyProps) => {
     });
 
     return {
-      type: "FeatureCollection",
+      type: "FeatureCollection" as "FeatureCollection",
       features: features,
     };
   };
@@ -275,11 +275,15 @@ const MapTab = (props: MyProps) => {
     notification: MessageMonitor.Notification,
     connectingLanes: MapFeatureCollection
   ) => {
-    const markerCollection = { type: "FeatureCollection", features: [] };
+    const features: any[] = [];
+    const markerCollection = {
+      type: "FeatureCollection" as "FeatureCollection",
+      features: features,
+    };
     switch (notification.notificationType) {
       case "ConnectionOfTravelNotification":
         const notificationVal = notification as ConnectionOfTravelNotification;
-        const assessmentGroups = notificationVal.assessment.connectionOfTravelAssessment;
+        const assessmentGroups = notificationVal.assessment.connectionOfTravelAssessmentGroups;
         assessmentGroups.forEach((assessmentGroup) => {
           const ingressLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
@@ -337,13 +341,13 @@ const MapTab = (props: MyProps) => {
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
     return {
-      type: "FeatureCollection",
+      type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
         return {
           type: "Feature",
           properties: {
             ...bsm.payload.data.coreData,
-            odeReceivedAt: new Date(bsm.metadata.odeReceivedAt).getTime() / 1000,
+            odeReceivedAt: new Date(bsm.metadata.odeReceivedAt as string).getTime() / 1000,
           },
           geometry: {
             type: "Point",
@@ -676,7 +680,7 @@ const MapTab = (props: MyProps) => {
           {connectingLanes && currentSignalGroups && (
             <Source
               type="geojson"
-              data={filterConnections(connectingLanes, currentSignalGroups, null)}
+              data={filterConnections(connectingLanes, currentSignalGroups, null)!}
             >
               <Layer {...connectingLanesLayerMissing} />
             </Source>

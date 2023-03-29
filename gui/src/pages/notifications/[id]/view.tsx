@@ -58,7 +58,7 @@ const ConfigParamCreate = () => {
             </div>
           </Box>
           <Box mt={3}>
-            <ConfigParamCreateForm parameter={parameter} configParamApi={configParamApi} />
+            <ConfigParamCreateForm parameter={parameter} />
           </Box>
         </Container>
       </Box>

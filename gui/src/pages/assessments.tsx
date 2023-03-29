@@ -19,7 +19,13 @@ import { DashboardLayout } from "../components/dashboard-layout";
 import { Refresh as RefreshIcon } from "../icons/refresh";
 import { Search as SearchIcon } from "../icons/search";
 import NotificationApi from "../apis/notification-api";
+import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
+import { LaneDirectionOfTravelAssessmentCard } from "../components/assessments/lane-direction-of-travel-assessment";
+import { SignalStateAssessmentCard } from "../components/assessments/signal-state-assessment";
+import { NotificationsTable } from "../components/notifications/notifications-table";
 import React, { useEffect, useState, useRef } from "react";
+import { useDashboardContext } from "../contexts/dashboard-context";
+import AssessmentsApi from "../apis/assessments-api";
 
 const tabs = [
   {
@@ -87,6 +93,52 @@ const Page = () => {
     query: "",
     tab: currentTab,
   });
+  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  // create hooks, and methods for each assessment type:
+  const [signalStateAssessment, setSignalStateAssessment] = useState<
+    SignalStateAssessment | undefined
+  >(undefined);
+  // create hooks, and methods for each assessment type:
+  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<
+    SignalStateEventAssessment | undefined
+  >(undefined);
+  const [connectionOfTravelAssessment, setConnectionOfTravelAssessment] = useState<
+    ConnectionOfTravelAssessment | undefined
+  >(undefined);
+  const [laneDirectionOfTravelAssessment, setLaneDirectionOfTravelAssessment] = useState<
+    LaneDirectionOfTravelAssessment | undefined
+  >(undefined);
+
+  const getAssessments = async () => {
+    setSignalStateAssessment(
+      (await AssessmentsApi.getAssessment(
+        "token",
+        "signal_state_assessment",
+        dbIntersectionId
+      )) as SignalStateAssessment
+    );
+    setSignalStateEventAssessment(
+      (await AssessmentsApi.getAssessment(
+        "token",
+        "signal_state_event_assessment",
+        dbIntersectionId
+      )) as SignalStateEventAssessment
+    );
+    setConnectionOfTravelAssessment(
+      (await AssessmentsApi.getAssessment(
+        "token",
+        "conenction_of_travel",
+        dbIntersectionId
+      )) as ConnectionOfTravelAssessment
+    );
+    setLaneDirectionOfTravelAssessment(
+      (await AssessmentsApi.getAssessment(
+        "token",
+        "lane_direction_of_travel",
+        dbIntersectionId
+      )) as LaneDirectionOfTravelAssessment
+    );
+  };
 
   const updateNotifications = () => {
     setNotifications(
@@ -96,6 +148,7 @@ const Page = () => {
 
   useEffect(() => {
     updateNotifications();
+    getAssessments();
   }, []);
 
   useEffect(() => {
@@ -153,7 +206,10 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3}>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
+              <ConnectionOfTravelAssessmentCard
+                assessment={connectionOfTravelAssessment}
+                small={false}
+              />
             </Grid>
             <Grid item xl={3} lg={3} sm={6} xs={12}>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />

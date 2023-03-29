@@ -134,12 +134,17 @@ export const ConfigParamListTable = (props) => {
             </TableHead>
             <TableBody>
               {(parameters as Config[]).map((param) => {
-                if (param.updateType === "READ_ONLY") return readOnlyRow(param);
-                if (param.updateType === "DEFAULT") return generalDefaultRow(param);
-                if (param.updateType === "INTERSECTION") {
-                  return param.intersectionID == null
-                    ? generalIntersectionRow(param)
-                    : intersectionRow(param);
+                switch (param.updateType) {
+                  case "READ_ONLY":
+                    return readOnlyRow(param);
+                  case "DEFAULT":
+                    return generalDefaultRow(param);
+                  case "INTERSECTION":
+                    return "intersectionID" in param
+                      ? generalIntersectionRow(param)
+                      : intersectionRow(param);
+                  default:
+                    return readOnlyRow(param);
                 }
               })}
             </TableBody>

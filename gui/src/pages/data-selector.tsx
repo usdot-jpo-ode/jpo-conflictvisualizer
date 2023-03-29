@@ -67,7 +67,7 @@ const DataSelectorPage = () => {
             startDate,
             endTime
           );
-          if (event) assessments.push(...event);
+          if (event) assessments.push({ ...event });
         }
         setAssessments(assessments);
         setEvents([]);

@@ -140,12 +140,12 @@ export const DashboardSidebar = (props) => {
             <DashboardSidebarSection
               key={section.title}
               path={router.asPath}
-              sx={{
-                mt: 2,
-                "& + &": {
-                  mt: 2,
-                },
-              }}
+            //   sx={{
+            //     mt: 2,
+            //     "& + &": {
+            //       mt: 2,
+            //     },
+            //   }}
               {...section}
             />
           ))}

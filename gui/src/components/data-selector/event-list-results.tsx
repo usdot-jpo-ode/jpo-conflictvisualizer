@@ -24,7 +24,7 @@ export const EventListResults = ({
 }) => {
   const getEventDescription = (event: MessageMonitor.Event) => {
     // convert event to JSON string
-    const newEvent = { ...event };
+    const newEvent: any = { ...event };
     delete newEvent["eventType"];
     delete newEvent["eventGeneratedAt"];
     const eventString = JSON.stringify(newEvent);

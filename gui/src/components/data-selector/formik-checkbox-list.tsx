@@ -5,7 +5,7 @@ export const FormikCheckboxList = (props) => {
   const { values, selectedValues, setValues } = props;
 
   return values.map((eventType) => (
-    <div>
+    <div key={eventType.label}>
       <Checkbox
         style={{ marginRight: 8 }}
         checked={selectedValues.indexOf(eventType) > -1}

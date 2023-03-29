@@ -51,24 +51,6 @@ class MessageMonitorApi {
     return spatData;
   }
 
-  // Assessments
-  getSignalStateEventAssessment(): SignalStateAssessment {
-    return assessments.signalStateAssessment;
-  }
-
-  // Assessments
-  getSignalStateAssessment(): SignalStateAssessment {
-    return assessments.signalStateAssessment;
-  }
-
-  getConnectionOfTravelAssessment(): ConnectionOfTravelAssessment {
-    return assessments.connectionOfTravelAssessment;
-  }
-
-  getLaneDirectionOfTravelAssessment(): LaneDirectionOfTravelAssessment {
-    return assessments.laneDirectionOfTravelAssessment;
-  }
-
   async getMapMessages({
     token,
     intersection_id,
