@@ -41,7 +41,7 @@ Run ODE, then GeoJSONConverter, then ConflictMonitor
 a. Run Keycloak Server Docker Image
 
 ```
-docker run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:20.0.2 start-dev
+docker run -p 8086:8086 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:20.0.2 start-dev --http-port 8086
 ```
 
 b. Configure keycloak server
