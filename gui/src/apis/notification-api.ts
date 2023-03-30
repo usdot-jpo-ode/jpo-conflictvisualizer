@@ -12,11 +12,11 @@ class NotificationApi {
     startTime?: Date;
     endTime?: Date;
   }): Promise<MessageMonitor.Notification[]> {
-    return this.getNotifications({ token, intersection_id, startTime, endTime });
+    // return this.getNotifications({ token, intersection_id, startTime, endTime });
     const queryParams: Record<string, string> = {};
-    //   if (intersection_id) queryParams["intersection_id"] = intersection_id;
-    //   if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
-    //   if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
+    if (intersection_id) queryParams["intersection_id"] = intersection_id;
+    if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
+    if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
     const notifications = await authApiHelper.invokeApi({
       path: `/notifications/active`,

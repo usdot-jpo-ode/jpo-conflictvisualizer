@@ -25,6 +25,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import { getInitials } from "../utils/get-initials";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useTheme } from "@mui/material/styles";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -75,10 +76,10 @@ function stringAvatar(name?: string) {
 export const DashboardNavbar = (props: Props) => {
   const { onSidebarOpen, intersections, ...other } = props;
   const settingsRef = useRef(null);
-  const dashboardContext = useDashboardContext();
   const { intersectionId, roadRegulatorId } = useDashboardContext();
   const [openAccountPopover, setOpenAccountPopover] = useState(false);
   const { data: session } = useSession();
+  const theme = useTheme();
 
   return (
     <>
@@ -91,6 +92,7 @@ export const DashboardNavbar = (props: Props) => {
             lg: "calc(100% - 280px)",
           },
         }}
+        theme={theme}
         {...other}
       >
         <Toolbar
@@ -120,11 +122,11 @@ export const DashboardNavbar = (props: Props) => {
                 id="demo-simple-select"
                 value={intersectionId}
                 label="Age"
-                onChange={(e) => dashboardContext.setIntersection(e.target.value as number)}
+                onChange={(e) => {}} // TODO: dashboardContext.setIntersection(e.target.value as number)}
               >
                 {intersections.map((intersection) => {
                   return (
-                    <MenuItem value={intersection.intersectionID}>
+                    <MenuItem value={intersection.intersectionID} key={intersection.intersectionID}>
                       {intersection.intersectionID}
                     </MenuItem>
                   );

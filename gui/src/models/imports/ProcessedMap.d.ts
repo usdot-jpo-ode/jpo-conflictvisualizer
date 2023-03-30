@@ -37,8 +37,9 @@ type MapFeatureCollection = {
 };
 
 type MapFeature = {
+  type: "Feature";
   id: number;
-  geometry: Geometry;
+  geometry: GeoJSON.LineString;
   properties: MapProperties;
 };
 
@@ -68,13 +69,14 @@ type MapNode = {
 };
 
 type ConnectingLanesFeatureCollection = {
-  type: string;
+  type: "FeatureCollection";
   features: ConnectingLanesFeature[];
 };
 
 type ConnectingLanesFeature = {
+  type: "Feature";
   id: number | string;
-  geometry: Geometry;
+  geometry: GeoJSON.LineString;
   properties: ConnectingLanesProperties;
 };
 

@@ -22,7 +22,7 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
                     group.outOfToleranceEvents /
                     Math.min(group.inToleranceEvents + group.outOfToleranceEvents, 1);
                   return (
-                    <Typography color="textPrimary" variant="h5">
+                    <Typography color="textPrimary" variant="h5" key={group.segmentID}>
                       {`${group.segmentID}/${group.laneID}: ${percentInvalid.toFixed(2)}%`}
                     </Typography>
                   );

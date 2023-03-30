@@ -90,17 +90,18 @@ export const SidePanel = (props) => {
       case "IntersectionReferenceAlignmentNotification":
         break;
       case "ConnectionOfTravelNotification":
+        const connectionOfTravelNotification = notification as ConnectionOfTravelNotification;
         fields.push([
           "ingress Lane ID",
-          notification?.assessment?.connectionOfTravelAssessment?.[0]?.ingressLaneID,
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.ingressLaneID.toString(),
         ]);
         fields.push([
           "egress Lane ID",
-          notification?.assessment?.connectionOfTravelAssessment?.[0]?.egressLaneID,
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.egressLaneID.toString(),
         ]);
         fields.push([
           "event count",
-          notification?.assessment?.connectionOfTravelAssessment?.[0]?.eventCount,
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.eventCount.toString(),
         ]);
         break;
     }

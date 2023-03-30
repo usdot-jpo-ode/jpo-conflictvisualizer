@@ -22,7 +22,7 @@ export const CustomTable = (props) => {
         <TableHead>
           <TableRow>
             {headers.map((head) => (
-              <TableCell>{head}</TableCell>
+              <TableCell key={head}>{head}</TableCell>
             ))}
           </TableRow>
         </TableHead>

@@ -17,12 +17,12 @@ export const SignalStateEventAssessmentCard = (props: {
             </Typography>
             {assessment === undefined
               ? ""
-              : assessment.signalStateAssessmentGroup.map((group) => {
+              : assessment.signalStateEventAssessmentGroup.map((group) => {
                   const percentRed =
                     group.redEvents /
                     Math.min(group.greenEvents + group.yellowEvents + group.redEvents, 1);
                   return (
-                    <Typography color="textPrimary" variant="h5">
+                    <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
                       {`${group.signalGroup}: ${percentRed.toFixed(2)}%`}
                     </Typography>
                   );

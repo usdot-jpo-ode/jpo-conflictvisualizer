@@ -96,7 +96,7 @@ export const ConfigParamCreateForm = (props) => {
               <TextField
                 error={Boolean(formik.touched.value && formik.errors.value)}
                 fullWidth
-                helperText={formik.touched.value && formik.errors.value}
+                // helperText={formik.touched.value && formik.errors.value}
                 label="Value"
                 name="value"
                 onBlur={formik.handleBlur}

@@ -22,7 +22,7 @@ export const SignalStateAssessmentCard = (props: {
                     group.redEvents /
                     Math.min(group.greenEvents + group.yellowEvents + group.redEvents, 1);
                   return (
-                    <Typography color="textPrimary" variant="h5">
+                    <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
                       {`${group.signalGroup}: ${percentRed.toFixed(2)}%`}
                     </Typography>
                   );
