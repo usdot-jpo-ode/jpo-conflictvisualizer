@@ -1,0 +1,13 @@
+version: "3"
+services:
+  conflictvisualizer-gui:
+    build: .
+    ports:
+      - "3000:3000"
+    image: jpo-conflictvisualizer-gui:latest
+    environment:
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
