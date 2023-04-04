@@ -24,14 +24,14 @@ export const AuthGuard = (props) => {
     if (!session) {
       // session == null
       console.info("Forcing Sign In");
-      //   signIn();
-      // console.log('Not authenticated, redirecting');
-      // router
-      //   .replace({
-      //     pathname: '/sign-in',
-      //     query: router.asPath !== '/' ? { continueUrl: router.asPath } : undefined
-      //   })
-      //   .catch(console.error);
+      signIn();
+      console.log("Not authenticated, redirecting");
+      //   router
+      //     .replace({
+      //       pathname: "/sign-in",
+      //       query: router.asPath !== "/" ? { continueUrl: router.asPath } : undefined,
+      //     })
+      //     .catch(console.error);
       setChecked(true);
     } else {
       setChecked(true);

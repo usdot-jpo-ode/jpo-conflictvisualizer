@@ -1,25 +1,25 @@
 version: "3"
 services:
-  conflictvisualizer-gui:
-    build: 
-      context: gui
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    image: jpo-conflictvisualizer-gui:latest
-    environment:
-      DOCKER_HOST_IP: ${DOCKER_HOST_IP}
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
+  # conflictvisualizer-gui:
+  #   build:
+  #     context: gui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   image: jpo-conflictvisualizer-gui:latest
+  #   environment:
+  #     DOCKER_HOST_IP: ${DOCKER_HOST_IP}
+  #   logging:
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "5"
 
   keycloak:
     container_name: jpo-conflictvisualizer-keycloak
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-    command: 
+    command:
       - start-dev
       - --import-realm
     image: quay.io/keycloak/keycloak
@@ -29,8 +29,8 @@ services:
       - "8084:8080"
 
   conflictvisualizer-api:
-    build: 
-      context: api 
+    build:
+      context: api
       dockerfile: Dockerfile
     ports:
       - "8081:8081"

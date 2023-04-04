@@ -44,7 +44,21 @@ a. Run Keycloak Server Docker Image
 docker run -p 8086:8086 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:20.0.2 start-dev --http-port 8086
 ```
 
-b. Configure keycloak server
+b. Run mailhog server
+
+```
+docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
+```
+
+In Admin Console:
+
+1. Go to Realm Settings-->Email
+2. Set host to DOCKER_HOST_IP
+3. Set port to 1025
+
+Mailhog will run on port 8025
+
+c. Configure keycloak server
 
 - https://www.keycloak.org/getting-started/getting-started-docker
 

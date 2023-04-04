@@ -19,7 +19,7 @@ export const AccountPopover = (props) => {
       signOut();
 
       // Redirect to sign-in page
-      Router.push("/sign-in").catch(console.error);
+      //   Router.push("/sign-in").catch(console.error);
     } catch (err) {
       console.error(err);
     }
@@ -65,7 +65,7 @@ export const AccountPopover = (props) => {
       >
         <MenuItem
           onClick={() => {
-            window.open("http://localhost:8080/realms/cimms/account/#/");
+            window.open("http://localhost:8084/realms/conflictvisualizer/account/#/");
           }}
         >
           Edit Account
