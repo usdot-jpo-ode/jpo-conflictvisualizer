@@ -3,6 +3,13 @@ type User = {
   first_name: string;
   last_name: string;
   role: UserRole;
+  id: string;
 };
 
-type UserRole = "admin" | "user";
+const userRoles = ["admin", "user"] as const;
+type UserRole = typeof userRoles[number];
+
+type KeycloakRole = {
+  id: string;
+  name: string;
+};

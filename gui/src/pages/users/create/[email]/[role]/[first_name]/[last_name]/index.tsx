@@ -5,21 +5,22 @@ import { useRouter } from "next/router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Box, Button, Grid, TextField, Typography } from "@mui/material";
-import { Logo } from "../../../../../components/logo";
+import { Logo } from "../../../../../../../components/logo";
 import { useSession, signIn, signOut } from "next-auth/react";
 import React from "react";
 
 const Page = () => {
 
     const router = useRouter();
-    const { key } = router.query;
-    
+    const { email, role, first_name, last_name } = router.query;
+
   const [emailSent, setEmailSent] = useState(false);
   const formik = useFormik({
     initialValues: {
-      email: "",
-      first_name: "",
-      last_name: "",
+      email: email,
+      first_name: first_name,
+      last_name: last_name,
+      role: role,
       submit: null,
     },
     validationSchema: Yup.object({
@@ -38,24 +39,6 @@ const Page = () => {
       }
     },
   });
-
-  const handleRetry = () => {
-    setEmailSent(false);
-  };
-
-  const handleSkip = () => {
-    // Since skip is requested, we set a fake user as authenticated
-    const user = {};
-
-    // Update Auth Context state
-    // signIn();
-
-    // Persist the skip for AuthProvider initialize call
-    globalThis.sessionStorage.setItem("skip-auth", "true");
-
-    // Redirect to home page
-    Router.push("/").catch(console.error);
-  };
 
   return (
     <>
@@ -116,47 +99,9 @@ const Page = () => {
                   width: "100%",
                 }}
               >
-                {emailSent ? (
                   <div>
                     <Typography sx={{ mb: 1 }} variant="h4">
-                      Confirm your email
-                    </Typography>
-                    <Typography>
-                      We emailed a magic link to&nbsp;
-                      <Box
-                        component="span"
-                        sx={{
-                          color: "primary.main",
-                        }}
-                      >
-                        {formik.values.email}
-                      </Box>
-                      <br />
-                      Click the link to to log in.
-                    </Typography>
-                    <Box
-                      sx={{
-                        alignItems: "center",
-                        display: "flex",
-                        gap: 3,
-                        mt: 3,
-                      }}
-                    >
-                      <Typography color="text.secondary" variant="body2">
-                        Wrong email?
-                      </Typography>
-                      <Button color="inherit" onClick={handleRetry}>
-                        Use a different email
-                      </Button>
-                    </Box>
-                  </div>
-                ) : (
-                  <div>
-                    <Typography sx={{ mb: 1 }} variant="h4">
-                      Sign Up
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
-                      CIMMS Cloud Management Console
+                      Create User
                     </Typography>
                     <div>
                       <TextField
@@ -211,12 +156,8 @@ const Page = () => {
                       >
                         Submit User Creation Request
                       </Button>
-                      <Button fullWidth size="large" sx={{ mt: 3 }} onClick={handleSkip}>
-                        -> Sign In
-                      </Button>
                     </div>
                   </div>
-                )}
               </Box>
             </Box>
           </Grid>

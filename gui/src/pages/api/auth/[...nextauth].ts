@@ -27,9 +27,17 @@ export const authOptions = {
       // Persist the OAuth access_token to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
-        token.role = (parseJwt(account.access_token)?.realm_access?.roles ?? []).includes("ADMIN")
-          ? "admin"
-          : "user";
+        // token.role = "user";
+        const parsedJwt = parseJwt(account.access_token);
+        try {
+          token.role = (parsedJwt?.resource_access?.["realm-management"]?.roles ?? []).includes("ADMIN")
+            ? "admin"
+            : "user";
+        } catch (err) {
+          token.role = err;
+        }
+        token.expirationDate = parsedJwt?.exp;
+        // console.log("TOKEN", token);
         // try {
         //   const payload =
         //   token.role = payload.resource_access.account.roles.contains("admin") ? "admin" : "user";
@@ -42,6 +50,7 @@ export const authOptions = {
     async session({ session, token, user }) {
       // Send properties to the client, like an access_token from a provider.
       session.accessToken = token.accessToken;
+      session.expirationDate = token.expirationDate;
       session.role = token.role;
       return session;
     },

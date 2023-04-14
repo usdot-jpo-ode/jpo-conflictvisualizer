@@ -1,9 +1,6 @@
 import NextLink from "next/link";
-import { useRouter } from "next/router";
-import PropTypes from "prop-types";
-import toast from "react-hot-toast";
-import * as Yup from "yup";
 import { useFormik } from "formik";
+import * as Yup from "yup";
 import {
   Button,
   Card,
@@ -17,34 +14,29 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import React from "react";
 
-export const UserCreateForm = (props) => {
-  const { user }: { user: User } = props;
-  const router = useRouter();
+const Page = () => {
   const formik = useFormik({
     initialValues: {
-      email: user.email ?? "",
-      first_name: user.first_name ?? "",
-      last_name: user.last_name ?? "",
-      role: user.role ?? "user",
+      email: "",
+      first_name: "",
+      last_name: "",
+      role: "USER",
       submit: null,
     },
     validationSchema: Yup.object({
-      name: Yup.string(),
-      value: Yup.string().required("New value is required"),
+      email: Yup.string().email("Must be a valid email").max(255).required("Username is required"),
+      first_name: Yup.string(),
+      last_name: Yup.string(),
     }),
     onSubmit: async (values, helpers) => {
       try {
-        await router
-          .push({
-            pathname: "/users",
-            query: { returnUrl: router.asPath },
-          })
-          .catch(console.error);
-      } catch (err) {
+        // TODO: Submit user creation request
+        helpers.setSubmitting(false);
+      } catch (err: any) {
         console.error(err);
-        helpers.setStatus({ success: false });
-        helpers.setErrors({ submit: err.message });
+        helpers.setFieldError("submit", err.message || "Something went wrong");
         helpers.setSubmitting(false);
       }
     },
@@ -53,7 +45,7 @@ export const UserCreateForm = (props) => {
   return (
     <form onSubmit={formik.handleSubmit}>
       <Card>
-        <CardHeader title="Create User" />
+        <CardHeader title="Override Configuration Parameter" />
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
@@ -106,8 +98,8 @@ export const UserCreateForm = (props) => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
               >
-                <MenuItem value={"user"}>User</MenuItem>
-                <MenuItem value={"admin"}>Admin</MenuItem>
+                <MenuItem value={"ADMIN"}>Administrator</MenuItem>
+                <MenuItem value={"USER"}>User</MenuItem>
               </Select>
             </Grid>
           </Grid>
@@ -121,7 +113,7 @@ export const UserCreateForm = (props) => {
           <Button disabled={formik.isSubmitting} type="submit" sx={{ m: 1 }} variant="contained">
             Create User
           </Button>
-          <NextLink href="/users" passHref>
+          <NextLink href="/configuration" passHref>
             <Button
               component="a"
               disabled={formik.isSubmitting}
@@ -140,6 +132,4 @@ export const UserCreateForm = (props) => {
   );
 };
 
-UserCreateForm.propTypes = {
-  user: PropTypes.object,
-};
+export default Page;

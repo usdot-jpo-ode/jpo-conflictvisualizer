@@ -12,6 +12,13 @@ export const AuthGuard = (props) => {
 
   const loading = status === "loading";
 
+  const expired = (expirationDate: number) => {
+    const now = new Date().getTime();
+    const expiration = expirationDate * 1000;
+    console.log("EXPIRED", now, expiration, now > expiration);
+    return now > expiration;
+  };
+
   // Only do authentication check on component mount.
   // This flow allows you to manually redirect the user after sign-out, otherwise this will be
   // triggered and will automatically redirect to sign-in page.
@@ -21,19 +28,13 @@ export const AuthGuard = (props) => {
       return;
     }
 
-    if (!session) {
-      // session == null
-      console.info("Forcing Sign In");
+    if (!session || expired(session.expirationDate)) {
+      console.info("Forcing Sign In", session);
       signIn();
       console.log("Not authenticated, redirecting");
-      //   router
-      //     .replace({
-      //       pathname: "/sign-in",
-      //       query: router.asPath !== "/" ? { continueUrl: router.asPath } : undefined,
-      //     })
-      //     .catch(console.error);
       setChecked(true);
     } else {
+      console.info("SESSION", session);
       setChecked(true);
     }
   }, [status]);
