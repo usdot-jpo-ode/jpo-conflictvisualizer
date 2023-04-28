@@ -34,6 +34,8 @@ export const UserEditForm = (props: { user: User }) => {
     submit: null,
   };
 
+  console.log(initialValues);
+
   const removeUser = (userId: string) => {
     keycloakApi.removeUser({ token: session?.accessToken!, id: userId });
 
@@ -133,8 +135,8 @@ export const UserEditForm = (props: { user: User }) => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
               >
-                <MenuItem value={"ADMIN"}>Admin</MenuItem>
-                <MenuItem value={"USER"}>User</MenuItem>
+                <MenuItem value={"admin"}>Admin</MenuItem>
+                <MenuItem value={"user"}>User</MenuItem>
               </Select>
             </Grid>
           </Grid>
@@ -149,7 +151,7 @@ export const UserEditForm = (props: { user: User }) => {
           <Button disabled={formik.isSubmitting} type="submit" sx={{ m: 1 }} variant="contained">
             Update
           </Button>
-          <NextLink href="/dashboard/users" passHref>
+          <NextLink href="/users" passHref>
             <Button
               component="a"
               disabled={formik.isSubmitting}

@@ -18,6 +18,7 @@ const UserEdit = () => {
     try {
       if (session?.accessToken) {
         const data = await keycloakApi.getUserInfo({ token: session?.accessToken, id: userId });
+        console.log(data);
 
         setUser(data);
       }

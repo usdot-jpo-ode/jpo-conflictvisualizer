@@ -3,19 +3,35 @@ import Head from "next/head";
 import NextLink from "next/link";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Box, Button, Grid, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Divider,
+  Grid,
+  Box,
+  TextField,
+  Typography,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import { Logo } from "../../components/logo";
-import { useSession, signIn, signOut } from "next-auth/react";
 import Router from "next/router";
 import React from "react";
+import userCreationRequestApi from "../../apis/user-api-management";
+import { useSession } from "next-auth/react";
 
 const Page = () => {
+    const { data: session } = useSession();
   const [emailSent, setEmailSent] = useState(false);
   const formik = useFormik({
     initialValues: {
       email: "",
       first_name: "",
       last_name: "",
+      role: "user",
       submit: null,
     },
     validationSchema: Yup.object({
@@ -26,7 +42,11 @@ const Page = () => {
     onSubmit: async (values, helpers) => {
       try {
         // TODO: Submit user creation request
-        helpers.setSubmitting(false);
+        userCreationRequestApi.createUserCreationRequest({token: session?.accessToken,
+            email: values.email,
+            first_name: values.first_name,
+            last_name: values.last_name,
+            role: values.role})
       } catch (err: any) {
         console.error(err);
         helpers.setFieldError("submit", err.message || "Something went wrong");
@@ -193,6 +213,19 @@ const Page = () => {
                         value={formik.values.last_name}
                         variant="outlined"
                       />
+                      <Grid item md={12} xs={12}>
+                        <Typography>Role</Typography>
+                        <Select
+                          value={formik.values.role}
+                          label="Role"
+                          name="role"
+                          onBlur={formik.handleBlur}
+                          onChange={formik.handleChange}
+                        >
+                          <MenuItem value={"admin"}>Admin</MenuItem>
+                          <MenuItem value={"user"}>User</MenuItem>
+                        </Select>
+                      </Grid>
                       {formik.errors.submit && (
                         <Typography color="error" sx={{ mt: 2 }} variant="body2">
                           {formik.errors.submit}

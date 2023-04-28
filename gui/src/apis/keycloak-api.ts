@@ -1,5 +1,7 @@
-const KEYCLOAK_ENDPOINT = "http://localhost:8084/admin/realms/conflictvisualizer";
+const KEYCLOAK_ADMIN_ENDPOINT = "http://localhost:8084/admin/realms/conflictvisualizer";
+const KEYCLOAK_AUTH_ENDPOINT = "http://localhost:8084/auth/realms/conflictvisualizer";
 import toast, { Toaster } from "react-hot-toast";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 class KeycloakApi {
   isUserAdmin(roles: string[]): boolean {
@@ -8,7 +10,7 @@ class KeycloakApi {
 
   async getGroups({ token }: { token: string }): Promise<KeycloakRole[]> {
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/groups`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/groups`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -31,7 +33,7 @@ class KeycloakApi {
 
   async getUserRoles({ token, id }: { token: string; id: string }): Promise<UserRole | undefined> {
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}/groups`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}/groups`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -119,7 +121,7 @@ class KeycloakApi {
 
   async removeUser({ token, id }: { token: string; id: string }): Promise<boolean> {
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -131,7 +133,7 @@ class KeycloakApi {
   async addUserToGroup({ token, id, role }: { token: string; id: string; role: UserRole }): Promise<boolean> {
     const groupId: string | undefined = (await this.getGroups({ token })).find((r) => r.name === role)?.id;
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}/groups/${groupId}`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}/groups/${groupId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -144,7 +146,7 @@ class KeycloakApi {
   async removeUserFromGroup({ token, id, role }: { token: string; id: string; role: UserRole }): Promise<boolean> {
     const groupId: string | undefined = (await this.getGroups({ token })).find((r) => r.name === role)?.id;
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}/groups/${groupId}`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}/groups/${groupId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -181,7 +183,7 @@ class KeycloakApi {
     }
 
     return (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}`, {
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -205,29 +207,46 @@ class KeycloakApi {
     last_name: string;
     role: UserRole;
   }): Promise<boolean> {
-    const success = (
-      await fetch(`${KEYCLOAK_ENDPOINT}/users`, {
-        method: "POST",
+    const resp = await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: email,
+        email: email,
+        emailVerified: false,
+        firstName: first_name,
+        lastName: last_name,
+        groups: [role],
+        enabled: true,
+        requiredActions: ["UPDATE_PASSWORD", "VERIFY_EMAIL"],
+      }),
+    });
+    if (resp.ok) {
+      const id = await this.getUsersList({ token }).then((users) => users.find((u) => u.email === email)?.id);
+      await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}/execute-actions-email`, {
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username: email,
-          email: email,
-          emailVerified: false,
-          firstName: first_name,
-          lastName: last_name,
-          groups: [role],
-          enabled: true,
-          //   requiredActions: ["UPDATE_PASSWORD", "VERIFY_EMAIL"],
-        }),
-      })
-    ).ok;
-    return success;
-    // if (success) {
-    //     await fetch(`${KEYCLOAK_ENDPOINT}/users/${id}/execute-actions-email`, {)
-    // }
+        body: JSON.stringify(["UPDATE_PASSWORD", "VERIFY_EMAIL"]),
+      });
+    }
+    return resp.ok;
+  }
+
+  async logout({ token, refresh_token }: { token: string; refresh_token: string }): Promise<void> {
+    await fetch(`${KEYCLOAK_AUTH_ENDPOINT}/protocol/openid-connect/logout`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `client_id=conflictvisualizer-gui&refresh_token=${refresh_token}`,
+    });
   }
 }
 

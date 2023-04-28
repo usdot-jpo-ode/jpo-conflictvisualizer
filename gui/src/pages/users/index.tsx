@@ -15,15 +15,14 @@ import {
   TextFieldProps,
   Typography,
 } from "@mui/material";
-import { configParamApi } from "../../apis/configuration-param-api";
-// import { AuthGuard } from '../../../components/authentication/auth-guard';
 import { DashboardLayout } from "../../components/dashboard-layout";
-import { ConfigParamListTable } from "../../components/configuration/configuration-list-table";
 import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import keycloakApi from "../../apis/keycloak-api";
+import userCreationRequestApi from "../../apis/user-api-management";
 import { useSession } from "next-auth/react";
 import { UserListTable } from "../../components/users/user-list-table";
+import { UserCreationRequestListTable } from "../../components/users/user-creation-request-list-table";
 import NextLink from "next/link";
 import { Plus as PlusIcon } from "../../icons/plus";
 import toast, { Toaster } from "react-hot-toast";
@@ -74,6 +73,7 @@ const applyPagination = (users, page, rowsPerPage) => users.slice(page * rowsPer
 const Page = () => {
   const queryRef = useRef<TextFieldProps>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [userCreationRequests, setUserCreationRequests] = useState<User[]>([]);
   const [currentTab, setCurrentTab] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -102,8 +102,23 @@ const Page = () => {
     }
   };
 
+  const getUserCreationRequests = async () => {
+    try {
+      if (session?.accessToken) {
+        // const data = await keycloakApi.getToken({ username: "cm_admin", password: "12345" });
+        const data = await userCreationRequestApi.getUserCreationRequests({ token: session?.accessToken });
+        console.log("RECEIVED DATA: ", data);
+
+        setUserCreationRequests(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     getUsers();
+    getUserCreationRequests();
   }, []);
 
   const handleTabsChange = (event, value) => {
@@ -179,7 +194,10 @@ const Page = () => {
             <Button
               color="primary"
               variant="contained"
-              onClick={getUsers}
+              onClick={() => {
+                getUsers();
+                getUserCreationRequests();
+              }}
               startIcon={<RefreshIcon fontSize="small" />}
               sx={{ m: 1 }}
             >
@@ -239,6 +257,40 @@ const Page = () => {
 
             <UserListTable
               users={paginatedParameters}
+              parametersCount={filteredParameters.length}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              rowsPerPage={rowsPerPage}
+              page={page}
+            />
+          </Card>
+        </Container>
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          py: 8,
+        }}
+      >
+        <Container maxWidth={false}>
+          <Box sx={{ mb: 4 }}>
+            <Grid container justifyContent="space-between" spacing={3}>
+              <Grid item>
+                <Typography variant="h4">Pending User Creation Requests</Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          <Box
+            sx={{
+              m: -1,
+              mt: 3,
+              mb: 3,
+            }}
+          ></Box>
+          <Card>
+            <UserCreationRequestListTable
+              users={userCreationRequests}
               parametersCount={filteredParameters.length}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}

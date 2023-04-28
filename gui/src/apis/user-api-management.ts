@@ -1,7 +1,7 @@
 import { authApiHelper } from "./api-helper";
 
-class NotificationApi {
-  async getActiveNotifications({
+class CreationRequestApi {
+  async createUserCreationRequest({
     token,
     email,
     first_name,
@@ -13,9 +13,9 @@ class NotificationApi {
     first_name: string;
     last_name: string;
     role: UserRole;
-  }): Promise<MessageMonitor.Notification[]> {
+  }) {
     const notifications = await authApiHelper.invokeApi({
-      path: `/users/create`,
+      path: `/users/create_user_creation_request`,
       token: token,
       method: "POST",
       body: {
@@ -28,6 +28,25 @@ class NotificationApi {
 
     return notifications;
   }
+
+  async getUserCreationRequests({ token }: { token: string }): Promise<User[]> {
+    const creationRequests = await authApiHelper.invokeApi({
+      path: `/users/find_user_creation_request`,
+      token: token,
+      method: "GET",
+    });
+
+    return creationRequests;
+  }
+
+  async removeUserCreationRequest({ token, email }: { token: string; email: string }) {
+    await authApiHelper.invokeApi({
+      path: `/users/delete_user_creation_request`,
+      token: token,
+      method: "DELETE",
+      queryParams: { email },
+    });
+  }
 }
 
-export default new NotificationApi();
+export default new CreationRequestApi();
