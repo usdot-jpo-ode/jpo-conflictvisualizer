@@ -17,8 +17,11 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import keycloakApi from "../../apis/keycloak-api";
+import { useSession } from "next-auth/react";
 
 export const UserCreateForm = (props) => {
+  const { data: session } = useSession();
   const { user }: { user: User } = props;
   const router = useRouter();
   const formik = useFormik({
@@ -35,6 +38,13 @@ export const UserCreateForm = (props) => {
     }),
     onSubmit: async (values, helpers) => {
       try {
+        await keycloakApi.createUser({
+          token: session?.accessToken!,
+          email: values.email,
+          first_name: values.first_name,
+          last_name: values.last_name,
+          role: values.role,
+        });
         await router
           .push({
             pathname: "/users",
@@ -67,7 +77,6 @@ export const UserCreateForm = (props) => {
                 type="email"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-                disabled
                 value={formik.values.email}
               />
             </Grid>
@@ -80,7 +89,6 @@ export const UserCreateForm = (props) => {
                 name="first_name"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-                disabled
                 value={formik.values.first_name}
               />
             </Grid>
@@ -111,6 +119,13 @@ export const UserCreateForm = (props) => {
               </Select>
             </Grid>
           </Grid>
+          <Grid item md={12} xs={12} mt={3}>
+            <Typography>
+              {" "}
+              After creating the user, an email will be send to their email address with instructions to set up a
+              password.
+            </Typography>
+          </Grid>
         </CardContent>
         <CardActions
           sx={{
@@ -118,7 +133,13 @@ export const UserCreateForm = (props) => {
             m: -1,
           }}
         >
-          <Button disabled={formik.isSubmitting} type="submit" sx={{ m: 1 }} variant="contained">
+          <Button
+            disabled={formik.isSubmitting}
+            type="submit"
+            sx={{ m: 1 }}
+            variant="contained"
+            onClick={() => formik.handleSubmit()}
+          >
             Create User
           </Button>
           <NextLink href="/users" passHref>

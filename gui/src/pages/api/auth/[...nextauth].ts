@@ -33,6 +33,7 @@ export const authOptions = {
         token.refreshToken = account.refresh_token;
         token.role = "user";
         const parsedJwt = parseJwt(account.access_token);
+        token.userId = parsedJwt?.sub;
         try {
           token.role = (parsedJwt?.resource_access?.["realm-management"]?.roles ?? []).includes("ADMIN")
             ? "admin"
@@ -57,6 +58,7 @@ export const authOptions = {
       session.refreshToken = token.refreshToken;
       session.expirationDate = token.expirationDate;
       session.role = token.role;
+      session.userId = token.userId;
       return session;
     },
   },
@@ -64,11 +66,6 @@ export const authOptions = {
     async signOut({ token }: { token: JWT }) {
       if (token.provider === "keycloak") {
         keycloakApi.logout({ token: token.accessToken, refresh_token: token.refreshToken });
-        // const issuerUrl = (authOptions.providers.find((p) => p.id === "keycloak") as OAuthConfig<KeycloakProfile>)
-        //   .options!.issuer!;
-        // const logOutUrl = new URL(`${issuerUrl}/protocol/openid-connect/logout`);
-        // logOutUrl.searchParams.set("id_token_hint", token.id_token!);
-        // await fetch(logOutUrl);
       }
     },
   },

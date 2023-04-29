@@ -1,7 +1,6 @@
 const KEYCLOAK_ADMIN_ENDPOINT = "http://localhost:8084/admin/realms/conflictvisualizer";
 const KEYCLOAK_AUTH_ENDPOINT = "http://localhost:8084/auth/realms/conflictvisualizer";
-import toast, { Toaster } from "react-hot-toast";
-import { useSession, signIn, signOut } from "next-auth/react";
+import toast from "react-hot-toast";
 
 class KeycloakApi {
   isUserAdmin(roles: string[]): boolean {
@@ -53,7 +52,7 @@ class KeycloakApi {
   }
 
   async getUsersList({ token }: { token: string }): Promise<User[]> {
-    return await fetch(`http://localhost:8084/admin/realms/conflictvisualizer/users`, {
+    return await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -89,7 +88,7 @@ class KeycloakApi {
   }
 
   async getUserInfo({ token, id }: { token: string; id: string }): Promise<User | null> {
-    return await fetch(`http://localhost:8084/admin/realms/conflictvisualizer/users/${id}`, {
+    return await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -105,6 +104,7 @@ class KeycloakApi {
             first_name: kUser.firstName,
             last_name: kUser.lastName,
             role: (await this.getUserRoles({ token, id: kUser.id })) ?? "user",
+            email_preference: kUser.attributes?.EMAIL_FREQUENCY?.[0] ?? "NEVER",
           };
         } else {
           toast.error("Request failed with status code " + response.status + ": " + response.statusText);
@@ -247,6 +247,39 @@ class KeycloakApi {
       },
       body: `client_id=conflictvisualizer-gui&refresh_token=${refresh_token}`,
     });
+  }
+
+  async updateAttributes({
+    token,
+    id,
+    attribute,
+  }: {
+    id: string;
+    token: string;
+    attribute: Record<string, string[]>;
+  }): Promise<boolean> {
+    const attributes = (
+      await (
+        await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      ).json()
+    ).attributes;
+
+    const resp = await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        attributes: { ...attributes, ...attribute },
+      }),
+    });
+    return resp.ok;
   }
 }
 
