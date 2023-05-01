@@ -38,6 +38,7 @@ class AuthApiHelper {
     console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
+    localHeaders["Authorization"] = `Bearer ${token}`;
     if (method === "POST" && body) {
       localHeaders["Content-Type"] = "application/json";
     }
@@ -56,7 +57,7 @@ class AuthApiHelper {
           console.error("Request failed with status code " + response.status + ": " + response.statusText);
           if (response.status === 401) {
             toast.error("Authentication failed, please sign in again");
-            signIn();
+            // signIn();
           } else if (response.status === 403) {
             toast.error("You are not authorized to perform this action.");
           } else if (toastOnFailure)

@@ -65,7 +65,7 @@ export const AccountPopover = (props) => {
       >
         <MenuItem
           onClick={() => {
-            window.open("http://localhost:8084/realms/conflictvisualizer/account/#/");
+            window.open(`http://${process.env.DOCKER_HOST_IP}:8084/realms/conflictvisualizer/account/#/`);
           }}
         >
           Edit Account

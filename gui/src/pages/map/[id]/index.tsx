@@ -16,7 +16,7 @@ const Map = () => {
   const updateNotifications = () => {
     NotificationApi.getActiveNotifications({
       token: "token",
-      intersection_id: dbIntersectionId.toString(),
+      intersection_id: (dbIntersectionId ?? 12109).toString(),
       key: id as string,
     }).then((notifications) => {
       const notif = notifications.pop();
@@ -41,10 +41,7 @@ const Map = () => {
           py: 8,
         }}
       >
-        <Container
-          maxWidth={false}
-          style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}
-        >
+        <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
           <MapTab notification={notification} />
         </Container>
       </Box>

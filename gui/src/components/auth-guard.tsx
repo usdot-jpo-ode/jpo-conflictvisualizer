@@ -28,7 +28,7 @@ export const AuthGuard = (props) => {
       return;
     }
 
-    if (!session || expired(session.expirationDate)) {
+    if (!session || expired(session.expirationDate!)) {
       console.info("Forcing Sign In", session);
       signIn();
       console.log("Not authenticated, redirecting");

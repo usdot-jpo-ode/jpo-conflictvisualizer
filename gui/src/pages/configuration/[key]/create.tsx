@@ -16,12 +16,7 @@ const ConfigParamCreate = () => {
 
   const getParameter = async (key: string) => {
     try {
-      const data = await configParamApi.getParameter(
-        "token",
-        key,
-        "-1",
-        dbIntersectionId.toString()
-      );
+      const data = await configParamApi.getParameter("token", key, "-1", (dbIntersectionId ?? 12109).toString());
 
       setParameter(data);
     } catch (err) {

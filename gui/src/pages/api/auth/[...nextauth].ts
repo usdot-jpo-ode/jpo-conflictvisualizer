@@ -65,7 +65,7 @@ export const authOptions = {
   events: {
     async signOut({ token }: { token: JWT }) {
       if (token.provider === "keycloak") {
-        keycloakApi.logout({ token: token.accessToken, refresh_token: token.refreshToken });
+        keycloakApi.logout({ token: token.accessToken as string, refresh_token: token.refreshToken as string });
       }
     },
   },

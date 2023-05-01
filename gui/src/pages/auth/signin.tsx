@@ -6,18 +6,21 @@ import { Logo } from "../../components/logo";
 import { getProviders, signIn } from "next-auth/react";
 import React from "react";
 
+interface Provider {
+  id: string;
+  name: string;
+}
 
 const Page = () => {
-
-
-    const [providers, setProviders] = useState([]);
+  const [providers, setProviders] = useState<Record<string, Provider>>({});
 
   useEffect(() => {
     (async () => {
       const res = await getProviders();
       console.log(res);
-      setProviders(res);
+      setProviders(res!);
     })();
+    console.log("DOCKER_HOST_IP", process.env.DOCKER_HOST_IP);
   }, []);
 
   return (
@@ -79,37 +82,41 @@ const Page = () => {
                   width: "100%",
                 }}
               >
+                <div>
+                  <Typography sx={{ mb: 1 }} variant="h4">
+                    Sign In
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
+                    CIMMS Cloud Management Console
+                  </Typography>
                   <div>
-                    <Typography sx={{ mb: 1 }} variant="h4">
-                      Sign In
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
-                      CIMMS Cloud Management Console
-                    </Typography>
-                    <div>
                     {Object.values(providers).map((provider) => (
-                        <div key={provider.name}>
-                        <Button onClick={() => signIn(provider.id, { callbackUrl: 'http://localhost:3000/' })} 
-                        variant="contained">
-                            Sign in with {provider.name}
+                      <div key={provider.name}>
+                        <Button
+                          onClick={() =>
+                            signIn(provider.id, { callbackUrl: `http://${process.env.DOCKER_HOST_IP}:3000/` })
+                          }
+                          variant="contained"
+                        >
+                          Sign in with {provider.name}
                         </Button>
-                        </div>
+                      </div>
                     ))}
-                    
-          <NextLink href="/auth/signup" passHref>
-            <Button
-              component="a"
-              sx={{
-                m: 1,
-                mr: "auto",
-              }}
-              variant="outlined"
-            >
-              -> Sign Up
-            </Button>
-          </NextLink>
-                    </div>
+
+                    <NextLink href="/auth/signup" passHref>
+                      <Button
+                        component="a"
+                        sx={{
+                          m: 1,
+                          mr: "auto",
+                        }}
+                        variant="outlined"
+                      >
+                        -{">"} Sign Up
+                      </Button>
+                    </NextLink>
                   </div>
+                </div>
               </Box>
             </Box>
           </Grid>
