@@ -87,6 +87,35 @@ class KeycloakApi {
       });
   }
 
+  //   async getUsersList({ token }: { token: string }): Promise<User[]> {
+  //     return await authApiHelper
+  //       .invokeApi({
+  //         path: "/users",
+  //         basePath: KEYCLOAK_ADMIN_ENDPOINT,
+  //         method: "GET",
+  //         token: token,
+  //       })
+  //       .then(async (body) => {
+  //         return await Promise.all(
+  //           body.map(async (kUser: any) => {
+  //             const user: User = {
+  //               id: kUser.id,
+  //               email: kUser.username,
+  //               first_name: kUser.firstName,
+  //               last_name: kUser.lastName,
+  //               role: (await this.getUserRoles({ token, id: kUser.id })) ?? "user",
+  //             };
+  //             return user;
+  //           })
+  //         );
+  //       })
+  //       .catch((e) => {
+  //         toast.error("Request failed: " + e.message);
+  //         console.error(e);
+  //         return [];
+  //       });
+  //   }
+
   async getUserInfo({ token, id }: { token: string; id: string }): Promise<User | null> {
     return await fetch(`${KEYCLOAK_ADMIN_ENDPOINT}/users/${id}`, {
       method: "GET",

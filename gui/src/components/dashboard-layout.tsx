@@ -28,7 +28,7 @@ export const DashboardLayout = (props) => {
   useEffect(() => {
     MessageMonitorApi.getIntersections({ token: "token" }).then((intersections) => {
       setIntersections(intersections);
-      setIntersection(intersections.pop()?.intersectionID);
+      setIntersection(intersections?.[0]?.intersectionID);
     });
   }, []);
 

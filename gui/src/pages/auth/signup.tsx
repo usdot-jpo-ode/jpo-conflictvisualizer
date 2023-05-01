@@ -24,7 +24,7 @@ import userCreationRequestApi from "../../apis/user-api-management";
 import { useSession } from "next-auth/react";
 
 const Page = () => {
-    const { data: session } = useSession();
+  const { data: session } = useSession();
   const [emailSent, setEmailSent] = useState(false);
   const formik = useFormik({
     initialValues: {
@@ -42,11 +42,13 @@ const Page = () => {
     onSubmit: async (values, helpers) => {
       try {
         // TODO: Submit user creation request
-        userCreationRequestApi.createUserCreationRequest({token: session?.accessToken,
-            email: values.email,
-            first_name: values.first_name,
-            last_name: values.last_name,
-            role: values.role})
+        userCreationRequestApi.createUserCreationRequest({
+          token: session?.accessToken!,
+          email: values.email,
+          first_name: values.first_name,
+          last_name: values.last_name,
+          role: values.role as UserRole,
+        });
       } catch (err: any) {
         console.error(err);
         helpers.setFieldError("submit", err.message || "Something went wrong");
@@ -241,7 +243,7 @@ const Page = () => {
                         Submit User Creation Request
                       </Button>
                       <Button fullWidth size="large" sx={{ mt: 3 }} onClick={handleSkip}>
-                        -> Sign In
+                        -{">"} Sign In
                       </Button>
                     </div>
                   </div>

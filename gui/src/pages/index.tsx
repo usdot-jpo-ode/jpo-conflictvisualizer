@@ -42,28 +42,28 @@ const Page = () => {
       (await AssessmentsApi.getAssessment(
         "token",
         "signal_state_assessment",
-        dbIntersectionId
+        (dbIntersectionId ?? 12109)
       )) as SignalStateAssessment
     );
     setSignalStateEventAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "signal_state_event_assessment",
-        dbIntersectionId
+        (dbIntersectionId ?? 12109)
       )) as SignalStateEventAssessment
     );
     setConnectionOfTravelAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "connection_of_travel",
-        dbIntersectionId
+        (dbIntersectionId ?? 12109)
       )) as ConnectionOfTravelAssessment
     );
     setLaneDirectionOfTravelAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "lane_direction_of_travel",
-        dbIntersectionId
+        (dbIntersectionId ?? 12109)
       )) as LaneDirectionOfTravelAssessment
     );
   };

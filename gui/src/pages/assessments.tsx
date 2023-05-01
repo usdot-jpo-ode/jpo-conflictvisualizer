@@ -95,13 +95,11 @@ const Page = () => {
   });
   const { intersectionId: dbIntersectionId } = useDashboardContext();
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<
-    SignalStateAssessment | undefined
-  >(undefined);
+  const [signalStateAssessment, setSignalStateAssessment] = useState<SignalStateAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
-  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<
-    SignalStateEventAssessment | undefined
-  >(undefined);
+  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
+    undefined
+  );
   const [connectionOfTravelAssessment, setConnectionOfTravelAssessment] = useState<
     ConnectionOfTravelAssessment | undefined
   >(undefined);
@@ -114,36 +112,34 @@ const Page = () => {
       (await AssessmentsApi.getAssessment(
         "token",
         "signal_state_assessment",
-        dbIntersectionId
+        dbIntersectionId ?? 12109
       )) as SignalStateAssessment
     );
     setSignalStateEventAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "signal_state_event_assessment",
-        dbIntersectionId
+        dbIntersectionId ?? 12109
       )) as SignalStateEventAssessment
     );
     setConnectionOfTravelAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "connection_of_travel",
-        dbIntersectionId
+        dbIntersectionId ?? 12109
       )) as ConnectionOfTravelAssessment
     );
     setLaneDirectionOfTravelAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
         "lane_direction_of_travel",
-        dbIntersectionId
+        dbIntersectionId ?? 12109
       )) as LaneDirectionOfTravelAssessment
     );
   };
 
   const updateNotifications = () => {
-    setNotifications(
-      NotificationApi.getActiveNotifications({ token: "", intersection_id: "12109" })
-    );
+    setNotifications(NotificationApi.getActiveNotifications({ token: "", intersection_id: "12109" }));
   };
 
   useEffect(() => {
@@ -206,10 +202,7 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3}>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <ConnectionOfTravelAssessmentCard
-                assessment={connectionOfTravelAssessment}
-                small={false}
-              />
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={false} />
             </Grid>
             <Grid item xl={3} lg={3} sm={6} xs={12}>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
