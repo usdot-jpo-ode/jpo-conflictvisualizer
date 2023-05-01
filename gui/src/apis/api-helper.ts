@@ -38,7 +38,7 @@ class AuthApiHelper {
     console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
-    localHeaders["Authorization"] = `Bearer ${token}`;
+    // localHeaders["Authorization"] = `Bearer ${token}`;
     if (method === "POST" && body) {
       localHeaders["Content-Type"] = "application/json";
     }
