@@ -2,16 +2,7 @@ import { useEffect } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  Typography,
-  useMediaQuery,
-  Theme,
-  Chip,
-} from "@mui/material";
+import { Box, Button, Divider, Drawer, Typography, useMediaQuery, Theme, Chip } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { ChartBar as ChartBarIcon } from "../icons/chart-bar";
 import { Cog as CogIcon } from "../icons/cog";
@@ -54,11 +45,11 @@ const generalItems = [
     icon: <ChartBarIcon fontSize="small" />,
     title: "Data Selector",
   },
-  //   {
-  //     path: "/users",
-  //     icon: <UsersIcon fontSize="small" />,
-  //     title: "Users",
-  //   },
+  {
+    path: "/users",
+    icon: <UsersIcon fontSize="small" />,
+    title: "Users",
+  },
   {
     path: "/configuration",
     icon: <CogIcon fontSize="small" />,
@@ -140,12 +131,12 @@ export const DashboardSidebar = (props) => {
             <DashboardSidebarSection
               key={section.title}
               path={router.asPath}
-            //   sx={{
-            //     mt: 2,
-            //     "& + &": {
-            //       mt: 2,
-            //     },
-            //   }}
+              //   sx={{
+              //     mt: 2,
+              //     "& + &": {
+              //       mt: 2,
+              //     },
+              //   }}
               {...section}
             />
           ))}

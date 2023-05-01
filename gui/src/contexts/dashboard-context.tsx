@@ -3,19 +3,28 @@ import PropTypes from "prop-types";
 import { auth, ENABLE_AUTH } from "../lib/auth";
 import React from "react";
 
-type DashboardContextType = {
-  intersectionId: number;
-  roadRegulatorId: number;
-};
+interface DashboardContextType {
+  intersectionId?: number;
+  roadRegulatorId?: number;
+  user?: User;
+  setIntersection: (intersectionId?: number) => void;
+  setRoadRegulator: (intersectionId: number, roadRegulatorId: number) => void;
+  setUser: (user: User) => void;
+}
 
 const HANDLERS = {
   SET_INTERSECTION: "SET_INTERSECTION",
   SET_ROAD_REGULATOR: "SET_ROAD_REGULATOR",
+  SET_USER: "SET_USER",
 };
 
 const initialState = {
   intersectionId: 12109,
   roadRegulatorId: -1,
+  user: undefined,
+  setIntersection: () => {},
+  setRoadRegulator: () => {},
+  setUser: () => {},
 };
 
 const handlers = {
@@ -37,10 +46,17 @@ const handlers = {
       intersectionId,
     };
   },
+  [HANDLERS.SET_USER]: (state, action) => {
+    const user = action.payload;
+
+    return {
+      ...state,
+      user,
+    };
+  },
 };
 
-const reducer = (state, action) =>
-  handlers[action.type] ? handlers[action.type](state, action) : state;
+const reducer = (state, action) => (handlers[action.type] ? handlers[action.type](state, action) : state);
 
 // The role of this context is to propagate authentication state through the App tree.
 
@@ -64,12 +80,20 @@ export const DashboardProvider = (props) => {
     });
   };
 
+  const setUser = (user: User) => {
+    dispatch({
+      type: HANDLERS.SET_USER,
+      payload: { user },
+    });
+  };
+
   return (
     <DashboardContext.Provider
       value={{
         ...state,
         setIntersection,
         setRoadRegulator,
+        setUser,
       }}
     >
       {children}

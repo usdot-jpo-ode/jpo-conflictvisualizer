@@ -5,14 +5,22 @@ import React, { useEffect, useState, useRef } from "react";
 import MapTab from "../../../components/map/map-component";
 import { useRouter } from "next/router";
 import NotificationApi from "../../../apis/notification-api";
+import { useDashboardContext } from "../../../contexts/dashboard-context";
 
 const Map = () => {
   const router = useRouter();
   const { id } = router.query;
   const [notification, setNotification] = useState<MessageMonitor.Notification | undefined>();
+  const { intersectionId: dbIntersectionId } = useDashboardContext();
 
   const updateNotifications = () => {
-    NotificationApi.getNotification({ token: "token", id: id as string }).then((notif) => {
+    NotificationApi.getActiveNotifications({
+      token: "token",
+      intersection_id: dbIntersectionId.toString(),
+      key: id as string,
+    }).then((notifications) => {
+      const notif = notifications.pop();
+      console.log(notif);
       setNotification(notif);
     });
   };

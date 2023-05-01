@@ -112,10 +112,8 @@ export const DataSelectorEditForm = (props) => {
   });
 
   const onTypeChange = (newType) => {
-    // formik.setFieldValue("bsmVehicleId", null);
-    // formik.setFieldValue("eventType", "Any");
-    // formik.setFieldValue("assessmentTypes", "Any");
-    // formik.setFieldValue("notificationId", "Any");
+    formik.setFieldValue("eventTypes", [] as Item[]);
+    formik.setFieldValue("assessmentTypes", [] as Item[]);
   };
 
   const getTypeSpecificFilters = (type) => {

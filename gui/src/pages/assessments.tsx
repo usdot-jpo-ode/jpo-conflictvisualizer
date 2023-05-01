@@ -127,7 +127,7 @@ const Page = () => {
     setConnectionOfTravelAssessment(
       (await AssessmentsApi.getAssessment(
         "token",
-        "conenction_of_travel",
+        "connection_of_travel",
         dbIntersectionId
       )) as ConnectionOfTravelAssessment
     );

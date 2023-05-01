@@ -39,7 +39,7 @@ export const CustomerListResults = ({
     let newSelectedCustomerIds: string[] = [];
     if (notificationsCount === 0) return;
     if (event.target.checked) {
-      newSelectedCustomerIds = allTabNotifications.map((customer) => customer.id);
+      newSelectedCustomerIds = allTabNotifications.map((customer) => customer.key);
     } else {
       newSelectedCustomerIds = [];
     }
@@ -47,11 +47,13 @@ export const CustomerListResults = ({
     onSelectedItemsChanged(newSelectedCustomerIds);
   };
 
-  const handleSelectOne = (event, notificationId) => {
+  const handleSelectOne = (event, notificationId: string) => {
     if (!selectedNotifications.includes(notificationId)) {
-      onSelectedItemsChanged((prevSelected) => [...prevSelected, notificationId]);
+      onSelectedItemsChanged((prevSelected: string[]) => [...prevSelected, notificationId]);
     } else {
-      onSelectedItemsChanged((prevSelected) => prevSelected.filter((id) => id !== notificationId));
+      onSelectedItemsChanged((prevSelected: string[]) =>
+        prevSelected.filter((key: string) => key !== notificationId)
+      );
     }
   };
 
@@ -85,18 +87,18 @@ export const CustomerListResults = ({
             <TableBody>
               {customers.map((customer: MessageMonitor.Notification) => {
                 const isNotificationSelected =
-                  [...selectedNotifications].indexOf(customer.id) !== -1;
-
+                  [...selectedNotifications].indexOf(customer.key) !== -1;
+                console.log(customer);
                 return (
                   <TableRow
                     hover
-                    key={customer.id}
-                    selected={[...selectedNotifications].indexOf(customer.id) !== -1}
+                    key={customer.key}
+                    selected={[...selectedNotifications].indexOf(customer.key) !== -1}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={isNotificationSelected}
-                        onChange={(event) => handleSelectOne(event, customer.id)}
+                        onChange={(event) => handleSelectOne(event, customer.key)}
                         value="true"
                       />
                     </TableCell>
@@ -122,7 +124,7 @@ export const CustomerListResults = ({
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
                       </NextLink> */}
-                      <NextLink href={`/map/${customer.id}`} passHref>
+                      <NextLink href={`/map/${customer.key}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
