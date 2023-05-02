@@ -55,7 +55,6 @@ function stringToColor(string?: string) {
 }
 
 function stringAvatar(name?: string) {
-  console.log(name);
   return {
     sx: {
       bgcolor: stringToColor(name),

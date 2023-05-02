@@ -16,12 +16,13 @@ export const authOptions = {
   // Configure one or more authentication providers
   providers: [
     KeycloakProvider({
-      issuer: process.env.KEYCLOAK_BASE_URL!,
+      issuer: `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`,
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
     }),
     // ...add more providers here
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/signin",
   },
@@ -31,24 +32,18 @@ export const authOptions = {
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
-        token.role = "user";
+        token.role = "USER";
         const parsedJwt = parseJwt(account.access_token);
         token.userId = parsedJwt?.sub;
         try {
-          token.role = (parsedJwt?.resource_access?.["realm-management"]?.roles ?? []).includes("ADMIN")
-            ? "admin"
-            : "user";
+          token.role = (parsedJwt?.resource_access?.["realm-management"]?.roles ?? []).includes("manage-users")
+            ? "ADMIN"
+            : "USER";
         } catch (err) {
           token.role = err;
         }
         token.expirationDate = parsedJwt?.exp;
         console.log("TOKEN", token);
-        // try {
-        //   //   const payload =
-        //   token.role = parsedJwt.resource_access.account.roles.contains("admin") ? "admin" : "user";
-        // } catch (err) {
-        //   console.error(err);
-        // }
       }
       return token;
     },

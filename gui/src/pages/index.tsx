@@ -1,13 +1,5 @@
 import Head from "next/head";
 import { Box, Container, Grid } from "@mui/material";
-import { Budget } from "../components/dashboard/budget";
-import { LatestOrders } from "../components/dashboard/latest-orders";
-import { LatestProducts } from "../components/dashboard/latest-products";
-import { Sales } from "../components/dashboard/sales";
-import { TasksProgress } from "../components/dashboard/tasks-progress";
-import { TotalCustomers } from "../components/dashboard/total-customers";
-import { TotalProfit } from "../components/dashboard/total-profit";
-import { TrafficByDevice } from "../components/dashboard/traffic-by-device";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { NotificationsTable } from "../components/notifications/notifications-table";
 import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
@@ -17,55 +9,61 @@ import { SignalStateEventAssessmentCard } from "../components/assessments/signal
 import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const Page = () => {
   const [assessment, setAssessments] = useState<Assessment[]>([]);
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
 
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<
-    SignalStateAssessment | undefined
-  >(undefined);
+  const [signalStateAssessment, setSignalStateAssessment] = useState<SignalStateAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
-  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<
-    SignalStateEventAssessment | undefined
-  >(undefined);
+  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
+    undefined
+  );
   const [connectionOfTravelAssessment, setConnectionOfTravelAssessment] = useState<
     ConnectionOfTravelAssessment | undefined
   >(undefined);
   const [laneDirectionOfTravelAssessment, setLaneDirectionOfTravelAssessment] = useState<
     LaneDirectionOfTravelAssessment | undefined
   >(undefined);
+  const { data: session } = useSession();
 
   const getAssessments = async () => {
-    setSignalStateAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "signal_state_assessment",
-        (dbIntersectionId ?? 12109)
-      )) as SignalStateAssessment
-    );
-    setSignalStateEventAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "signal_state_event_assessment",
-        (dbIntersectionId ?? 12109)
-      )) as SignalStateEventAssessment
-    );
-    setConnectionOfTravelAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "connection_of_travel",
-        (dbIntersectionId ?? 12109)
-      )) as ConnectionOfTravelAssessment
-    );
-    setLaneDirectionOfTravelAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "lane_direction_of_travel",
-        (dbIntersectionId ?? 12109)
-      )) as LaneDirectionOfTravelAssessment
-    );
+    if (intersectionId && roadRegulatorId && session?.accessToken) {
+      setSignalStateAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "signal_state_assessment",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as SignalStateAssessment
+      );
+      setSignalStateEventAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "signal_state_event_assessment",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as SignalStateEventAssessment
+      );
+      setConnectionOfTravelAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "connection_of_travel",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as ConnectionOfTravelAssessment
+      );
+      setLaneDirectionOfTravelAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "lane_direction_of_travel",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as LaneDirectionOfTravelAssessment
+      );
+    }
   };
 
   useEffect(() => {
@@ -87,10 +85,7 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3}>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <ConnectionOfTravelAssessmentCard
-                assessment={connectionOfTravelAssessment}
-                small={true}
-              />
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={true} />
             </Grid>
             <Grid item xl={3} lg={3} sm={6} xs={12}>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />

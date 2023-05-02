@@ -4,21 +4,16 @@ import PropTypes from "prop-types";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  TextField,
-} from "@mui/material";
+import { Button, Card, CardActions, CardContent, CardHeader, Divider, Grid, TextField } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
+import { useDashboardContext } from "../../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 export const ConfigParamRemoveForm = (props) => {
   const { parameter, defaultParameter, ...other } = props;
   const router = useRouter();
+  const { data: session } = useSession();
+  const { intersectionId } = useDashboardContext();
   const formik = useFormik({
     initialValues: {
       name: parameter.key,
@@ -30,8 +25,11 @@ export const ConfigParamRemoveForm = (props) => {
     },
     validationSchema: Yup.object({}),
     onSubmit: async (values, helpers) => {
+      if (!session?.accessToken || !intersectionId) {
+        return;
+      }
       try {
-        await configParamApi.removeOverriddenParameter("token", values.name, parameter, 12109);
+        await configParamApi.removeOverriddenParameter(session?.accessToken, values.name, parameter);
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);
         router

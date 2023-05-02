@@ -1,10 +1,8 @@
-import { useState } from "react";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import NextLink from "next/link";
 import {
-  Avatar,
   Box,
   Card,
   Checkbox,
@@ -17,14 +15,10 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { getInitials } from "../../utils/get-initials";
 import React from "react";
-import { v4 as uuid } from "uuid";
-import { PencilAlt as PencilAltIcon } from "../../icons/pencil-alt";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
-import { ConstructionOutlined } from "@mui/icons-material";
 
-export const CustomerListResults = ({
+export const NotificationsTableResults = ({
   customers,
   allTabNotifications,
   notificationsCount,
@@ -51,9 +45,7 @@ export const CustomerListResults = ({
     if (!selectedNotifications.includes(notificationId)) {
       onSelectedItemsChanged((prevSelected: string[]) => [...prevSelected, notificationId]);
     } else {
-      onSelectedItemsChanged((prevSelected: string[]) =>
-        prevSelected.filter((key: string) => key !== notificationId)
-      );
+      onSelectedItemsChanged((prevSelected: string[]) => prevSelected.filter((key: string) => key !== notificationId));
     }
   };
 
@@ -66,14 +58,10 @@ export const CustomerListResults = ({
               <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={
-                      selectedNotifications.length === notificationsCount &&
-                      selectedNotifications.length
-                    }
+                    checked={selectedNotifications.length === notificationsCount && selectedNotifications.length}
                     color="primary"
                     indeterminate={
-                      selectedNotifications.length > 0 &&
-                      selectedNotifications.length < notificationsCount
+                      selectedNotifications.length > 0 && selectedNotifications.length < notificationsCount
                     }
                     onChange={handleSelectAll}
                   />
@@ -86,15 +74,9 @@ export const CustomerListResults = ({
             </TableHead>
             <TableBody>
               {customers.map((customer: MessageMonitor.Notification) => {
-                const isNotificationSelected =
-                  [...selectedNotifications].indexOf(customer.key) !== -1;
-                console.log(customer);
+                const isNotificationSelected = [...selectedNotifications].indexOf(customer.key) !== -1;
                 return (
-                  <TableRow
-                    hover
-                    key={customer.key}
-                    selected={[...selectedNotifications].indexOf(customer.key) !== -1}
-                  >
+                  <TableRow hover key={customer.key} selected={[...selectedNotifications].indexOf(customer.key) !== -1}>
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={isNotificationSelected}
@@ -114,16 +96,9 @@ export const CustomerListResults = ({
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>
-                      {format(customer.notificationGeneratedAt, "dd/MM/yyyy HH:mm:ss")}
-                    </TableCell>
+                    <TableCell>{format(customer.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell>{customer.notificationText}</TableCell>
                     <TableCell align="right">
-                      {/* <NextLink href={`/notifications/${customer.notificationType}`} passHref>
-                        <IconButton component="a">
-                          <MapRoundedIcon fontSize="medium" />
-                        </IconButton>
-                      </NextLink> */}
                       <NextLink href={`/map/${customer.key}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
@@ -150,7 +125,7 @@ export const CustomerListResults = ({
   );
 };
 
-CustomerListResults.propTypes = {
+NotificationsTableResults.propTypes = {
   customers: PropTypes.array.isRequired,
   onSelectedItemsChanged: PropTypes.func,
 };

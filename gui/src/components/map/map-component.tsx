@@ -13,6 +13,7 @@ import { useDashboardContext } from "../../contexts/dashboard-context";
 import { Marker } from "mapbox-gl";
 import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
+import { useSession } from "next-auth/react";
 
 const allInteractiveLayerIds = [
   "mapMessage",
@@ -194,8 +195,8 @@ type MyProps = {
 };
 
 const MapTab = (props: MyProps) => {
-  const MAPBOX_TOKEN =
-    "pk.eyJ1IjoidG9ueWVuZ2xpc2giLCJhIjoiY2tzajQwcDJvMGQ3bjJucW0yaDMxbThwYSJ9.ff26IdP_Y9hiE82AGx_wCg"; //process.env.MAPBOX_TOKEN!;
+  const MAPBOX_API_TOKEN = process.env.MAPBOX_TOKEN!;
+  // "pk.eyJ1IjoidG9ueWVuZ2xpc2giLCJhIjoiY2tzajQwcDJvMGQ3bjJucW0yaDMxbThwYSJ9.ff26IdP_Y9hiE82AGx_wCg"; //;
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;
@@ -236,19 +237,17 @@ const MapTab = (props: MyProps) => {
   const { intersectionId: dbIntersectionId } = useDashboardContext();
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
+  const { data: session } = useSession();
 
   useEffect(() => {
-    console.log("SELECTED FEATURE", selectedFeature);
+    console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
   const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
     mapMessage.mapFeatureCollection.features.forEach((mapFeature: MapFeature) => {
-      if (
-        !mapFeature.properties.ingressApproach ||
-        !mapFeature?.properties?.connectsTo?.[0]?.signalGroup
-      ) {
+      if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
       }
       features.push({
@@ -351,10 +350,7 @@ const MapTab = (props: MyProps) => {
           },
           geometry: {
             type: "Point",
-            coordinates: [
-              bsm.payload.data.coreData.position.longitude,
-              bsm.payload.data.coreData.position.latitude,
-            ],
+            coordinates: [bsm.payload.data.coreData.position.longitude, bsm.payload.data.coreData.position.latitude],
           },
         };
       }),
@@ -371,9 +367,7 @@ const MapTab = (props: MyProps) => {
       features: connectingLanes.features.filter((feature) => {
         const val: boolean =
           signalGroups.find(
-            (signalGroup) =>
-              signalGroup.signalGroup == feature.properties.signalGroupId &&
-              signalGroup.state != state
+            (signalGroup) => signalGroup.signalGroup == feature.properties.signalGroupId && signalGroup.state != state
           ) !== undefined;
         return !val;
       }),
@@ -389,9 +383,7 @@ const MapTab = (props: MyProps) => {
     const green: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     prevSignalStates.features.forEach((feature) => {
       feature.properties.color = parseSignalStateToColor(
-        signalGroups?.find(
-          (signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup
-        )?.state
+        signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state
       );
       if (feature.properties.color == RED_LIGHT) red.features.push(feature);
       if (feature.properties.color == YELLOW_LIGHT) yellow.features.push(feature);
@@ -405,9 +397,12 @@ const MapTab = (props: MyProps) => {
   //   }, []);
 
   const pullInitialData = async () => {
+    if (!session?.accessToken || !dbIntersectionId) {
+      return;
+    }
     const rawMap: ProcessedMap[] = await MessageMonitorApi.getMapMessages({
-      token: "token",
-      intersection_id: dbIntersectionId,
+      token: session?.accessToken,
+      intersection_id: dbIntersectionId?.toString(),
       startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
       endTime: queryParams.endDate,
       latest: true,
@@ -416,7 +411,6 @@ const MapTab = (props: MyProps) => {
       console.info("NO MAP MESSAGES WITHIN TIME");
       return;
     }
-    console.log(rawMap);
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
@@ -425,8 +419,8 @@ const MapTab = (props: MyProps) => {
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
 
     const rawSpat = await MessageMonitorApi.getSpatMessages({
-      token: "token",
-      intersection_id: dbIntersectionId,
+      token: session?.accessToken,
+      intersection_id: dbIntersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
@@ -436,7 +430,7 @@ const MapTab = (props: MyProps) => {
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     const rawBsm = await MessageMonitorApi.getBsmMessages({
-      token: "token",
+      token: session?.accessToken,
       vehicleId: queryParams.vehicleId,
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
@@ -480,8 +474,7 @@ const MapTab = (props: MyProps) => {
       if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
         if (
           closestSignalGroup === null ||
-          Math.abs(datetimeNum - renderTimeInterval[0]) <
-            Math.abs(closestSignalGroup.datetime - renderTimeInterval[0])
+          Math.abs(datetimeNum - renderTimeInterval[0]) < Math.abs(closestSignalGroup.datetime - renderTimeInterval[0])
         ) {
           closestSignalGroup = { datetime: datetimeNum, spat: spatSignalGroups[datetime] };
         }
@@ -489,9 +482,7 @@ const MapTab = (props: MyProps) => {
     }
     if (closestSignalGroup !== null) {
       setCurrentSignalGroups(closestSignalGroup.spat);
-      setSignalStateData(
-        generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat)
-      );
+      setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
     } else {
       setCurrentSignalGroups(undefined);
       setSignalStateData(undefined);
@@ -546,10 +537,7 @@ const MapTab = (props: MyProps) => {
     downloadJsonFile(rawData["map"], `intersection_${dbIntersectionId}_MAP_data.json`);
     downloadJsonFile(rawData["spat"], `intersection_${dbIntersectionId}_SPAT_data.json`);
     downloadJsonFile(rawData["bsm"], `intersection_${dbIntersectionId}_BSM_data.json`);
-    downloadJsonFile(
-      rawData["notification"],
-      `intersection_${dbIntersectionId}_Notification_data.json`
-    );
+    downloadJsonFile(rawData["notification"], `intersection_${dbIntersectionId}_Notification_data.json`);
   };
 
   const onTimeQueryChanged = (
@@ -572,7 +560,7 @@ const MapTab = (props: MyProps) => {
     const features = mapRef.current.queryRenderedFeatures(e.point, {
       //   layers: allInteractiveLayerIds,
     });
-    console.log("CLICKED", features, e);
+    console.debug("CLICKED", features, e);
 
     const feature = features?.[0];
     if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
@@ -630,7 +618,7 @@ const MapTab = (props: MyProps) => {
           }}
           //   mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
           mapStyle="mapbox://styles/tonyenglish/cld2bdrk3000201qmx2jb95kf"
-          mapboxAccessToken={MAPBOX_TOKEN}
+          mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
           styleDiffing
@@ -652,11 +640,7 @@ const MapTab = (props: MyProps) => {
           {connectingLanes && currentSignalGroups && (
             <Source
               type="geojson"
-              data={filterConnections(
-                connectingLanes,
-                currentSignalGroups,
-                "PROTECTED_MOVEMENT_ALLOWED"
-              )}
+              data={filterConnections(connectingLanes, currentSignalGroups, "PROTECTED_MOVEMENT_ALLOWED")}
             >
               <Layer {...connectingLanesLayer} />
             </Source>
@@ -670,18 +654,12 @@ const MapTab = (props: MyProps) => {
             </Source>
           )}
           {connectingLanes && currentSignalGroups && (
-            <Source
-              type="geojson"
-              data={filterConnections(connectingLanes, currentSignalGroups, "STOP_AND_REMAIN")}
-            >
+            <Source type="geojson" data={filterConnections(connectingLanes, currentSignalGroups, "STOP_AND_REMAIN")}>
               <Layer {...connectingLanesLayerInactive} />
             </Source>
           )}
           {connectingLanes && currentSignalGroups && (
-            <Source
-              type="geojson"
-              data={filterConnections(connectingLanes, currentSignalGroups, null)!}
-            >
+            <Source type="geojson" data={filterConnections(connectingLanes, currentSignalGroups, null)!}>
               <Layer {...connectingLanesLayerMissing} />
             </Source>
           )}
@@ -711,18 +689,12 @@ const MapTab = (props: MyProps) => {
             </Source>
           )}
           {mapData && props.notification && (
-            <Source
-              type="geojson"
-              data={createMarkerForNotification(props.notification, mapData.mapFeatureCollection)}
-            >
+            <Source type="geojson" data={createMarkerForNotification(props.notification, mapData.mapFeatureCollection)}>
               <Layer {...markerLayer} />
             </Source>
           )}
           {selectedFeature && (
-            <CustomPopup
-              selectedFeature={selectedFeature}
-              onClose={() => setSelectedFeature(undefined)}
-            />
+            <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
           )}
         </Map>
         <SidePanel

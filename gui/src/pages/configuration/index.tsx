@@ -22,6 +22,7 @@ import { ConfigParamListTable } from "../../components/configuration/configurati
 import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import { useDashboardContext } from "../../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const tabs = [
   {
@@ -87,13 +88,14 @@ const applyPagination = (parameters, page, rowsPerPage) =>
   parameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 const Page = () => {
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
   const queryRef = useRef<TextFieldProps>(null);
   const [parameters, setParameters] = useState<Config[]>([]);
   const [currentTab, setCurrentTab] = useState("GENERAL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentDescription, setCurrentDescription] = useState("");
+  const { data: session } = useSession();
   const [filter, setFilter] = useState({
     query: "",
     tab: currentTab,
@@ -104,12 +106,18 @@ const Page = () => {
   }, [currentTab]);
 
   const getParameters = async () => {
-    try {
-      const data = await configParamApi.getAllParameters("token", (dbIntersectionId ?? 12109).toString());
+    if (session?.accessToken && intersectionId && roadRegulatorId) {
+      try {
+        const data = await configParamApi.getAllParameters(
+          session?.accessToken,
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        );
 
-      setParameters(data);
-    } catch (err) {
-      console.error(err);
+        setParameters(data);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 

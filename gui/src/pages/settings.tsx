@@ -6,19 +6,22 @@ import React from "react";
 import keycloakApi from "../apis/keycloak-api";
 import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import userManagementApi from "../apis/user-management-api";
 
 const Page = () => {
   const { data: session } = useSession();
   const { user, setUser } = useDashboardContext();
 
-  const updateSettings = async (emailPreference: EmailPreference) => {
-    const success = await keycloakApi.updateAttributes({
-      token: session?.accessToken!,
-      id: session?.userId!,
-      attribute: { EMAIL_FREQUENCY: [emailPreference] },
-    });
-    if (success && user !== undefined) {
-      setUser({ ...user, email_preference: emailPreference });
+  const updateSettings = async (emailPreference: EmailPreferences) => {
+    if (session?.accessToken && !session?.user?.email) {
+      const success = await userManagementApi.updateUserEmailPreference({
+        token: session?.accessToken,
+        email: session?.user?.email!,
+        preferences: emailPreference,
+      });
+      if (success && user !== undefined) {
+        setUser({ ...user, email_preference: emailPreference });
+      }
     }
   };
 
@@ -38,7 +41,11 @@ const Page = () => {
           <Typography sx={{ mb: 3 }} variant="h4">
             Settings
           </Typography>
-          <SettingsNotifications value={user?.email_preference} onSave={updateSettings} />
+          <SettingsNotifications
+            value={user?.email_preference}
+            onSave={updateSettings}
+            userRole={user?.role ?? "USER"}
+          />
         </Container>
       </Box>
     </>

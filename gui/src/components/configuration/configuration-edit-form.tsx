@@ -4,21 +4,14 @@ import PropTypes from "prop-types";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  TextField,
-} from "@mui/material";
+import { Button, Card, CardActions, CardContent, CardHeader, Divider, Grid, TextField } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
+import { useSession } from "next-auth/react";
 
 export const ConfigParamEditForm = (props) => {
   const { parameter }: { parameter: IntersectionConfig } = props;
   const router = useRouter();
+  const { data: session } = useSession();
   const formik = useFormik({
     initialValues: {
       name: parameter.key,
@@ -32,15 +25,18 @@ export const ConfigParamEditForm = (props) => {
       value: Yup.string().required("New value is required"),
     }),
     onSubmit: async (values, helpers) => {
+      if (!session?.accessToken) {
+        return;
+      }
       try {
         const updatedConfig = {
           ...parameter,
           value: values.value,
         };
         if (parameter.intersectionID) {
-          await configParamApi.updateIntersectionParameter("token", values.name, updatedConfig);
+          await configParamApi.updateIntersectionParameter(session?.accessToken, values.name, updatedConfig);
         } else {
-          await configParamApi.updateDefaultParameter("token", values.name, updatedConfig);
+          await configParamApi.updateDefaultParameter(session?.accessToken, values.name, updatedConfig);
         }
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);

@@ -68,8 +68,7 @@ export const AssessmentListResults = ({
                     checked={selectedNotifications.length === notificationsCount}
                     color="primary"
                     indeterminate={
-                      selectedNotifications.length > 0 &&
-                      selectedNotifications.length < notificationsCount
+                      selectedNotifications.length > 0 && selectedNotifications.length < notificationsCount
                     }
                     onChange={handleSelectAll}
                   />
@@ -82,8 +81,7 @@ export const AssessmentListResults = ({
             </TableHead>
             <TableBody>
               {customers.map((customer) => {
-                const isNotificationSelected =
-                  [...selectedNotifications].indexOf(customer.id) !== -1;
+                const isNotificationSelected = [...selectedNotifications].indexOf(customer.id) !== -1;
 
                 return (
                   <TableRow
@@ -110,7 +108,7 @@ export const AssessmentListResults = ({
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{format(customer.notificationGeneratedAt, "dd/MM/yyyy")}</TableCell>
+                    <TableCell>{format(customer.notificationGeneratedAt, "MM/dd/yyyy")}</TableCell>
                     <TableCell>{customer.notificationText}</TableCell>
                     <TableCell align="right">
                       <NextLink href={`/map/notification/${customer.id}`} passHref>

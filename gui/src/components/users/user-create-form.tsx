@@ -17,7 +17,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import keycloakApi from "../../apis/keycloak-api";
+import userManagementApi from "../../apis/user-management-api";
 import { useSession } from "next-auth/react";
 
 export const UserCreateForm = (props) => {
@@ -26,20 +26,29 @@ export const UserCreateForm = (props) => {
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      email: user.email ?? "",
-      first_name: user.first_name ?? "",
-      last_name: user.last_name ?? "",
-      role: user.role ?? "user",
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
       submit: null,
     },
     validationSchema: Yup.object({
-      name: Yup.string(),
-      value: Yup.string().required("New value is required"),
+      email: Yup.string().email("Must be a valid email").max(255).required("Username is required"),
+      first_name: Yup.string(),
+      last_name: Yup.string(),
     }),
     onSubmit: async (values, helpers) => {
+      console.log("SUBMITTING");
+      if (!session?.accessToken) {
+        toast.error("Not authenticated");
+        helpers.setStatus({ success: false });
+        helpers.setErrors({ submit: "Not Authenticated" });
+        helpers.setSubmitting(false);
+        return;
+      }
       try {
-        await keycloakApi.createUser({
-          token: session?.accessToken!,
+        await userManagementApi.createUser({
+          token: session?.accessToken,
           email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,
@@ -101,7 +110,6 @@ export const UserCreateForm = (props) => {
                 name="last_name"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-                required
                 value={formik.values.last_name}
               />
             </Grid>
@@ -114,8 +122,8 @@ export const UserCreateForm = (props) => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
               >
-                <MenuItem value={"user"}>User</MenuItem>
-                <MenuItem value={"admin"}>Admin</MenuItem>
+                <MenuItem value={"ADMIN"}>Admin</MenuItem>
+                <MenuItem value={"USER"}>User</MenuItem>
               </Select>
             </Grid>
           </Grid>
@@ -133,13 +141,7 @@ export const UserCreateForm = (props) => {
             m: -1,
           }}
         >
-          <Button
-            disabled={formik.isSubmitting}
-            type="submit"
-            sx={{ m: 1 }}
-            variant="contained"
-            onClick={() => formik.handleSubmit()}
-          >
+          <Button disabled={formik.isSubmitting} type="submit" sx={{ m: 1 }} variant="contained">
             Create User
           </Button>
           <NextLink href="/users" passHref>

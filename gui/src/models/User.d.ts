@@ -4,14 +4,20 @@ type User = {
   last_name: string;
   role: UserRole;
   id: string;
-  email_preference?: EmailPreference;
+  email_preference: EmailPreferences;
 };
 
-const userRoles = ["admin", "user"] as const;
-type UserRole = (typeof userRoles)[number];
+type EmailPreferences = {
+  receiveAnnouncements: boolean;
+  notificationFrequency: EmailFrequency;
+  receiveCeaseBroadcastRecommendations: boolean;
+  receiveCriticalErrorMessages: boolean;
+  receiveNewUserRequests: boolean;
+};
 
-const emailPreference = ["ALWAYS", "ONCE_PER_HOUR", "ONCE_PER_DAY", "NEVER"] as const;
-type EmailPreference = (typeof emailPreference)[number];
+type UserRole = "ADMIN" | "USER";
+
+type EmailFrequency = "ALWAYS" | "ONCE_PER_HOUR" | "ONCE_PER_DAY" | "ONCE_PER_WEEK" | "ONCE_PER_MONTH" | "NEVER";
 
 type KeycloakRole = {
   id: string;

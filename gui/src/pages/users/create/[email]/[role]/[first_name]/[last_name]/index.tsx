@@ -12,8 +12,15 @@ const Page = () => {
     email: email as string,
     first_name: first_name == "undefined" ? "" : (first_name as string),
     last_name: last_name == "undefined" ? "" : (last_name as string),
-    role: role == "admin" ? "admin" : "user",
+    role: role == "ADMIN" ? "ADMIN" : "USER",
     id: "",
+    email_preference: {
+      receiveAnnouncements: true,
+      notificationFrequency: "ONCE_PER_DAY",
+      receiveCeaseBroadcastRecommendations: true,
+      receiveCriticalErrorMessages: true,
+      receiveNewUserRequests: false,
+    },
   };
 
   return (

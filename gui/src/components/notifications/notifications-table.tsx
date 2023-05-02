@@ -15,12 +15,14 @@ import {
   Typography,
   CardHeader,
 } from "@mui/material";
-import { CustomerListResults } from "./customer-list-results";
+import { NotificationsTableResults } from "./notifications-table-results";
 import { DashboardLayout } from "../dashboard-layout";
 import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import NotificationApi from "../../apis/notification-api";
 import React, { useEffect, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useDashboardContext } from "../../contexts/dashboard-context";
 
 const tabs = [
   {
@@ -65,7 +67,7 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
   const { simple } = props;
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<MessageMonitor.Notification[]>([]);
-  const [acceptedNotifications, setAcceptedNotifications] = useState<String[]>([]);
+  const [acceptedNotifications, setAcceptedNotifications] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -74,11 +76,22 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
     query: "",
     tab: currentTab,
   });
+  const { data: session } = useSession();
+  const { intersectionId: dbIntersectionId } = useDashboardContext();
 
   const updateNotifications = () => {
-    NotificationApi.getActiveNotifications({ token: "token", intersection_id: "12109" }).then(
-      (notifs) => setNotifications(notifs)
-    );
+    if (session?.accessToken && dbIntersectionId) {
+      NotificationApi.getActiveNotifications({
+        token: session?.accessToken,
+        intersection_id: dbIntersectionId.toString(),
+      }).then((notifs) => setNotifications(notifs));
+    }
+  };
+
+  const dismissNotifications = (ids: string[]) => {
+    if (session?.accessToken && dbIntersectionId) {
+      NotificationApi.dismissNotifications({ token: session?.accessToken, ids });
+    }
   };
 
   useEffect(() => {
@@ -228,7 +241,7 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
             </>
           )}
 
-          <CustomerListResults
+          <NotificationsTableResults
             customers={paginatedNotifications}
             allTabNotifications={notifications}
             notificationsCount={filteredNotifications.length}
@@ -252,7 +265,9 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
                 <Button
                   sx={{ m: 1 }}
                   variant="contained"
-                  onClick={() => {}}
+                  onClick={() => {
+                    dismissNotifications(acceptedNotifications);
+                  }}
                   disabled={acceptedNotifications.length <= 0 ? true : false}
                 >
                   Dismiss Notifications

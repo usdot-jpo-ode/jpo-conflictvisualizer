@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import {
   Box,
@@ -19,13 +19,12 @@ import { DashboardLayout } from "../../components/dashboard-layout";
 import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import keycloakApi from "../../apis/keycloak-api";
-import userCreationRequestApi from "../../apis/user-api-management";
+import userCreationRequestApi from "../../apis/user-management-api";
 import { useSession } from "next-auth/react";
 import { UserListTable } from "../../components/users/user-list-table";
 import { UserCreationRequestListTable } from "../../components/users/user-creation-request-list-table";
 import NextLink from "next/link";
 import { Plus as PlusIcon } from "../../icons/plus";
-import toast, { Toaster } from "react-hot-toast";
 
 const tabs = [
   {
@@ -91,9 +90,7 @@ const Page = () => {
   const getUsers = async () => {
     try {
       if (session?.accessToken) {
-        // const data = await keycloakApi.getToken({ username: "cm_admin", password: "12345" });
         const data = await keycloakApi.getUsersList({ token: session?.accessToken });
-        console.log("RECEIVED DATA: ", data);
 
         setUsers(data);
       }
@@ -105,9 +102,7 @@ const Page = () => {
   const getUserCreationRequests = async () => {
     try {
       if (session?.accessToken) {
-        // const data = await keycloakApi.getToken({ username: "cm_admin", password: "12345" });
         const data = await userCreationRequestApi.getUserCreationRequests({ token: session?.accessToken });
-        console.log("RECEIVED DATA: ", data);
 
         setUserCreationRequests(data);
       }

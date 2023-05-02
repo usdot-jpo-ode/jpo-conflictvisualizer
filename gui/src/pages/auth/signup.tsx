@@ -3,35 +3,20 @@ import Head from "next/head";
 import NextLink from "next/link";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  Box,
-  TextField,
-  Typography,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { Button, Grid, Box, TextField, Typography, Select, MenuItem } from "@mui/material";
 import { Logo } from "../../components/logo";
-import Router from "next/router";
+import { useRouter } from "next/router";
 import React from "react";
-import userCreationRequestApi from "../../apis/user-api-management";
-import { useSession } from "next-auth/react";
+import userCreationRequestApi from "../../apis/user-management-api";
 
 const Page = () => {
-  const { data: session } = useSession();
-  const [emailSent, setEmailSent] = useState(false);
+  const router = useRouter();
   const formik = useFormik({
     initialValues: {
       email: "",
       first_name: "",
       last_name: "",
-      role: "user",
+      role: "USER",
       submit: null,
     },
     validationSchema: Yup.object({
@@ -41,14 +26,25 @@ const Page = () => {
     }),
     onSubmit: async (values, helpers) => {
       try {
-        // TODO: Submit user creation request
-        userCreationRequestApi.createUserCreationRequest({
-          token: session?.accessToken!,
+        const success = await userCreationRequestApi.createUserCreationRequest({
           email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,
           role: values.role as UserRole,
         });
+        helpers.setSubmitting(false);
+        if (success) {
+          helpers.setStatus({ success: true });
+          router
+            .push({
+              pathname: "/auth/signin",
+              query: { returnUrl: router.asPath },
+            })
+            .catch(console.error);
+        } else {
+          helpers.setFieldError("submit", "Session expired");
+          helpers.setSubmitting(false);
+        }
       } catch (err: any) {
         console.error(err);
         helpers.setFieldError("submit", err.message || "Something went wrong");
@@ -56,24 +52,6 @@ const Page = () => {
       }
     },
   });
-
-  const handleRetry = () => {
-    setEmailSent(false);
-  };
-
-  const handleSkip = () => {
-    // Since skip is requested, we set a fake user as authenticated
-    const user = {};
-
-    // Update Auth Context state
-    // signIn();
-
-    // Persist the skip for AuthProvider initialize call
-    globalThis.sessionStorage.setItem("skip-auth", "true");
-
-    // Redirect to home page
-    Router.push("/").catch(console.error);
-  };
 
   return (
     <>
@@ -134,120 +112,97 @@ const Page = () => {
                   width: "100%",
                 }}
               >
-                {emailSent ? (
+                <div>
+                  <Typography sx={{ mb: 1 }} variant="h4">
+                    Sign Up
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
+                    CIMMS Cloud Management Console
+                  </Typography>
                   <div>
-                    <Typography sx={{ mb: 1 }} variant="h4">
-                      Confirm your email
-                    </Typography>
-                    <Typography>
-                      We emailed a magic link to&nbsp;
-                      <Box
-                        component="span"
-                        sx={{
-                          color: "primary.main",
-                        }}
+                    <TextField
+                      sx={{ mb: 3 }}
+                      error={Boolean(formik.touched.email && formik.errors.email)}
+                      fullWidth
+                      helperText={formik.touched.email && formik.errors.email}
+                      label="Email"
+                      name="email"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      type="email"
+                      required
+                      value={formik.values.email}
+                      variant="outlined"
+                    />
+                    <TextField
+                      sx={{ mb: 3 }}
+                      error={Boolean(formik.touched.first_name && formik.errors.first_name)}
+                      fullWidth
+                      helperText={formik.touched.first_name && formik.errors.first_name}
+                      label="First Name"
+                      name="first_name"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      type="text"
+                      required
+                      value={formik.values.first_name}
+                      variant="outlined"
+                    />
+                    <TextField
+                      error={Boolean(formik.touched.last_name && formik.errors.last_name)}
+                      fullWidth
+                      helperText={formik.touched.last_name && formik.errors.last_name}
+                      label="Last Name"
+                      name="last_name"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      type="text"
+                      required
+                      value={formik.values.last_name}
+                      variant="outlined"
+                    />
+                    <Grid item md={12} xs={12}>
+                      <Typography>Role</Typography>
+                      <Select
+                        value={formik.values.role}
+                        label="Role"
+                        name="role"
+                        required
+                        onBlur={formik.handleBlur}
+                        onChange={formik.handleChange}
                       >
-                        {formik.values.email}
-                      </Box>
-                      <br />
-                      Click the link to to log in.
-                    </Typography>
-                    <Box
-                      sx={{
-                        alignItems: "center",
-                        display: "flex",
-                        gap: 3,
-                        mt: 3,
-                      }}
-                    >
-                      <Typography color="text.secondary" variant="body2">
-                        Wrong email?
+                        <MenuItem value={"ADMIN"}>Admin</MenuItem>
+                        <MenuItem value={"USER"}>User</MenuItem>
+                      </Select>
+                    </Grid>
+                    {formik.errors.submit && (
+                      <Typography color="error" sx={{ mt: 2 }} variant="body2">
+                        {formik.errors.submit}
                       </Typography>
-                      <Button color="inherit" onClick={handleRetry}>
-                        Use a different email
-                      </Button>
-                    </Box>
-                  </div>
-                ) : (
-                  <div>
-                    <Typography sx={{ mb: 1 }} variant="h4">
-                      Sign Up
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
-                      CIMMS Cloud Management Console
-                    </Typography>
-                    <div>
-                      <TextField
-                        sx={{ mb: 3 }}
-                        error={Boolean(formik.touched.email && formik.errors.email)}
-                        fullWidth
-                        helperText={formik.touched.email && formik.errors.email}
-                        label="Email"
-                        name="email"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        type="email"
-                        value={formik.values.email}
-                        variant="outlined"
-                      />
-                      <TextField
-                        sx={{ mb: 3 }}
-                        error={Boolean(formik.touched.first_name && formik.errors.first_name)}
-                        fullWidth
-                        helperText={formik.touched.first_name && formik.errors.first_name}
-                        label="First Name"
-                        name="first_name"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        type="text"
-                        value={formik.values.first_name}
-                        variant="outlined"
-                      />
-                      <TextField
-                        error={Boolean(formik.touched.last_name && formik.errors.last_name)}
-                        fullWidth
-                        helperText={formik.touched.last_name && formik.errors.last_name}
-                        label="Last Name"
-                        name="last_name"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        type="text"
-                        value={formik.values.last_name}
-                        variant="outlined"
-                      />
-                      <Grid item md={12} xs={12}>
-                        <Typography>Role</Typography>
-                        <Select
-                          value={formik.values.role}
-                          label="Role"
-                          name="role"
-                          onBlur={formik.handleBlur}
-                          onChange={formik.handleChange}
-                        >
-                          <MenuItem value={"admin"}>Admin</MenuItem>
-                          <MenuItem value={"user"}>User</MenuItem>
-                        </Select>
-                      </Grid>
-                      {formik.errors.submit && (
-                        <Typography color="error" sx={{ mt: 2 }} variant="body2">
-                          {formik.errors.submit}
-                        </Typography>
-                      )}
+                    )}
+                    <Button
+                      fullWidth
+                      size="large"
+                      sx={{ mt: 3 }}
+                      onClick={() => formik.handleSubmit()}
+                      variant="contained"
+                    >
+                      Submit User Creation Request
+                    </Button>
+                    <NextLink href="/auth/signin" passHref>
                       <Button
-                        fullWidth
-                        size="large"
-                        sx={{ mt: 3 }}
-                        onClick={() => formik.handleSubmit()}
-                        variant="contained"
+                        component="a"
+                        sx={{
+                          m: 1,
+                          mr: "auto",
+                        }}
+                        variant="outlined"
                       >
-                        Submit User Creation Request
-                      </Button>
-                      <Button fullWidth size="large" sx={{ mt: 3 }} onClick={handleSkip}>
                         -{">"} Sign In
                       </Button>
-                    </div>
+                    </NextLink>
                   </div>
-                )}
+                </div>
               </Box>
             </Box>
           </Grid>

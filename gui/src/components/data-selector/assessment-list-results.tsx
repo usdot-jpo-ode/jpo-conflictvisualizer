@@ -51,7 +51,7 @@ export const AssessmentListResults = ({
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {format(event.assessmentGeneratedAt, "dd/MM/yyyy HH:mm:ss")}
+                      {format(event.assessmentGeneratedAt, "MM/dd/yyyy HH:mm:ss")}
                     </TableCell>
                     <TableCell>{event.laneDirectionOfTravelAssessmentGroup.toString()}</TableCell>
                   </TableRow>

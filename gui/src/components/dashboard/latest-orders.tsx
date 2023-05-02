@@ -106,7 +106,7 @@ export const LatestOrders = (props) => (
               <TableRow hover key={order.id}>
                 <TableCell>{order.ref}</TableCell>
                 <TableCell>{order.customer.name}</TableCell>
-                <TableCell>{format(order.createdAt, "dd/MM/yyyy")}</TableCell>
+                <TableCell>{format(order.createdAt, "MM/dd/yyyy")}</TableCell>
                 <TableCell>
                   <SeverityPill
                     color={
@@ -131,12 +131,7 @@ export const LatestOrders = (props) => (
         p: 2,
       }}
     >
-      <Button
-        color="primary"
-        endIcon={<ArrowRightIcon fontSize="small" />}
-        size="small"
-        variant="text"
-      >
+      <Button color="primary" endIcon={<ArrowRightIcon fontSize="small" />} size="small" variant="text">
         View all
       </Button>
     </Box>
