@@ -103,7 +103,8 @@ class ConfigParamsApi {
           path: `/config/intersection/all`,
           token: token,
           queryParams: { intersection_id, road_regulator_id },
-          failureMessage: `Failed to Retrieve Configuration Parameter ${key}`,
+          toastOnFailure: false,
+          //   failureMessage: `Failed to Retrieve Configuration Parameter ${key}`,
         })
       )
         .filter((c) => c.key === key)

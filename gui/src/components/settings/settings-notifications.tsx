@@ -33,7 +33,7 @@ export const SettingsNotifications = (props: {
   return (
     <form {...props}>
       <Card>
-        <CardHeader subheader="Manage Notification Settings" title="Notifications" />
+        <CardHeader subheader="Manage Email Settings" title="Communication" />
         <Divider />
         <CardContent>
           <Grid container spacing={6} wrap="wrap">
@@ -48,7 +48,7 @@ export const SettingsNotifications = (props: {
               xs={12}
             >
               <Typography color="textPrimary" gutterBottom variant="h6">
-                Notification Email Rate
+                Notifications Email Rate
               </Typography>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
@@ -78,7 +78,7 @@ export const SettingsNotifications = (props: {
               xs={12}
             >
               <Typography color="textPrimary" gutterBottom variant="h6">
-                Receive Cease Broadcast Recommendations
+                Receive Cease Broadcast Recommendation Emails
               </Typography>
               <Switch
                 checked={value.receiveCeaseBroadcastRecommendations}
@@ -99,7 +99,7 @@ export const SettingsNotifications = (props: {
               xs={12}
             >
               <Typography color="textPrimary" gutterBottom variant="h6">
-                Receive Announcements
+                Receive Announcement Emails
               </Typography>
               <Switch
                 checked={value.receiveAnnouncements}
@@ -118,7 +118,7 @@ export const SettingsNotifications = (props: {
               xs={12}
             >
               <Typography color="textPrimary" gutterBottom variant="h6">
-                Receive Critical Error messages
+                Receive Critical Error Message Emails
               </Typography>
               <Switch
                 checked={value.receiveCriticalErrorMessages}
@@ -138,7 +138,7 @@ export const SettingsNotifications = (props: {
                 xs={12}
               >
                 <Typography color="textPrimary" gutterBottom variant="h6">
-                  Receive New User Requests (Admins Only)
+                  Receive New User Request Emails (Admins Only)
                 </Typography>
                 <Switch
                   checked={value.receiveNewUserRequests}
@@ -160,7 +160,10 @@ export const SettingsNotifications = (props: {
           <Button
             color="primary"
             variant="contained"
-            onClick={() => props.onSave(value)}
+            onClick={() => {
+              console.log(props.value, value);
+              props.onSave(value);
+            }}
             disabled={props.value == value}
           >
             Save
