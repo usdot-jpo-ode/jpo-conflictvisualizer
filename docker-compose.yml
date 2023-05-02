@@ -13,8 +13,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    # networks:
-    #   - conflictmonitor
 
   keycloak:
     container_name: jpo-conflictvisualizer-keycloak
@@ -30,8 +28,6 @@ services:
       - ${DOCKER_HOST_DIR}/realm.json:/opt/keycloak/data/import/realm.json
     ports:
       - "8084:8080"
-    # networks:
-    #   - conflictmonitor
 
   conflictvisualizer-api:
     build: 
@@ -47,10 +43,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-    # networks:
-    #   - conflictmonitor
 
-# networks:
-#   conflictmonitor:
-#     name: conflictmonitor_network
-#     external: true
+
+
