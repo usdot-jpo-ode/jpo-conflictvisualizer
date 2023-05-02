@@ -115,6 +115,23 @@ class UserManagementApi {
       failureMessage: "Failed to update email preferences",
     })) as boolean;
   }
+
+  async getUserEmailPreference({ token, email }: { token: string; email: string }): Promise<EmailPreferences> {
+    return (
+      (await authApiHelper.invokeApi({
+        path: `/users/get_user_email_preference`,
+        token: token,
+        queryParams: { email },
+        toastOnFailure: false,
+      })) ?? {
+        receiveAnnouncements: true,
+        notificationFrequency: "ONCE_PER_DAY",
+        receiveCeaseBroadcastRecommendations: true,
+        receiveCriticalErrorMessages: true,
+        receiveNewUserRequests: false,
+      }
+    );
+  }
 }
 
 export default new UserManagementApi();

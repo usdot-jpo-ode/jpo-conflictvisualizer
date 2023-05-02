@@ -25,6 +25,8 @@ const Page = () => {
     }
   };
 
+  console.log("user", user);
+
   return (
     <>
       <Head>

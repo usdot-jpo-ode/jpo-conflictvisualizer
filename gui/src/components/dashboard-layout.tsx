@@ -9,6 +9,8 @@ import React from "react";
 import MessageMonitorApi from "../apis/mm-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
+import keycloakApi from "../apis/keycloak-api";
+import userManagementApi from "../apis/user-management-api";
 
 const DashboardLayoutRoot = styled("div")(({ theme }) => ({
   display: "flex",
@@ -20,14 +22,41 @@ const DashboardLayoutRoot = styled("div")(({ theme }) => ({
   },
 }));
 
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+  } catch (err) {
+    return { ERROR: err };
+  }
+};
+
 export const DashboardLayout = (props) => {
   const { children } = props;
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [intersections, setIntersections] = useState<IntersectionReferenceData[]>([]);
-  const { setIntersection } = useDashboardContext();
+  const { setIntersection, setUser } = useDashboardContext();
   const { data: session } = useSession();
 
+  const updateUser = async () => {
+    if (session?.accessToken && session?.role) {
+      const parsedJwt = parseJwt(session?.accessToken);
+      const user: User = {
+        email: parsedJwt?.preferred_username,
+        first_name: parsedJwt?.given_name,
+        last_name: parsedJwt?.family_name,
+        id: parsedJwt?.sub,
+        role: session?.role,
+        email_preference: await userManagementApi.getUserEmailPreference({
+          token: session?.accessToken,
+          email: parsedJwt?.preferred_username,
+        }),
+      };
+      setUser(user);
+    }
+  };
+
   useEffect(() => {
+    updateUser();
     if (!session?.accessToken) {
       MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
         setIntersections(intersections);
