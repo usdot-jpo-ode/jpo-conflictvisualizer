@@ -14,6 +14,12 @@ import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
 
+process.env.KEYCLOAK_CLIENT_ID = "conflictvisualizer-gui";
+process.env.KEYCLOAK_REALM = "conflictvisualizer";
+process.env.MAPBOX_TOKEN =
+  "pk.eyJ1IjoidG9ueWVuZ2xpc2giLCJhIjoiY2tzajQwcDJvMGQ3bjJucW0yaDMxbThwYSJ9.ff26IdP_Y9hiE82AGx_wCg";
+process.env.DOCKER_HOST_IP = "172.28.204.101";
+
 registerChartJs();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -36,9 +42,7 @@ const App = (props) => {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <SessionProvider session={session}>
-            {getLayout(<Component {...pageProps} />)}
-          </SessionProvider>
+          <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
         </ThemeProvider>
       </LocalizationProvider>
       <Toaster />

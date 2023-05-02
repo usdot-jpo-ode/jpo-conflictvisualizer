@@ -8,6 +8,7 @@ import { DashboardProvider } from "../contexts/dashboard-context";
 import React from "react";
 import MessageMonitorApi from "../apis/mm-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const DashboardLayoutRoot = styled("div")(({ theme }) => ({
   display: "flex",
@@ -24,12 +25,15 @@ export const DashboardLayout = (props) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [intersections, setIntersections] = useState<IntersectionReferenceData[]>([]);
   const { setIntersection } = useDashboardContext();
+  const { data: session } = useSession();
 
   useEffect(() => {
-    MessageMonitorApi.getIntersections({ token: "token" }).then((intersections) => {
-      setIntersections(intersections);
-      setIntersection(intersections?.[0]?.intersectionID);
-    });
+    if (!session?.accessToken) {
+      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
+        setIntersections(intersections);
+        setIntersection(intersections?.[0]?.intersectionID);
+      });
+    }
   }, []);
 
   return (

@@ -1,28 +1,31 @@
 import Head from "next/head";
 import { Box, Container } from "@mui/material";
 import { DashboardLayout } from "../../../components/dashboard-layout";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import MapTab from "../../../components/map/map-component";
 import { useRouter } from "next/router";
 import NotificationApi from "../../../apis/notification-api";
 import { useDashboardContext } from "../../../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const Map = () => {
   const router = useRouter();
   const { id } = router.query;
   const [notification, setNotification] = useState<MessageMonitor.Notification | undefined>();
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId } = useDashboardContext();
+  const { data: session } = useSession();
 
   const updateNotifications = () => {
-    NotificationApi.getActiveNotifications({
-      token: "token",
-      intersection_id: (dbIntersectionId ?? 12109).toString(),
-      key: id as string,
-    }).then((notifications) => {
-      const notif = notifications.pop();
-      console.log(notif);
-      setNotification(notif);
-    });
+    if (session?.accessToken && intersectionId) {
+      NotificationApi.getActiveNotifications({
+        token: session?.accessToken,
+        intersection_id: intersectionId.toString(),
+        key: id as string,
+      }).then((notifications) => {
+        const notif = notifications?.pop();
+        setNotification(notif);
+      });
+    }
   };
 
   useEffect(() => {

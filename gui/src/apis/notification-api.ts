@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { authApiHelper } from "./api-helper";
 
 class NotificationApi {
@@ -14,9 +15,8 @@ class NotificationApi {
     endTime?: Date;
     key?: string;
   }): Promise<MessageMonitor.Notification[]> {
-    // return this.getNotifications({ token, intersection_id, startTime, endTime });
     const queryParams: Record<string, string> = {};
-    if (intersection_id) queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersection_id;
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     if (key) queryParams["key"] = key;
@@ -25,9 +25,31 @@ class NotificationApi {
       path: `/notifications/active`,
       token: token,
       queryParams,
+      failureMessage: "Failed to retrieve active notifications",
     });
 
-    return notifications;
+    return notifications ?? [];
+  }
+
+  async dismissNotifications({ token, ids }: { token: string; ids: string[] }): Promise<boolean> {
+    let success = true;
+    for (const id of ids) {
+      success =
+        success &&
+        (await authApiHelper.invokeApi({
+          path: `/notifications/active`,
+          method: "DELETE",
+          token: token,
+          body: id.toString(),
+          booleanResponse: true,
+        }));
+    }
+    if (success) {
+      toast.success(`Successfully Dismissed ${ids.length} Notifications`);
+    } else {
+      toast.error(`Failed to Dismiss some Notifications`);
+    }
+    return true;
   }
 }
 

@@ -7,8 +7,6 @@ import { Paper, Box, Typography } from "@mui/material";
 import { CustomTable } from "./custom-table";
 
 export const CustomPopup = (props) => {
-  console.log("PROPS", props);
-
   const getPopupContent = (feature: any) => {
     switch (feature.layer.id) {
       case "bsm":
@@ -31,7 +29,6 @@ export const CustomPopup = (props) => {
       case "mapMessage":
         let map = feature.properties;
         let connectedObjs: any[] = [];
-        console.log("Map MESSAGE", map.connectsTo);
         JSON.parse(map?.connectsTo ?? "[]")?.forEach((connectsTo) => {
           connectedObjs.push(["Connected Lane", connectsTo.connectingLane.lane]);
           connectedObjs.push(["Signal Group", connectsTo.signalGroup]);
@@ -40,10 +37,7 @@ export const CustomPopup = (props) => {
         return (
           <Box>
             <Typography>MAP Lane</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[["Lane Id", map.laneId], ...connectedObjs]}
-            />
+            <CustomTable headers={["Field", "Value"]} data={[["Lane Id", map.laneId], ...connectedObjs]} />
           </Box>
         );
 
@@ -166,9 +160,7 @@ export const CustomPopup = (props) => {
       latitude={props.selectedFeature.clickedLocation.lat}
       anchor="bottom"
       onClose={props.onClose}
-      onOpen={() => {
-        console.log("OPENING");
-      }}
+      onOpen={() => {}}
       maxWidth={"500px"}
     >
       {getPopupContent(props.selectedFeature.feature)}

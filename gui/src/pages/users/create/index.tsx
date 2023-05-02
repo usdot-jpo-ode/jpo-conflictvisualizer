@@ -8,8 +8,15 @@ const Page = () => {
     email: "",
     first_name: "",
     last_name: "",
-    role: "user",
+    role: "USER",
     id: "",
+    email_preference: {
+      receiveAnnouncements: true,
+      notificationFrequency: "ONCE_PER_DAY",
+      receiveCeaseBroadcastRecommendations: true,
+      receiveCriticalErrorMessages: true,
+      receiveNewUserRequests: false,
+    },
   };
 
   return (

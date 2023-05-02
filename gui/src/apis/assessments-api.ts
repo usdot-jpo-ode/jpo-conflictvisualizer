@@ -5,28 +5,26 @@ class AssessmentsApi {
   async getAssessment(
     token: string,
     eventType: string,
-    intersection_id: number,
+    intersection_id: string,
+    road_regulator_id: string,
     startTime?: Date,
     endTime?: Date
   ): Promise<Assessment | undefined> {
-    try {
-      const queryParams: Record<string, string> = {};
-      queryParams["road_regulator_id"] = "-1";
-      queryParams["intersection_id"] = intersection_id.toString();
-      queryParams["latest"] = "true";
-      if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
-      if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
+    const queryParams: Record<string, string> = {};
+    queryParams["road_regulator_id"] = road_regulator_id;
+    queryParams["intersection_id"] = intersection_id;
+    queryParams["latest"] = "true";
+    if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
+    if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
-      var response = await authApiHelper.invokeApi({
+    var response =
+      (await authApiHelper.invokeApi({
         path: `/assessments/${eventType}`,
         token: token,
         queryParams,
-      });
-      return response.pop();
-    } catch (exception_var) {
-      console.error(exception_var);
-      return undefined;
-    }
+        failureMessage: `Failed to retrieve assessments of type ${eventType}`,
+      })) ?? [];
+    return response.pop();
   }
 }
 

@@ -17,7 +17,6 @@ const Page = () => {
   useEffect(() => {
     (async () => {
       const res = await getProviders();
-      console.log(res);
       setProviders(res!);
     })();
     console.log("DOCKER_HOST_IP", process.env.DOCKER_HOST_IP);

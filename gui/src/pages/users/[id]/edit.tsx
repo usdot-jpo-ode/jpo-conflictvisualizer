@@ -8,7 +8,7 @@ import { UserEditForm } from "../../../components/users/user-edit-form";
 import { useSession } from "next-auth/react";
 
 const UserEdit = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
   const { data: session } = useSession();
 
   const router = useRouter();
@@ -18,9 +18,8 @@ const UserEdit = () => {
     try {
       if (session?.accessToken) {
         const data = await keycloakApi.getUserInfo({ token: session?.accessToken, id: userId });
-        console.log(data);
 
-        setUser(data);
+        if (data) setUser(data);
       }
     } catch (err) {
       console.error(err);

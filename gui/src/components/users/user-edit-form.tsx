@@ -30,11 +30,9 @@ export const UserEditForm = (props: { user: User }) => {
     email: user.email || "",
     firstName: user.first_name || "",
     lastName: user.last_name || "",
-    role: user.role || "User",
+    role: user.role || "USER",
     submit: null,
   };
-
-  console.log(initialValues);
 
   const removeUser = (userId: string) => {
     keycloakApi.removeUser({ token: session?.accessToken!, id: userId });
@@ -51,13 +49,20 @@ export const UserEditForm = (props: { user: User }) => {
       role: Yup.string().max(50),
     }),
     onSubmit: async (values, helpers) => {
+      if (!session?.accessToken) {
+        toast.error("Not authenticated");
+        helpers.setStatus({ success: false });
+        helpers.setErrors({ submit: "Not Authenticated" });
+        helpers.setSubmitting(false);
+        return;
+      }
       try {
         if (values.role !== initialValues.role) {
-          keycloakApi.removeUserFromGroup({ token: session?.accessToken!, id: user.id, role: initialValues.role });
-          keycloakApi.addUserToGroup({ token: session?.accessToken!, id: user.id, role: values.role });
+          keycloakApi.removeUserFromGroup({ token: session?.accessToken, id: user.id, role: initialValues.role });
+          keycloakApi.addUserToGroup({ token: session?.accessToken, id: user.id, role: values.role });
         }
         keycloakApi.updateUserInfo({
-          token: session?.accessToken!,
+          token: session?.accessToken,
           id: user.id,
           email: values.email == initialValues.email ? undefined : values.email,
           first_name: values.firstName == initialValues.firstName ? undefined : values.firstName,
@@ -135,8 +140,8 @@ export const UserEditForm = (props: { user: User }) => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
               >
-                <MenuItem value={"admin"}>Admin</MenuItem>
-                <MenuItem value={"user"}>User</MenuItem>
+                <MenuItem value={"ADMIN"}>Admin</MenuItem>
+                <MenuItem value={"USER"}>User</MenuItem>
               </Select>
             </Grid>
           </Grid>
