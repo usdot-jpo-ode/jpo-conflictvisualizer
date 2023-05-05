@@ -13,6 +13,7 @@ declare module "next-auth" {
     userId: string;
     expirationDate?: number;
     accessToken?: string;
+    refreshToken?: string;
   }
 }
 declare module "next-auth/jwt" {

@@ -1,6 +1,5 @@
 const KEYCLOAK_ADMIN_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8084/admin/realms/${process.env.KEYCLOAK_REALM}`;
-const KEYCLOAK_AUTH_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8084/auth/realms/${process.env.KEYCLOAK_REALM}`;
-import toast from "react-hot-toast";
+const KEYCLOAK_AUTH_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`;
 import { authApiHelper } from "./api-helper";
 
 class KeycloakApi {
@@ -183,7 +182,7 @@ class KeycloakApi {
       basePath: KEYCLOAK_AUTH_ENDPOINT,
       method: "POST",
       token: token,
-      body: `client_id=${process.env.KEYCLOAK_CLIENT_ID}&refresh_token=${refresh_token}`,
+      body: `client_id=conflictvisualizer-gui&client_secret=O2HDhrF14XJE9FhTTYX6iEdgBdSy9E6d&refresh_token=${refresh_token}`,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },

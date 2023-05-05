@@ -40,7 +40,7 @@ class AuthApiHelper {
     console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
-    if (basePath && token) localHeaders["Authorization"] = `Bearer ${token}`;
+    if (token) localHeaders["Authorization"] = `Bearer ${token}`;
     if (method === "POST" && body && !("Content-Type" in localHeaders)) {
       localHeaders["Content-Type"] = "application/json";
     }
@@ -48,7 +48,11 @@ class AuthApiHelper {
     const options: RequestInit = {
       method: method,
       headers: localHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: body
+        ? localHeaders["Content-Type"] == "application/x-www-form-urlencoded"
+          ? (body as string)
+          : JSON.stringify(body)
+        : undefined,
     };
 
     return await fetch(url, options)

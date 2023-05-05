@@ -48,7 +48,6 @@ export const DashboardLayout = (props) => {
         role: session?.role,
         email_preference: await userManagementApi.getUserEmailPreference({
           token: session?.accessToken,
-          email: parsedJwt?.preferred_username,
         }),
       };
       setUser(user);
@@ -57,13 +56,13 @@ export const DashboardLayout = (props) => {
 
   useEffect(() => {
     updateUser();
-    if (!session?.accessToken) {
+    if (session?.accessToken) {
       MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
         setIntersections(intersections);
         setIntersection(intersections?.[0]?.intersectionID);
       });
     }
-  }, []);
+  }, [session?.accessToken]);
 
   return (
     <AuthGuard>

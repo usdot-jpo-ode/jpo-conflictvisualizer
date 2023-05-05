@@ -18,6 +18,7 @@ import { NavItem } from "./nav-item";
 import React from "react";
 import { DashboardSidebarSection } from "./dashboard-sidebar-section";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const generalItems = [
   {
@@ -46,11 +47,6 @@ const generalItems = [
     title: "Data Selector",
   },
   {
-    path: "/users",
-    icon: <UsersIcon fontSize="small" />,
-    title: "Users",
-  },
-  {
     path: "/configuration",
     icon: <CogIcon fontSize="small" />,
     title: "Configuration",
@@ -62,18 +58,32 @@ const generalItems = [
   },
 ];
 
-const adminItems = [];
-
-const sections = [
+const adminItems = [
   {
-    title: "General",
-    items: generalItems,
+    path: "/users",
+    icon: <UsersIcon fontSize="small" />,
+    title: "Users",
   },
-  //   {
-  //     title: "Admin",
-  //     items: adminItems,
-  //   },
 ];
+
+const getSections = (role) =>
+  role == "ADMIN"
+    ? [
+        {
+          title: "General",
+          items: generalItems,
+        },
+        {
+          title: "Admin",
+          items: adminItems,
+        },
+      ]
+    : [
+        {
+          title: "General",
+          items: generalItems,
+        },
+      ];
 
 export const DashboardSidebar = (props) => {
   const { open, onClose } = props;
@@ -82,6 +92,7 @@ export const DashboardSidebar = (props) => {
     defaultMatches: true,
     noSsr: false,
   });
+  const { data: session } = useSession();
 
   useEffect(
     () => {
@@ -127,7 +138,7 @@ export const DashboardSidebar = (props) => {
           }}
         />
         <Box sx={{ flexGrow: 1 }}>
-          {sections.map((section) => (
+          {getSections(session?.role).map((section) => (
             <DashboardSidebarSection
               key={section.title}
               path={router.asPath}

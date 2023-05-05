@@ -116,12 +116,12 @@ class UserManagementApi {
     })) as boolean;
   }
 
-  async getUserEmailPreference({ token, email }: { token: string; email: string }): Promise<EmailPreferences> {
+  async getUserEmailPreference({ token }: { token: string }): Promise<EmailPreferences> {
     return (
       (await authApiHelper.invokeApi({
         path: `/users/get_user_email_preference`,
+        method: "POST",
         token: token,
-        queryParams: { email },
         toastOnFailure: false,
       })) ?? {
         receiveAnnouncements: true,
