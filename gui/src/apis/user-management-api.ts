@@ -108,7 +108,7 @@ class UserManagementApi {
       path: `/users/update_user_email_preference`,
       token: token,
       method: "POST",
-      body: { email, preferences },
+      body: preferences,
       booleanResponse: true,
       toastOnSuccess: true,
       successMessage: "Email preferences updated successfully",
