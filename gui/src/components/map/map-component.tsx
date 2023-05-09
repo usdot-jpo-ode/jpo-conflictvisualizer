@@ -14,6 +14,8 @@ import { Marker } from "mapbox-gl";
 import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
 import { useSession } from "next-auth/react";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
   "mapMessage",
@@ -195,7 +197,7 @@ type MyProps = {
 };
 
 const MapTab = (props: MyProps) => {
-  const MAPBOX_API_TOKEN = process.env.MAPBOX_TOKEN!;
+  const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;

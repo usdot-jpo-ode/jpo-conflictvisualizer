@@ -5,6 +5,8 @@ import { ENABLE_AUTH } from "../lib/auth";
 import React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import keycloakApi from "../apis/keycloak-api";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 export const AccountPopover = (props) => {
   const { anchorEl, onClose, open, ...other } = props;
@@ -71,7 +73,9 @@ export const AccountPopover = (props) => {
       >
         <MenuItem
           onClick={() => {
-            window.open(`http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}/account/#/`);
+            window.open(
+              `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/realms/${publicRuntimeConfig.KEYCLOAK_REALM}/account/#/`
+            );
           }}
         >
           Edit Account
