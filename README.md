@@ -28,6 +28,13 @@ To provide feedback, we recommend that you create an "issue" in this repository 
 
 ### 1. Initialize and update submodules
 
+Clone the repository and initialize sub-modules
+```
+git clone --recurse-submodules https://github.com/usdot-jpo-ode/jpo-conflictvisualizer
+```
+
+Alternatively, clone the repository first, then import submodules second
+
 ```
 git submodule update --init --recursive
 ```
