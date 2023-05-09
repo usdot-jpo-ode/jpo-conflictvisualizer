@@ -13,7 +13,7 @@ import {
   Typography,
   Switch,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 
 export const SettingsNotifications = (props: {
   value?: EmailPreferences;
@@ -29,6 +29,18 @@ export const SettingsNotifications = (props: {
       receiveNewUserRequests: false,
     }
   );
+
+  useEffect(() => {
+    setValue(
+      props.value ?? {
+        receiveAnnouncements: true,
+        notificationFrequency: "ONCE_PER_DAY",
+        receiveCeaseBroadcastRecommendations: true,
+        receiveCriticalErrorMessages: true,
+        receiveNewUserRequests: false,
+      }
+    );
+  }, [props.value]);
 
   return (
     <form {...props}>

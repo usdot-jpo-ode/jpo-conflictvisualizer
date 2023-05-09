@@ -2,15 +2,50 @@ import Head from "next/head";
 import { Box, Container, Typography } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { SettingsNotifications } from "../components/settings/settings-notifications";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import keycloakApi from "../apis/keycloak-api";
 import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import userManagementApi from "../apis/user-management-api";
 
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+  } catch (err) {
+    return { ERROR: err };
+  }
+};
+
 const Page = () => {
   const { data: session } = useSession();
   const { user, setUser } = useDashboardContext();
+  const [userProfile, setUserProfile] = useState<User | undefined>(user);
+
+  useEffect(() => {
+    getUser();
+  }, [session, user]);
+
+  const getUser = async () => {
+    console.log("GETTING USER", user, session);
+    if (session?.accessToken && session?.role) {
+      const parsedJwt = parseJwt(session?.accessToken);
+      const localUser: User = {
+        email: parsedJwt?.preferred_username,
+        first_name: parsedJwt?.given_name,
+        last_name: parsedJwt?.family_name,
+        id: parsedJwt?.sub,
+        role: session?.role,
+        email_preference: await userManagementApi.getUserEmailPreference({
+          token: session?.accessToken,
+        }),
+      };
+      console.log("SETTING USER Local", localUser);
+      setUserProfile(localUser);
+    } else {
+      console.log("SETTING USER Context", user);
+      setUserProfile(user);
+    }
+  };
 
   const updateSettings = async (emailPreference: EmailPreferences) => {
     if (session?.accessToken && !session?.user?.email) {
@@ -25,7 +60,7 @@ const Page = () => {
     }
   };
 
-  console.log("user", user);
+  console.log("Settings Page USER", userProfile);
 
   return (
     <>
@@ -44,9 +79,9 @@ const Page = () => {
             Settings
           </Typography>
           <SettingsNotifications
-            value={user?.email_preference}
+            value={userProfile?.email_preference}
             onSave={updateSettings}
-            userRole={user?.role ?? "USER"}
+            userRole={userProfile?.role ?? "USER"}
           />
         </Container>
       </Box>
