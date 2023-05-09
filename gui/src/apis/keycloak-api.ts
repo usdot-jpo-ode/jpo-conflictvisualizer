@@ -4,8 +4,11 @@ import { authApiHelper } from "./api-helper";
 
 class KeycloakApi {
   getEmailPreferences(attributes: Record<string, string[]>): EmailPreferences {
+    
+    console.log(attributes);
+
     return {
-      receiveAnnouncements: attributes?.["receiveAccouncements"]?.[0] === "true",
+      receiveAnnouncements: attributes?.["receiveAnnouncements"]?.[0] ==="true",
       notificationFrequency: (attributes?.["notificationFrequency"]?.[0] ?? "NEVER") as EmailFrequency,
       receiveCeaseBroadcastRecommendations: attributes?.["receiveCeaseBroadcastRecommendations"]?.[0] === "true",
       receiveCriticalErrorMessages: attributes?.["receiveCriticalErrorMessages"]?.[0] === "true",
