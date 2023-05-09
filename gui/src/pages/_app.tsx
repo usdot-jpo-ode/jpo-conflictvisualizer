@@ -7,9 +7,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import { createEmotionCache } from "../utils/create-emotion-cache";
 import { registerChartJs } from "../utils/register-chart-js";
 import { theme } from "../theme";
-import React, { useState } from "react";
+import React from "react";
 import { SessionProvider } from "next-auth/react";
-import type { Session } from "next-auth";
 import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
@@ -36,9 +35,7 @@ const App = (props) => {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <SessionProvider session={session}>
-            {getLayout(<Component {...pageProps} />)}
-          </SessionProvider>
+          <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
         </ThemeProvider>
       </LocalizationProvider>
       <Toaster />

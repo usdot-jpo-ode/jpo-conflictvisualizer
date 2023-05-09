@@ -14,14 +14,7 @@ import {
 } from "@mui/material";
 import React from "react";
 
-export const EventListResults = ({
-  events,
-  eventsCount,
-  onPageChange,
-  onRowsPerPageChange,
-  page,
-  rowsPerPage,
-}) => {
+export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
   const getEventDescription = (event: MessageMonitor.Event) => {
     // convert event to JSON string
     const newEvent: any = { ...event };
@@ -59,7 +52,7 @@ export const EventListResults = ({
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{format(event.eventGeneratedAt, "dd/MM/yyyy HH:mm:ss")}</TableCell>
+                    <TableCell>{format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell>{getEventDescription(event)}</TableCell>
                   </TableRow>
                 );

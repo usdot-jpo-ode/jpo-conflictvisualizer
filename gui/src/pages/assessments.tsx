@@ -1,31 +1,16 @@
 import Head from "next/head";
-import {
-  Box,
-  Button,
-  Card,
-  Container,
-  Divider,
-  Grid,
-  InputAdornment,
-  Stack,
-  Tab,
-  Tabs,
-  TextField,
-  TextFieldProps,
-  Typography,
-} from "@mui/material";
-import { AssessmentListResults } from "../components/assessments/assessment-list-results";
+import { Box, Container, Grid, TextFieldProps } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
-import { Refresh as RefreshIcon } from "../icons/refresh";
-import { Search as SearchIcon } from "../icons/search";
 import NotificationApi from "../apis/notification-api";
 import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
 import { LaneDirectionOfTravelAssessmentCard } from "../components/assessments/lane-direction-of-travel-assessment";
+import { SignalStateEventAssessmentCard } from "../components/assessments/signal-state-event-assessment";
 import { SignalStateAssessmentCard } from "../components/assessments/signal-state-assessment";
 import { NotificationsTable } from "../components/notifications/notifications-table";
 import React, { useEffect, useState, useRef } from "react";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import AssessmentsApi from "../apis/assessments-api";
+import { useSession } from "next-auth/react";
 
 const tabs = [
   {
@@ -84,7 +69,6 @@ const applyPagination = (parameters, page, rowsPerPage) =>
 const Page = () => {
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<SpatBroadcastRateNotification>([]);
-  const [acceptedNotifications, setAcceptedNotifications] = useState<String[]>([]);
   const [currentTab, setCurrentTab] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -93,57 +77,67 @@ const Page = () => {
     query: "",
     tab: currentTab,
   });
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<
-    SignalStateAssessment | undefined
-  >(undefined);
+  const [signalStateAssessment, setSignalStateAssessment] = useState<SignalStateAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
-  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<
-    SignalStateEventAssessment | undefined
-  >(undefined);
+  const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
+    undefined
+  );
   const [connectionOfTravelAssessment, setConnectionOfTravelAssessment] = useState<
     ConnectionOfTravelAssessment | undefined
   >(undefined);
   const [laneDirectionOfTravelAssessment, setLaneDirectionOfTravelAssessment] = useState<
     LaneDirectionOfTravelAssessment | undefined
   >(undefined);
+  const { data: session } = useSession();
 
   const getAssessments = async () => {
-    setSignalStateAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "signal_state_assessment",
-        dbIntersectionId
-      )) as SignalStateAssessment
-    );
-    setSignalStateEventAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "signal_state_event_assessment",
-        dbIntersectionId
-      )) as SignalStateEventAssessment
-    );
-    setConnectionOfTravelAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "conenction_of_travel",
-        dbIntersectionId
-      )) as ConnectionOfTravelAssessment
-    );
-    setLaneDirectionOfTravelAssessment(
-      (await AssessmentsApi.getAssessment(
-        "token",
-        "lane_direction_of_travel",
-        dbIntersectionId
-      )) as LaneDirectionOfTravelAssessment
-    );
+    if (intersectionId && roadRegulatorId && session?.accessToken) {
+      setSignalStateAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "signal_state_assessment",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as SignalStateAssessment
+      );
+      setSignalStateEventAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "signal_state_event_assessment",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as SignalStateEventAssessment
+      );
+      setConnectionOfTravelAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "connection_of_travel",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as ConnectionOfTravelAssessment
+      );
+      setLaneDirectionOfTravelAssessment(
+        (await AssessmentsApi.getAssessment(
+          session?.accessToken,
+          "lane_direction_of_travel",
+          intersectionId.toString(),
+          roadRegulatorId.toString()
+        )) as LaneDirectionOfTravelAssessment
+      );
+    }
   };
 
   const updateNotifications = () => {
-    setNotifications(
-      NotificationApi.getActiveNotifications({ token: "", intersection_id: "12109" })
-    );
+    if (intersectionId && session?.accessToken) {
+      setNotifications(
+        NotificationApi.getActiveNotifications({
+          token: session?.accessToken,
+          intersection_id: intersectionId.toString(),
+        })
+      );
+    }
   };
 
   useEffect(() => {
@@ -206,13 +200,13 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3}>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <ConnectionOfTravelAssessmentCard
-                assessment={connectionOfTravelAssessment}
-                small={false}
-              />
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={false} />
             </Grid>
             <Grid item xl={3} lg={3} sm={6} xs={12}>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
+            </Grid>
+            <Grid item xl={3} lg={3} sm={6} xs={12}>
+              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
             </Grid>
             <Grid item xl={3} lg={3} sm={6} xs={12}>
               <SignalStateAssessmentCard assessment={signalStateAssessment} />

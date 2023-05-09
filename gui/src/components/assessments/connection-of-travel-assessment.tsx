@@ -19,7 +19,7 @@ export const ConnectionOfTravelAssessmentCard = (props: {
             </Typography>
             {assessment === undefined
               ? ""
-              : assessment.connectionOfTravelAssessmentGroups.map((group) => {
+              : assessment.connectionOfTravelAssessment.map((group) => {
                   return (
                     <Typography color="textPrimary" variant="h5" key={group.connectionID}>
                       {`${group.ingressLaneID}/${group.egressLaneID}: ${group.eventCount}%`}

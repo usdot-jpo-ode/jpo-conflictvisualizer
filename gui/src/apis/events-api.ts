@@ -10,22 +10,18 @@ class EventsApi {
     endTime: Date,
     { latest = false }: { latest?: boolean } = {}
   ): Promise<MessageMonitor.Event[]> {
-    try {
-      var response = await authApiHelper.invokeApi({
-        path: `/events/${eventType}`,
-        token: token,
-        queryParams: {
-          intersection_id: intersectionId.toString(),
-          start_time_utc_millis: startTime.getTime().toString(),
-          end_time_utc_millis: endTime.getTime().toString(),
-          latest: latest.toString(),
-        },
-      });
-      return response;
-    } catch (exception_var) {
-      console.error(exception_var);
-      return [];
-    }
+    const response = await authApiHelper.invokeApi({
+      path: `/events/${eventType}`,
+      token: token,
+      queryParams: {
+        intersection_id: intersectionId.toString(),
+        start_time_utc_millis: startTime.getTime().toString(),
+        end_time_utc_millis: endTime.getTime().toString(),
+        latest: latest.toString(),
+      },
+      failureMessage: `Failed to retrieve events of type ${eventType}`,
+    });
+    return response ?? ([] as MessageMonitor.Event[]);
   }
 }
 

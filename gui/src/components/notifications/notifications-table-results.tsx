@@ -1,10 +1,8 @@
-import { useState } from "react";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import NextLink from "next/link";
 import {
-  Avatar,
   Box,
   Card,
   Checkbox,
@@ -17,14 +15,10 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { getInitials } from "../../utils/get-initials";
 import React from "react";
-import { v4 as uuid } from "uuid";
-import { PencilAlt as PencilAltIcon } from "../../icons/pencil-alt";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
-import { ConstructionOutlined } from "@mui/icons-material";
 
-export const CustomerListResults = ({
+export const NotificationsTableResults = ({
   customers,
   allTabNotifications,
   notificationsCount,
@@ -39,7 +33,7 @@ export const CustomerListResults = ({
     let newSelectedCustomerIds: string[] = [];
     if (notificationsCount === 0) return;
     if (event.target.checked) {
-      newSelectedCustomerIds = allTabNotifications.map((customer) => customer.id);
+      newSelectedCustomerIds = allTabNotifications.map((customer) => customer.key);
     } else {
       newSelectedCustomerIds = [];
     }
@@ -47,11 +41,11 @@ export const CustomerListResults = ({
     onSelectedItemsChanged(newSelectedCustomerIds);
   };
 
-  const handleSelectOne = (event, notificationId) => {
+  const handleSelectOne = (event, notificationId: string) => {
     if (!selectedNotifications.includes(notificationId)) {
-      onSelectedItemsChanged((prevSelected) => [...prevSelected, notificationId]);
+      onSelectedItemsChanged((prevSelected: string[]) => [...prevSelected, notificationId]);
     } else {
-      onSelectedItemsChanged((prevSelected) => prevSelected.filter((id) => id !== notificationId));
+      onSelectedItemsChanged((prevSelected: string[]) => prevSelected.filter((key: string) => key !== notificationId));
     }
   };
 
@@ -64,14 +58,10 @@ export const CustomerListResults = ({
               <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={
-                      selectedNotifications.length === notificationsCount &&
-                      selectedNotifications.length
-                    }
+                    checked={selectedNotifications.length === notificationsCount && selectedNotifications.length}
                     color="primary"
                     indeterminate={
-                      selectedNotifications.length > 0 &&
-                      selectedNotifications.length < notificationsCount
+                      selectedNotifications.length > 0 && selectedNotifications.length < notificationsCount
                     }
                     onChange={handleSelectAll}
                   />
@@ -84,19 +74,13 @@ export const CustomerListResults = ({
             </TableHead>
             <TableBody>
               {customers.map((customer: MessageMonitor.Notification) => {
-                const isNotificationSelected =
-                  [...selectedNotifications].indexOf(customer.id) !== -1;
-
+                const isNotificationSelected = [...selectedNotifications].indexOf(customer.key) !== -1;
                 return (
-                  <TableRow
-                    hover
-                    key={customer.id}
-                    selected={[...selectedNotifications].indexOf(customer.id) !== -1}
-                  >
+                  <TableRow hover key={customer.key} selected={[...selectedNotifications].indexOf(customer.key) !== -1}>
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={isNotificationSelected}
-                        onChange={(event) => handleSelectOne(event, customer.id)}
+                        onChange={(event) => handleSelectOne(event, customer.key)}
                         value="true"
                       />
                     </TableCell>
@@ -112,17 +96,10 @@ export const CustomerListResults = ({
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>
-                      {format(customer.notificationGeneratedAt, "dd/MM/yyyy HH:mm:ss")}
-                    </TableCell>
+                    <TableCell>{format(customer.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell>{customer.notificationText}</TableCell>
                     <TableCell align="right">
-                      {/* <NextLink href={`/notifications/${customer.notificationType}`} passHref>
-                        <IconButton component="a">
-                          <MapRoundedIcon fontSize="medium" />
-                        </IconButton>
-                      </NextLink> */}
-                      <NextLink href={`/map/${customer.id}`} passHref>
+                      <NextLink href={`/map/${customer.key}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
@@ -148,7 +125,7 @@ export const CustomerListResults = ({
   );
 };
 
-CustomerListResults.propTypes = {
+NotificationsTableResults.propTypes = {
   customers: PropTypes.array.isRequired,
   onSelectedItemsChanged: PropTypes.func,
 };

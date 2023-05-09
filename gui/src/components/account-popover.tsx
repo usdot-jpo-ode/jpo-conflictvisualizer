@@ -4,6 +4,7 @@ import { Box, MenuItem, MenuList, Popover, Typography } from "@mui/material";
 import { ENABLE_AUTH } from "../lib/auth";
 import React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import keycloakApi from "../apis/keycloak-api";
 
 export const AccountPopover = (props) => {
   const { anchorEl, onClose, open, ...other } = props;
@@ -15,11 +16,16 @@ export const AccountPopover = (props) => {
     try {
       console.info("Signing out");
 
-      // This can be call inside AuthProvider component, but we do it here for simplicity
+      if (session?.accessToken && session?.refreshToken) {
+        keycloakApi.logout({
+          token: session?.accessToken,
+          refresh_token: session?.refreshToken,
+        });
+      } // This can be call inside AuthProvider component, but we do it here for simplicity
       signOut();
 
       // Redirect to sign-in page
-      Router.push("/sign-in").catch(console.error);
+      //   Router.push("/sign-in").catch(console.error);
     } catch (err) {
       console.error(err);
     }
@@ -65,7 +71,7 @@ export const AccountPopover = (props) => {
       >
         <MenuItem
           onClick={() => {
-            window.open("http://localhost:8080/realms/cimms/account/#/");
+            window.open(`http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}/account/#/`);
           }}
         >
           Edit Account

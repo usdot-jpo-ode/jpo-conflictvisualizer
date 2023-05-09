@@ -1,10 +1,8 @@
 import { useRef, useState } from "react";
-import PropTypes from "prop-types";
 import styled from "@emotion/styled";
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   IconButton,
   Toolbar,
@@ -16,16 +14,12 @@ import {
   MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import MapRoundedIcon from "@mui/icons-material/MapRounded";
-import { Bell as BellIcon } from "../icons/bell";
-import { UserCircle as UserCircleIcon } from "../icons/user-circle";
-import { Users as UsersIcon } from "../icons/users";
 import { AccountPopover } from "./account-popover";
 import React from "react";
-import { useSession } from "next-auth/react";
 import { getInitials } from "../utils/get-initials";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useTheme } from "@mui/material/styles";
+import { useSession } from "next-auth/react";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -69,14 +63,14 @@ function stringAvatar(name?: string) {
       width: 40,
       ml: 1,
     },
-    children: `${!name ? "" : name.split(" ")[0][0]}${!name ? "" : name.split(" ")[1][0]}`,
+    children: `${!name ? "" : name.split(" ")[0][0]}${!name ? "" : name.split(" ")[1]?.[0] ?? ""}`,
   };
 }
 
 export const DashboardNavbar = (props: Props) => {
   const { onSidebarOpen, intersections, ...other } = props;
   const settingsRef = useRef(null);
-  const { intersectionId, roadRegulatorId } = useDashboardContext();
+  const { intersectionId, setIntersection } = useDashboardContext();
   const [openAccountPopover, setOpenAccountPopover] = useState(false);
   const { data: session } = useSession();
   const theme = useTheme();
@@ -122,7 +116,9 @@ export const DashboardNavbar = (props: Props) => {
                 id="demo-simple-select"
                 value={intersectionId}
                 label="Age"
-                onChange={(e) => {}} // TODO: dashboardContext.setIntersection(e.target.value as number)}
+                onChange={(e) => {
+                  setIntersection(e.target.value as number);
+                }}
               >
                 {intersections.map((intersection) => {
                   return (
@@ -138,9 +134,9 @@ export const DashboardNavbar = (props: Props) => {
           <Avatar
             onClick={() => setOpenAccountPopover(true)}
             ref={settingsRef}
-            {...stringAvatar("Jacob Frye" ?? "")}
+            {...stringAvatar(session?.user?.name ?? undefined)}
           >
-            {getInitials("Jacob Frye" ?? "")}
+            {getInitials(session?.user?.name ?? undefined)}
           </Avatar>
         </Toolbar>
       </DashboardNavbarRoot>

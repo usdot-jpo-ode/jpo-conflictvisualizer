@@ -9,12 +9,14 @@ import { DataSelectorEditForm } from "../components/data-selector/data-selector-
 import { EventDataTable } from "../components/data-selector/event-data-table";
 import { AssessmentDataTable } from "../components/data-selector/assessment-data-table";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const DataSelectorPage = () => {
   const [type, setType] = useState("");
   const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId } = useDashboardContext();
+  const { data: session } = useSession();
 
   const downloadTxtFile = (contents: string, type: string) => {
     const element = document.createElement("a");
@@ -35,6 +37,9 @@ const DataSelectorPage = () => {
     assessmentTypes,
     bsmVehicleId,
   }) => {
+    if (!session?.accessToken) {
+      return;
+    }
     setType(type);
     const endTime = new Date(startDate.getTime() + timeRange * 60 * 1000);
     switch (type) {
@@ -43,13 +48,7 @@ const DataSelectorPage = () => {
         // iterate through each event type in a for loop and add the events to events array
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const event = await EventsApi.getEvent(
-            "token",
-            eventType,
-            intersectionId,
-            startDate,
-            endTime
-          );
+          const event = await EventsApi.getEvent(session?.accessToken, eventType, intersectionId, startDate, endTime);
           events.push(...event);
         }
         setEvents(events);
@@ -61,7 +60,7 @@ const DataSelectorPage = () => {
         for (let i = 0; i < assessmentTypes.length; i++) {
           const eventType = assessmentTypes[i];
           const event = await AssessmentsApi.getAssessment(
-            "token",
+            session?.accessToken,
             eventType,
             intersectionId,
             startDate,
@@ -126,7 +125,7 @@ const DataSelectorPage = () => {
                   bsmVehicleId,
                 })
               }
-              dbIntersectionId={dbIntersectionId}
+              dbIntersectionId={intersectionId}
             />
           </Box>
         </Container>
@@ -143,10 +142,7 @@ const DataSelectorPage = () => {
           <AssessmentDataTable
             events={assessments}
             onDownload={() => {
-              return downloadTxtFile(
-                assessments.map((e) => JSON.stringify(e)).join("\n"),
-                "assessments"
-              );
+              return downloadTxtFile(assessments.map((e) => JSON.stringify(e)).join("\n"), "assessments");
             }}
           />
         )}

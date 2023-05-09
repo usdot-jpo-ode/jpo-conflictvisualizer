@@ -1,26 +1,13 @@
-import processed_map_data from "./fake_data/ProcessedMap.json";
-import all_spat_data from "./fake_data/ProcessedSpat";
-// import processed_spat_data from './fake_data/ProcessedSpatSingle.json';
-// import bsm_data from './fake_data/BsmSingle.json';
-import all_bsm_data from "./fake_data/10.11.81.12_BSMlist";
-import intersectionsList from "./fake_data/intersections.json";
 import { authApiHelper } from "./api-helper";
-import assessments from "./fake_data/assessments.json";
 
 class MessageMonitorApi {
   async getIntersections({ token }): Promise<IntersectionReferenceData[]> {
-    try {
-      var response = await authApiHelper.invokeApi({
-        path: "/intersection/list",
-        token: token,
-      });
-      return response;
-    } catch (exception_var) {
-      console.error(exception_var);
-      return [];
-    }
-
-    //return intersectionsList;
+    var response = await authApiHelper.invokeApi({
+      path: "/intersection/list",
+      token: token,
+      failureMessage: "Failed to retrieve intersection list",
+    });
+    return response ?? [];
   }
 
   async getSpatMessages({
@@ -30,12 +17,12 @@ class MessageMonitorApi {
     endTime,
   }: {
     token: string;
-    intersection_id?: number;
+    intersection_id: string;
     startTime?: Date;
     endTime?: Date;
   }): Promise<ProcessedSpat[]> {
     const queryParams: Record<string, string> = {};
-    if (intersection_id) queryParams["intersection_id"] = intersection_id.toString();
+    if (intersection_id) queryParams["intersection_id"] = intersection_id;
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
@@ -43,12 +30,9 @@ class MessageMonitorApi {
       path: "/spat/json",
       token: token,
       queryParams,
+      failureMessage: "Failed to retrieve SPAT messages",
     });
-    return response as ProcessedSpat[];
-
-    const data: string = all_spat_data;
-    const spatData: ProcessedSpat[] = data.split("\n").map((line) => JSON.parse(line));
-    return spatData;
+    return response ?? ([] as ProcessedSpat[]);
   }
 
   async getMapMessages({
@@ -59,13 +43,13 @@ class MessageMonitorApi {
     latest,
   }: {
     token: string;
-    intersection_id?: number;
+    intersection_id: string;
     startTime?: Date;
     endTime?: Date;
     latest?: boolean;
   }): Promise<ProcessedMap[]> {
     const queryParams: Record<string, string> = {};
-    if (intersection_id) queryParams["intersection_id"] = intersection_id.toString();
+    queryParams["intersection_id"] = intersection_id;
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     if (latest !== undefined) queryParams["latest"] = latest.toString();
@@ -74,8 +58,9 @@ class MessageMonitorApi {
       path: "/map/json",
       token: token,
       queryParams,
+      failureMessage: "Failed to retrieve MAP messages",
     });
-    return response as ProcessedMap[];
+    return response ?? ([] as ProcessedMap[]);
   }
 
   async getBsmMessages({
@@ -98,12 +83,9 @@ class MessageMonitorApi {
       path: "/bsm/json",
       token: token,
       queryParams,
+      failureMessage: "Failed to retrieve BSM messages",
     });
-    return response as OdeBsmData[];
-
-    const data: string = all_bsm_data;
-    const bsmData: OdeBsmData[] = data.split("\n").map((line) => JSON.parse(line));
-    return bsmData;
+    return response ?? ([] as OdeBsmData[]);
   }
 }
 

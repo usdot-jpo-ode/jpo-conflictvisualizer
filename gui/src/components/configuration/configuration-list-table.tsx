@@ -141,8 +141,8 @@ export const ConfigParamListTable = (props) => {
                     return generalDefaultRow(param);
                   case "INTERSECTION":
                     return "intersectionID" in param
-                      ? generalIntersectionRow(param)
-                      : intersectionRow(param);
+                      ? intersectionRow(param)
+                      : generalIntersectionRow(param);
                   default:
                     return readOnlyRow(param);
                 }

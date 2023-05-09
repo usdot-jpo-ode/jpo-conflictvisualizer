@@ -2,38 +2,42 @@ import { useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { Box, Container, Typography } from "@mui/material";
-import { configParamApi } from "../../../apis/configuration-param-api";
+import keycloakApi from "../../../apis/keycloak-api";
 import { DashboardLayout } from "../../../components/dashboard-layout";
-import { ConfigParamCreateForm } from "../../../components/configuration/configuration-create-form";
+import { UserEditForm } from "../../../components/users/user-edit-form";
+import { useSession } from "next-auth/react";
 
-const ConfigParamCreate = () => {
-  const [parameter, setParameter] = useState<Config | null>(null);
+const UserEdit = () => {
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const { data: session } = useSession();
 
   const router = useRouter();
-  const { key } = router.query;
+  const { id } = router.query;
 
-  const getParameter = async (key: string) => {
+  const getUser = async (userId: string) => {
     try {
-      const data = await configParamApi.getParameter("token", key, "-1", "12109");
+      if (session?.accessToken) {
+        const data = await keycloakApi.getUserInfo({ token: session?.accessToken, id: userId });
 
-      setParameter(data);
+        if (data) setUser(data);
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
   useEffect(() => {
-    getParameter(key as string);
+    getUser(id as string);
   }, []);
 
-  if (!parameter) {
+  if (!user) {
     return null;
   }
 
   return (
     <>
       <Head>
-        <title>Override Parameter</title>
+        <title>Edit User</title>
       </Head>
       <Box
         component="main"
@@ -53,12 +57,12 @@ const ConfigParamCreate = () => {
           >
             <div>
               <Typography noWrap variant="h4">
-                {parameter.category}/{parameter.key}
+                {user?.email}
               </Typography>
             </div>
           </Box>
           <Box mt={3}>
-            <ConfigParamCreateForm parameter={parameter} />
+            <UserEditForm user={user} />
           </Box>
         </Container>
       </Box>
@@ -66,6 +70,6 @@ const ConfigParamCreate = () => {
   );
 };
 
-ConfigParamCreate.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
+UserEdit.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
 
-export default ConfigParamCreate;
+export default UserEdit;

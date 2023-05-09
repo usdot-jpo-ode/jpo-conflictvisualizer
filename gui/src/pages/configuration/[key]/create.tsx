@@ -6,26 +6,30 @@ import { configParamApi } from "../../../apis/configuration-param-api";
 import { DashboardLayout } from "../../../components/dashboard-layout";
 import { ConfigParamCreateForm } from "../../../components/configuration/configuration-create-form";
 import { useDashboardContext } from "../../../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const ConfigParamCreate = () => {
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
-  const [parameter, setParameter] = useState<Config | null>(null);
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
+  const [parameter, setParameter] = useState<Config | undefined>(undefined);
+  const { data: session } = useSession();
 
   const router = useRouter();
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    try {
-      const data = await configParamApi.getParameter(
-        "token",
-        key,
-        "-1",
-        dbIntersectionId.toString()
-      );
+    if (intersectionId && roadRegulatorId && session?.accessToken) {
+      try {
+        const data = await configParamApi.getParameter(
+          session?.accessToken,
+          key,
+          roadRegulatorId.toString(),
+          intersectionId.toString()
+        );
 
-      setParameter(data);
-    } catch (err) {
-      console.error(err);
+        setParameter(data);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 

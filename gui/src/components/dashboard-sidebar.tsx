@@ -2,16 +2,7 @@ import { useEffect } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  Typography,
-  useMediaQuery,
-  Theme,
-  Chip,
-} from "@mui/material";
+import { Box, Button, Divider, Drawer, Typography, useMediaQuery, Theme, Chip } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { ChartBar as ChartBarIcon } from "../icons/chart-bar";
 import { Cog as CogIcon } from "../icons/cog";
@@ -27,6 +18,7 @@ import { NavItem } from "./nav-item";
 import React from "react";
 import { DashboardSidebarSection } from "./dashboard-sidebar-section";
 import { useDashboardContext } from "../contexts/dashboard-context";
+import { useSession } from "next-auth/react";
 
 const generalItems = [
   {
@@ -54,11 +46,6 @@ const generalItems = [
     icon: <ChartBarIcon fontSize="small" />,
     title: "Data Selector",
   },
-  //   {
-  //     path: "/users",
-  //     icon: <UsersIcon fontSize="small" />,
-  //     title: "Users",
-  //   },
   {
     path: "/configuration",
     icon: <CogIcon fontSize="small" />,
@@ -71,18 +58,32 @@ const generalItems = [
   },
 ];
 
-const adminItems = [];
-
-const sections = [
+const adminItems = [
   {
-    title: "General",
-    items: generalItems,
+    path: "/users",
+    icon: <UsersIcon fontSize="small" />,
+    title: "Users",
   },
-  //   {
-  //     title: "Admin",
-  //     items: adminItems,
-  //   },
 ];
+
+const getSections = (role) =>
+  role == "ADMIN"
+    ? [
+        {
+          title: "General",
+          items: generalItems,
+        },
+        {
+          title: "Admin",
+          items: adminItems,
+        },
+      ]
+    : [
+        {
+          title: "General",
+          items: generalItems,
+        },
+      ];
 
 export const DashboardSidebar = (props) => {
   const { open, onClose } = props;
@@ -91,6 +92,7 @@ export const DashboardSidebar = (props) => {
     defaultMatches: true,
     noSsr: false,
   });
+  const { data: session } = useSession();
 
   useEffect(
     () => {
@@ -136,16 +138,16 @@ export const DashboardSidebar = (props) => {
           }}
         />
         <Box sx={{ flexGrow: 1 }}>
-          {sections.map((section) => (
+          {getSections(session?.role).map((section) => (
             <DashboardSidebarSection
               key={section.title}
               path={router.asPath}
-            //   sx={{
-            //     mt: 2,
-            //     "& + &": {
-            //       mt: 2,
-            //     },
-            //   }}
+              //   sx={{
+              //     mt: 2,
+              //     "& + &": {
+              //       mt: 2,
+              //     },
+              //   }}
               {...section}
             />
           ))}

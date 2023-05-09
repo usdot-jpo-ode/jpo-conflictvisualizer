@@ -104,10 +104,7 @@ export const CustomerListResults = ({ customers, ...rest }) => {
                   <Checkbox
                     checked={selectedCustomerIds.length === customers.length}
                     color="primary"
-                    indeterminate={
-                      selectedCustomerIds.length > 0 &&
-                      selectedCustomerIds.length < customers.length
-                    }
+                    indeterminate={selectedCustomerIds.length > 0 && selectedCustomerIds.length < customers.length}
                     onChange={handleSelectAll}
                   />
                 </TableCell>
@@ -120,11 +117,7 @@ export const CustomerListResults = ({ customers, ...rest }) => {
             </TableHead>
             <TableBody>
               {customers.slice(0, limit).map((customer) => (
-                <TableRow
-                  hover
-                  key={customer.id}
-                  selected={[...selectedCustomerIds].indexOf(customer.id) !== -1}
-                >
+                <TableRow hover key={customer.id} selected={[...selectedCustomerIds].indexOf(customer.id) !== -1}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={[...selectedCustomerIds].indexOf(customer.id) !== -1}
@@ -152,7 +145,7 @@ export const CustomerListResults = ({ customers, ...rest }) => {
                     {`${customer.address.city}, ${customer.address.state}, ${customer.address.country}`}
                   </TableCell>
                   <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{format(customer.createdAt, "dd/MM/yyyy")}</TableCell>
+                  <TableCell>{format(customer.createdAt, "MM/dd/yyyy")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
