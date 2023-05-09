@@ -196,7 +196,6 @@ type MyProps = {
 
 const MapTab = (props: MyProps) => {
   const MAPBOX_API_TOKEN = process.env.MAPBOX_TOKEN!;
-  // "pk.eyJ1IjoidG9ueWVuZ2xpc2giLCJhIjoiY2tzajQwcDJvMGQ3bjJucW0yaDMxbThwYSJ9.ff26IdP_Y9hiE82AGx_wCg"; //;
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;
