@@ -1,6 +1,9 @@
-const KEYCLOAK_ADMIN_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8084/admin/realms/${process.env.KEYCLOAK_REALM}`;
-const KEYCLOAK_AUTH_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`;
 import { authApiHelper } from "./api-helper";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
+
+const KEYCLOAK_ADMIN_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/admin/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
+const KEYCLOAK_AUTH_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
 
 class KeycloakApi {
   getEmailPreferences(attributes: Record<string, string[]>): EmailPreferences {

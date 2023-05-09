@@ -1,7 +1,9 @@
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
-const MESSAGE_MONITOR_ENDPOINT = `http://${process.env.DOCKER_HOST_IP}:8081`;
+const MESSAGE_MONITOR_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8081`;
 
 class AuthApiHelper {
   formatQueryParams(query_params?: Record<string, any>): string {

@@ -5,6 +5,8 @@ import { Box, Button, Grid, Typography } from "@mui/material";
 import { Logo } from "../../components/logo";
 import { getProviders, signIn } from "next-auth/react";
 import React from "react";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 interface Provider {
   id: string;
@@ -92,7 +94,7 @@ const Page = () => {
                       <div key={provider.name}>
                         <Button
                           onClick={() =>
-                            signIn(provider.id, { callbackUrl: `http://${process.env.DOCKER_HOST_IP}:3000/` })
+                            signIn(provider.id, { callbackUrl: `http://${publicRuntimeConfig.DOCKER_HOST_IP}:3000/` })
                           }
                           variant="contained"
                         >
