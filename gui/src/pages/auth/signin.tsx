@@ -19,7 +19,6 @@ const Page = () => {
       const res = await getProviders();
       setProviders(res!);
     })();
-    console.log("DOCKER_HOST_IP", process.env.DOCKER_HOST_IP);
   }, []);
 
   return (

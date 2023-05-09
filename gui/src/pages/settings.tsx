@@ -26,7 +26,6 @@ const Page = () => {
   }, [session, user]);
 
   const getUser = async () => {
-    console.log("GETTING USER", user, session);
     if (session?.accessToken && session?.role) {
       const parsedJwt = parseJwt(session?.accessToken);
       const localUser: User = {
@@ -39,10 +38,8 @@ const Page = () => {
           token: session?.accessToken,
         }),
       };
-      console.log("SETTING USER Local", localUser);
       setUserProfile(localUser);
     } else {
-      console.log("SETTING USER Context", user);
       setUserProfile(user);
     }
   };
@@ -59,8 +56,6 @@ const Page = () => {
       }
     }
   };
-
-  console.log("Settings Page USER", userProfile);
 
   return (
     <>

@@ -67,7 +67,6 @@ export const SettingsNotifications = (props: {
                 name="controlled-radio-buttons-group"
                 value={value.notificationFrequency}
                 onChange={(e, v) => {
-                  console.log("EVENT", e, "VALUE", v);
                   setValue((prevValue) => ({ ...prevValue, notificationFrequency: v as EmailFrequency }));
                 }}
               >
@@ -173,7 +172,6 @@ export const SettingsNotifications = (props: {
             color="primary"
             variant="contained"
             onClick={() => {
-              console.log(props.value, value);
               props.onSave(value);
             }}
             disabled={props.value == value}

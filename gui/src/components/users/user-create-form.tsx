@@ -38,7 +38,6 @@ export const UserCreateForm = (props) => {
       last_name: Yup.string(),
     }),
     onSubmit: async (values, helpers) => {
-      console.log("SUBMITTING");
       if (!session?.accessToken) {
         toast.error("Not authenticated");
         helpers.setStatus({ success: false });
