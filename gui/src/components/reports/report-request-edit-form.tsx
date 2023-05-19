@@ -58,7 +58,7 @@ export const ReportRequestEditForm = (props) => {
               <TextField
                 error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
                 fullWidth
-                helperText={formik.touched.intersectionId && formik.errors.intersectionId}
+                // helperText={formik.touched.intersectionId && formik.errors.intersectionId}
                 label="Intersection ID"
                 name="intersectionId"
                 onChange={formik.handleChange}
@@ -83,7 +83,7 @@ export const ReportRequestEditForm = (props) => {
                     <TextField
                       {...props}
                       error={Boolean(formik.touched.startDate && formik.errors.startDate)}
-                      helperText={formik.touched.startDate && formik.errors.startDate}
+                      //   helperText={formik.touched.startDate && formik.errors.startDate}
                       name="startDate"
                       label="Start Date"
                       //   fullWidth
@@ -102,7 +102,7 @@ export const ReportRequestEditForm = (props) => {
                     <TextField
                       {...props}
                       error={Boolean(formik.touched.endDate && formik.errors.endDate)}
-                      helperText={formik.touched.endDate && formik.errors.endDate}
+                      //   helperText={formik.touched.endDate && formik.errors.endDate}
                       name="endDate"
                       label="End Date"
                       //   fullWidth
