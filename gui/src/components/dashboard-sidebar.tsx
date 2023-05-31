@@ -13,6 +13,9 @@ import { User as UserIcon } from "../icons/user";
 import { UserAdd as UserAddIcon } from "../icons/user-add";
 import { Users as UsersIcon } from "../icons/users";
 import MapIcon from "@mui/icons-material/Map";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import ArticleIcon from "@mui/icons-material/Article";
 import { Logo } from "./logo";
 import { NavItem } from "./nav-item";
 import React from "react";
@@ -28,14 +31,14 @@ const generalItems = [
   },
   {
     path: "/notifications",
-    icon: <ChartBarIcon fontSize="small" />,
+    icon: <NotificationsIcon fontSize="small" />,
     title: "Notifications",
   },
-  //   {
-  //     path: "/performanceReports",
-  //     icon: <ChartBarIcon fontSize="small" />,
-  //     title: "Performance Reports",
-  //   },
+  {
+    path: "/reports",
+    icon: <ArticleIcon fontSize="small" />,
+    title: "Performance Reports",
+  },
   {
     path: "/map",
     icon: <MapIcon fontSize="small" />,
