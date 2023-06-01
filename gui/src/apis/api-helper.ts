@@ -19,6 +19,7 @@ class AuthApiHelper {
     queryParams,
     body,
     token,
+    responseType = "json",
     booleanResponse = false,
     toastOnFailure = true,
     toastOnSuccess = false,
@@ -32,6 +33,7 @@ class AuthApiHelper {
     queryParams?: Record<string, string>;
     body?: Object;
     token?: string;
+    responseType?: string;
     booleanResponse?: boolean;
     toastOnFailure?: boolean;
     toastOnSuccess?: boolean;
@@ -74,9 +76,13 @@ class AuthApiHelper {
           if (booleanResponse) return false;
           return undefined;
         }
-        const resp = response.json();
-        resp.then((val) => console.debug("RESPONSE TO", url, val));
-        return resp;
+        if (responseType === "blob") {
+          return response.blob();
+        } else {
+          const resp = response.json();
+          resp.then((val) => console.debug("RESPONSE TO", url, val));
+          return resp;
+        }
       })
       .catch((error: Error) => {
         toast.error("Fetch request failed: " + error.message);
