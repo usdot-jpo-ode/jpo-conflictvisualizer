@@ -19,6 +19,7 @@ export const authOptions = {
       issuer: `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`,
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      checks: "state",
     }),
     // ...add more providers here
   ],

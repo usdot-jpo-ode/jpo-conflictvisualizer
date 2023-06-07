@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
 import { useSession, signIn, signOut } from "next-auth/react";
+import keycloakApi from "../apis/keycloak-api";
+import { Session } from "next-auth";
 
 export const AuthGuard = (props) => {
   const { children } = props;
@@ -19,16 +21,21 @@ export const AuthGuard = (props) => {
     return now > expiration;
   };
 
+  const validateSession = async (session: Session | null) => {
+    const result = await keycloakApi.validateToken({ token: session?.accessToken });
+    console.log("VALIDATE", result);
+    return result;
+  };
+
   // Only do authentication check on component mount.
   // This flow allows you to manually redirect the user after sign-out, otherwise this will be
   // triggered and will automatically redirect to sign-in page.
-
   useEffect(() => {
     if (loading) {
       return;
     }
 
-    if (!session || expired(session.expirationDate!)) {
+    if (!validateSession(session)) {
       console.info("Forcing Sign In", session);
       signIn();
       setChecked(true);

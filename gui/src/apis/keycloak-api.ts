@@ -192,8 +192,17 @@ class KeycloakApi {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       booleanResponse: true,
-      toastOnSuccess: true,
       failureMessage: "Failed to logout user",
+    })) as boolean;
+  }
+
+  async validateToken({ token }: { token?: string }): Promise<boolean> {
+    return (await authApiHelper.invokeApi({
+      path: `/protocol/openid-connect/userinfo`,
+      basePath: KEYCLOAK_AUTH_ENDPOINT,
+      method: "GET",
+      token: token,
+      booleanResponse: true,
     })) as boolean;
   }
 }
