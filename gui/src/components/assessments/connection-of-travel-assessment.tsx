@@ -1,7 +1,5 @@
-import { Avatar, Box, Card, CardContent, Grid, Typography, IconButton } from "@mui/material";
-import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import NextLink from "next/link";
 
 export const ConnectionOfTravelAssessmentCard = (props: {
   assessment: ConnectionOfTravelAssessment | undefined;
@@ -17,15 +15,19 @@ export const ConnectionOfTravelAssessmentCard = (props: {
             <Typography color="textSecondary" gutterBottom variant="overline">
               Connection of Travel Assessment
             </Typography>
-            {assessment === undefined
-              ? ""
-              : assessment.connectionOfTravelAssessment.map((group) => {
-                  return (
-                    <Typography color="textPrimary" variant="h5" key={group.connectionID}>
-                      {`${group.ingressLaneID}/${group.egressLaneID}: ${group.eventCount}%`}
-                    </Typography>
-                  );
-                })}
+            {assessment === undefined ? (
+              <Typography color="textPrimary" variant="h5" key={""}>
+                No Data
+              </Typography>
+            ) : (
+              assessment.connectionOfTravelAssessment.map((group) => {
+                return (
+                  <Typography color="textPrimary" variant="h5" key={group.connectionID}>
+                    {`segment: ${group.ingressLaneID}, lane: ${group.egressLaneID}, ${group.eventCount} Events`}
+                  </Typography>
+                );
+              })
+            )}
           </Grid>
         </Grid>
       </CardContent>

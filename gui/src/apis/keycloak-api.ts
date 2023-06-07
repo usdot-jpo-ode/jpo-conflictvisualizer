@@ -7,11 +7,10 @@ const KEYCLOAK_AUTH_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:808
 
 class KeycloakApi {
   getEmailPreferences(attributes: Record<string, string[]>): EmailPreferences {
-    
     console.log(attributes);
 
     return {
-      receiveAnnouncements: attributes?.["receiveAnnouncements"]?.[0] ==="true",
+      receiveAnnouncements: attributes?.["receiveAnnouncements"]?.[0] === "true",
       notificationFrequency: (attributes?.["notificationFrequency"]?.[0] ?? "NEVER") as EmailFrequency,
       receiveCeaseBroadcastRecommendations: attributes?.["receiveCeaseBroadcastRecommendations"]?.[0] === "true",
       receiveCriticalErrorMessages: attributes?.["receiveCriticalErrorMessages"]?.[0] === "true",
@@ -55,7 +54,7 @@ class KeycloakApi {
         path: `/users`,
         basePath: KEYCLOAK_ADMIN_ENDPOINT,
         token: token,
-        failureMessage: "Failed to get users",
+        failureMessage: "Failed to get users. If this failure repeats, please log out and log back in.",
       })) ?? [];
     return await Promise.all(
       users.map(async (kUser: any) => {

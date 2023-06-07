@@ -1,11 +1,7 @@
-import { Avatar, Box, Card, CardContent, Grid, Typography, IconButton } from "@mui/material";
-import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import NextLink from "next/link";
 
-export const SignalStateAssessmentCard = (props: {
-  assessment: SignalStateAssessment | undefined;
-}) => {
+export const SignalStateAssessmentCard = (props: { assessment: SignalStateAssessment | undefined }) => {
   const { assessment } = props;
   return (
     <Card sx={{ height: "100%" }}>
@@ -15,18 +11,21 @@ export const SignalStateAssessmentCard = (props: {
             <Typography color="textSecondary" gutterBottom variant="overline">
               Signal State Assessment
             </Typography>
-            {assessment === undefined
-              ? ""
-              : assessment.signalStateAssessmentGroup.map((group) => {
-                  const percentRed =
-                    group.redEvents /
-                    Math.min(group.greenEvents + group.yellowEvents + group.redEvents, 1);
-                  return (
-                    <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
-                      {`${group.signalGroup}: ${percentRed.toFixed(2)}%`}
-                    </Typography>
-                  );
-                })}
+            {assessment === undefined ? (
+              <Typography color="textPrimary" variant="h5" key={""}>
+                No Data
+              </Typography>
+            ) : (
+              assessment.signalStateAssessmentGroup.map((group) => {
+                const percentRed =
+                  (100 * group.redEvents) / Math.min(group.greenEvents + group.yellowEvents + group.redEvents, 1);
+                return (
+                  <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
+                    {`signal group: ${group.signalGroup},  ${percentRed.toFixed(0)}% Red Events`}
+                  </Typography>
+                );
+              })
+            )}
           </Grid>
         </Grid>
       </CardContent>

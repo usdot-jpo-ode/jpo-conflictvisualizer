@@ -12,8 +12,8 @@ export const ReportRequestEditForm = (props) => {
   const { onGenerateReport, dbIntersectionId, ...other } = props;
   const formik = useFormik({
     initialValues: {
-      startDate: new Date(),
-      endDate: new Date(Date.now() - 86400000), //yesterday
+      startDate: new Date(Date.now() - 86400000),
+      endDate: new Date(), //yesterday
       intersectionId: dbIntersectionId,
       //   roadRegulatorId: -1,
       submit: null,
@@ -23,7 +23,7 @@ export const ReportRequestEditForm = (props) => {
       startDate: Yup.date().required("Start date is required"),
       endDate: Yup.date()
         .required("End date is required")
-        .max(Yup.ref("startDate"), "end date must be before start date"),
+        .min(Yup.ref("startDate"), "end date must be after start date"),
       intersectionId: Yup.string().required("Intersection ID is required"),
       // roadRegulatorId: Yup.string().required("Road Regulator ID is required"),
     }),
