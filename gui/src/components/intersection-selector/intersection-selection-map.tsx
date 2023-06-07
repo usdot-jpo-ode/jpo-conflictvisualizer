@@ -27,8 +27,6 @@ const IntersectionMap = (props: Props) => {
     return (
       <Marker
         key={intersection.intersectionID}
-        // longitude={-105.090873}
-        // latitude={39.588034}
         latitude={intersection.latitude}
         longitude={intersection.longitude}
         onClick={(e) => {
@@ -37,7 +35,7 @@ const IntersectionMap = (props: Props) => {
           setSelectedIntersection(intersection);
         }}
       >
-        <img src="./icons/intersection_icon.png" style={{ width: 70 }} />
+        <img src="/icons/intersection_icon.png" style={{ width: 70 }} />
       </Marker>
     );
   });
