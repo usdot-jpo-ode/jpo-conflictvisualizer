@@ -2,13 +2,11 @@ import { authApiHelper } from "./api-helper";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-const KEYCLOAK_ADMIN_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/admin/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
-const KEYCLOAK_AUTH_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
+const KEYCLOAK_ADMIN_ENDPOINT = `${publicRuntimeConfig.AUTH_SERVER_URL}/admin/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
+const KEYCLOAK_AUTH_ENDPOINT = `${publicRuntimeConfig.AUTH_SERVER_URL}/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
 
 class KeycloakApi {
   getEmailPreferences(attributes: Record<string, string[]>): EmailPreferences {
-    console.log(attributes);
-
     return {
       receiveAnnouncements: attributes?.["receiveAnnouncements"]?.[0] === "true",
       notificationFrequency: (attributes?.["notificationFrequency"]?.[0] ?? "NEVER") as EmailFrequency,
@@ -104,14 +102,6 @@ class KeycloakApi {
   }
 
   async addUserToGroup({ token, id, role }: { token: string; id: string; role: UserRole }): Promise<boolean> {
-    console.log("addUserToGroup", { token, id, role });
-    const groups = await this.getGroups({ token });
-    console.log("getGroups", groups);
-    console.log(
-      "find",
-      groups.find((r) => r.name == role)
-    );
-    console.log("groupId", groups.find((r) => r.name == role)?.id);
     const groupId: string | undefined = (await this.getGroups({ token })).find((r) => r.name == role)?.id;
     return (await authApiHelper.invokeApi({
       path: `/users/${id}/groups/${groupId}`,

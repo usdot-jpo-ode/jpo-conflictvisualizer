@@ -12,11 +12,17 @@ services:
         KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
         KEYCLOAK_REALM: ${KEYCLOAK_REALM}
         MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+        GUI_SERVER_URL: ${GUI_SERVER_URL}
+        AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+        API_SERVER_URL: ${API_SERVER_URL}
     ports:
       - "3000:3000"
     image: jpo-conflictvisualizer-gui:latest
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
+      GUI_SERVER_URL: ${GUI_SERVER_URL}
+      AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+      API_SERVER_URL: ${API_SERVER_URL}
     logging:
       options:
         max-size: "10m"

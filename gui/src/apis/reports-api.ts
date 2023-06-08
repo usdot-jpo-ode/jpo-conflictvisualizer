@@ -8,12 +8,12 @@ class ReportsApi {
     endTime,
   }: {
     token: string;
-    intersection_id: string;
+    intersection_id: number;
     startTime: Date;
     endTime: Date;
   }): Promise<Blob | undefined> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersection_id.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 

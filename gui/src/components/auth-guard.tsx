@@ -14,16 +14,8 @@ export const AuthGuard = (props) => {
 
   const loading = status === "loading";
 
-  const expired = (expirationDate: number) => {
-    const now = new Date().getTime();
-    const expiration = expirationDate * 1000;
-    console.log("EXPIRED", now, expiration, now > expiration);
-    return now > expiration;
-  };
-
   const validateSession = async (session: Session | null) => {
     const result = await keycloakApi.validateToken({ token: session?.accessToken });
-    console.log("VALIDATE", result);
     return result;
   };
 

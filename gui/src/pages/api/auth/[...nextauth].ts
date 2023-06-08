@@ -44,7 +44,6 @@ export const authOptions = {
           token.role = err;
         }
         token.expirationDate = parsedJwt?.exp;
-        console.log("TOKEN", token);
       }
       return token;
     },

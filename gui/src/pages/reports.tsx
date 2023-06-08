@@ -12,11 +12,24 @@ const PerformanceReportPage = () => {
   const { intersectionId } = useDashboardContext();
   const { data: session } = useSession();
 
-  const getReport = async ({ intersection_id, startTime, endTime }) => {
-    if (!session?.accessToken) {
+  const getReport = async ({
+    intersection_id,
+    startTime,
+    endTime,
+  }: {
+    intersection_id?: number;
+    startTime: Date;
+    endTime: Date;
+  }) => {
+    if (!session?.accessToken || !intersection_id) {
+      if (!session?.accessToken) {
+        toast.error("No access token");
+      }
+      if (!intersection_id) {
+        toast.error("No intersection ID");
+      }
       return;
     }
-    // const promise = new Promise((r) => setTimeout(r, 10000));
     const promise = ReportsApi.getReport({ token: session?.accessToken, intersection_id, startTime, endTime });
     toast.promise(promise, {
       loading: "Generating Performance Report",

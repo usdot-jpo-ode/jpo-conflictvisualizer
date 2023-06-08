@@ -13,12 +13,6 @@ class UserManagementApi {
     last_name: string;
     role: UserRole;
   }): Promise<boolean> {
-    console.log("createUserCreationRequest", {
-      email: email,
-      firstName: first_name,
-      lastName: last_name,
-      role: role,
-    });
     return (await authApiHelper.invokeApi({
       path: `/users/create_user_creation_request`,
       method: "POST",

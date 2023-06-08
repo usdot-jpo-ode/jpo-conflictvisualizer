@@ -3,8 +3,6 @@ import { signIn } from "next-auth/react";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-const MESSAGE_MONITOR_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8081`;
-
 class AuthApiHelper {
   formatQueryParams(query_params?: Record<string, any>): string {
     if (!query_params || Object.keys(query_params).length === 0) return "";
@@ -40,7 +38,7 @@ class AuthApiHelper {
     successMessage?: string;
     failureMessage?: string;
   }): Promise<any> {
-    const url = (basePath ?? MESSAGE_MONITOR_ENDPOINT!) + path + this.formatQueryParams(queryParams);
+    const url = (basePath ?? publicRuntimeConfig.API_SERVER_URL!) + path + this.formatQueryParams(queryParams);
     console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
