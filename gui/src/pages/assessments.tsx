@@ -143,35 +143,11 @@ const Page = () => {
   useEffect(() => {
     updateNotifications();
     getAssessments();
-  }, []);
+  }, [intersectionId]);
 
   useEffect(() => {
     updateDescription();
   }, [currentTab]);
-
-  const handleTabsChange = (event, value) => {
-    const updatedFilter = { ...filter, tab: value };
-    setCurrentTab(value);
-    setFilter(updatedFilter);
-    setPage(0);
-    setCurrentTab(value);
-  };
-
-  const handleQueryChange = (event) => {
-    event.preventDefault();
-    setFilter((prevState) => ({
-      ...prevState,
-      query: queryRef.current?.value as string,
-    }));
-  };
-
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
 
   const updateDescription = () => {
     for (let i = 0; i < tabs.length; i++) {
@@ -183,7 +159,6 @@ const Page = () => {
 
   // Usually query is done on backend with indexing solutions
   const filteredNotifications = applyFilters(notifications, filter);
-  const paginatedNotifications = applyPagination(filteredNotifications, page, rowsPerPage);
 
   return (
     <>

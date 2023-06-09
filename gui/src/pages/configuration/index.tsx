@@ -123,7 +123,7 @@ const Page = () => {
 
   useEffect(() => {
     getParameters();
-  }, []);
+  }, [intersectionId]);
 
   const handleTabsChange = (event, value) => {
     const updatedFilter = { ...filter, tab: value };

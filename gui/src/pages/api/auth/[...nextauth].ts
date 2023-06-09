@@ -16,9 +16,11 @@ export const authOptions = {
   // Configure one or more authentication providers
   providers: [
     KeycloakProvider({
-      issuer: `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`,
+      // issuer: `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`,
+      issuer: `${process.env.AUTH_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}`,
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      checks: "state",
     }),
     // ...add more providers here
   ],
@@ -43,7 +45,6 @@ export const authOptions = {
           token.role = err;
         }
         token.expirationDate = parsedJwt?.exp;
-        console.log("TOKEN", token);
       }
       return token;
     },

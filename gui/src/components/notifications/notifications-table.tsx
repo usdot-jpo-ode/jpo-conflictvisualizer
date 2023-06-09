@@ -96,7 +96,7 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
 
   useEffect(() => {
     updateNotifications();
-  }, []);
+  }, [dbIntersectionId]);
 
   useEffect(() => {
     updateDescription();

@@ -1,32 +1,34 @@
 import { authApiHelper } from "./api-helper";
 
-class ReportsApi {
-  async getReport({
+class GraphsApi {
+  async getGraphData({
     token,
     intersection_id,
+    data_type,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: number;
+    intersection_id: string;
+    data_type: string;
     startTime: Date;
     endTime: Date;
-  }): Promise<Blob | undefined> {
+  }): Promise<Array<any>> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id.toString();
+    queryParams["intersection_id"] = intersection_id;
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
+    if (data_type) queryParams["data_type"] = data_type;
 
     const pdfReport = await authApiHelper.invokeApi({
-      path: `/reports/generate`,
+      path: `/data/graphs`,
       token: token,
-      responseType: "blob",
       queryParams,
-      failureMessage: "Failed to generate PDF report",
+      failureMessage: "Failed to generate graph data",
     });
 
     return pdfReport;
   }
 }
 
-export default new ReportsApi();
+export default new GraphsApi();

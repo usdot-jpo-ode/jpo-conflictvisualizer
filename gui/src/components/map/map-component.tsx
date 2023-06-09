@@ -459,7 +459,7 @@ const MapTab = (props: MyProps) => {
 
   useEffect(() => {
     pullInitialData();
-  }, [queryParams]);
+  }, [queryParams, dbIntersectionId]);
 
   useEffect(() => {}, [sliderValue]);
 

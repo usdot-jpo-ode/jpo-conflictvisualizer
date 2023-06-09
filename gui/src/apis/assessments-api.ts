@@ -6,16 +6,17 @@ class AssessmentsApi {
     token: string,
     eventType: string,
     intersection_id: string,
-    road_regulator_id: string,
+    roadRegulatorId?: string,
     startTime?: Date,
     endTime?: Date
   ): Promise<Assessment | undefined> {
     const queryParams: Record<string, string> = {};
-    queryParams["road_regulator_id"] = road_regulator_id;
+    // queryParams["road_regulator_id"] = road_regulator_id;
     queryParams["intersection_id"] = intersection_id;
     queryParams["latest"] = "true";
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
+    if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;
 
     var response =
       (await authApiHelper.invokeApi({

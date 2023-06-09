@@ -35,7 +35,7 @@ const ConfigParamRemove = () => {
 
   useEffect(() => {
     getParameter(key as string);
-  }, []);
+  }, [intersectionId]);
 
   if (!parameter) {
     return null;

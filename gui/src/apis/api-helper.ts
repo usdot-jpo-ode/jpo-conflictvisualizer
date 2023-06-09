@@ -3,8 +3,6 @@ import { signIn } from "next-auth/react";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-const MESSAGE_MONITOR_ENDPOINT = `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8081`;
-
 class AuthApiHelper {
   formatQueryParams(query_params?: Record<string, any>): string {
     if (!query_params || Object.keys(query_params).length === 0) return "";
@@ -40,7 +38,7 @@ class AuthApiHelper {
     successMessage?: string;
     failureMessage?: string;
   }): Promise<any> {
-    const url = (basePath ?? MESSAGE_MONITOR_ENDPOINT!) + path + this.formatQueryParams(queryParams);
+    const url = (basePath ?? publicRuntimeConfig.API_SERVER_URL!) + path + this.formatQueryParams(queryParams);
     console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
@@ -57,10 +55,11 @@ class AuthApiHelper {
           ? (body as string)
           : JSON.stringify(body)
         : undefined,
+      mode: "cors",
     };
 
     return await fetch(url, options)
-      .then((response: Response) => {
+      .then((response) => {
         if (response.ok) {
           if (toastOnSuccess) toast.success(successMessage);
           if (booleanResponse) return true;
@@ -68,7 +67,7 @@ class AuthApiHelper {
           console.error("Request failed with status code " + response.status + ": " + response.statusText);
           if (response.status === 401) {
             toast.error("Authentication failed, please sign in again");
-            // signIn();
+            signIn();
           } else if (response.status === 403) {
             toast.error("You are not authorized to perform this action.");
           } else if (toastOnFailure) toast.error(failureMessage + ", with status code " + response.status);
@@ -85,7 +84,8 @@ class AuthApiHelper {
         }
       })
       .catch((error: Error) => {
-        toast.error("Fetch request failed: " + error.message);
+        const errorMessage = failureMessage ?? "Fetch request failed";
+        toast.error(errorMessage + ". Error: " + error.message);
         console.error(error.message);
       });
   }

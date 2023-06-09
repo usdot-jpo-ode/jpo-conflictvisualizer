@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
@@ -31,7 +30,7 @@ import {
 } from "@mui/material";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { FormikCheckboxList } from "./formik-checkbox-list";
+import { FormikCheckboxList } from "../data-selector/formik-checkbox-list";
 
 interface Item {
   label: string;
@@ -63,13 +62,12 @@ const ASSESSMENT_TYPES: Item[] = [
   { label: "ConnectionOfTravelAssessment", value: "connection_of_travel" },
 ];
 
-export const DataSelectorEditForm = (props) => {
-  const { onQuery, onVisualize, dbIntersectionId, ...other } = props;
-  const [visualize, setVisualize] = useState(false);
+export const GraphQueryEditForm = (props) => {
+  const { onQuery, dbIntersectionId, ...other } = props;
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      type: "events",
+      type: "EVENT",
       startDate: new Date(),
       timeRange: 0,
       intersectionId: dbIntersectionId,
@@ -91,31 +89,18 @@ export const DataSelectorEditForm = (props) => {
     }),
     onSubmit: async (values, helpers) => {
       try {
-        if (visualize) {
-          onVisualize({
-            type: values.type,
-            intersectionId: values.intersectionId,
-            roadRegulatorId: values.roadRegulatorId,
-            startDate: values.startDate,
-            timeRange: values.timeRange,
-            eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
-            assessmentTypes: values.assessmentTypes.map((e) => e.value).filter((e) => e !== "All"),
-            bsmVehicleId: values.bsmVehicleId,
-          });
-        } else {
-          helpers.setStatus({ success: true });
-          helpers.setSubmitting(false);
-          onQuery({
-            type: values.type,
-            intersectionId: values.intersectionId,
-            roadRegulatorId: values.roadRegulatorId,
-            startDate: values.startDate,
-            timeRange: values.timeRange,
-            eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
-            assessmentTypes: values.assessmentTypes.map((e) => e.value).filter((e) => e !== "All"),
-            bsmVehicleId: values.bsmVehicleId,
-          });
-        }
+        helpers.setStatus({ success: true });
+        helpers.setSubmitting(false);
+        onQuery({
+          type: values.type,
+          intersectionId: values.intersectionId,
+          roadRegulatorId: values.roadRegulatorId,
+          startDate: values.startDate,
+          timeRange: values.timeRange,
+          eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
+          assessmentTypes: values.assessmentTypes.map((e) => e.value).filter((e) => e !== "All"),
+          bsmVehicleId: values.bsmVehicleId,
+        });
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong!");
@@ -280,32 +265,29 @@ export const DataSelectorEditForm = (props) => {
             m: -1,
           }}
         >
-          <Button
-            disabled={formik.isSubmitting}
-            type="submit"
-            sx={{ m: 1 }}
-            variant="contained"
-            onClick={() => setVisualize(false)}
-          >
+          <Button disabled={formik.isSubmitting} type="submit" sx={{ m: 1 }} variant="contained">
             Query Data
           </Button>
-          <Button
-            disabled={formik.isSubmitting}
-            type="submit"
-            sx={{ m: 1 }}
-            variant="contained"
-            onClick={() => setVisualize(true)}
-          >
-            View Counts
-          </Button>
+          <NextLink href="/notifications" passHref>
+            <Button
+              component="a"
+              disabled={formik.isSubmitting}
+              sx={{
+                m: 1,
+                mr: "auto",
+              }}
+              variant="outlined"
+            >
+              Cancel
+            </Button>
+          </NextLink>
         </CardActions>
       </Card>
     </form>
   );
 };
 
-DataSelectorEditForm.propTypes = {
+GraphQueryEditForm.propTypes = {
   onQuery: PropTypes.func.isRequired,
-  onVisualize: PropTypes.func.isRequired,
   dbIntersectionId: PropTypes.number,
 };

@@ -18,6 +18,9 @@ const nextConfig = {
     DOCKER_HOST_IP: process.env.DOCKER_HOST_IP,
     KEYCLOAK_REALM: process.env.KEYCLOAK_REALM,
     MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
+    GUI_SERVER_URL: process.env.GUI_SERVER_URL,
+    AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
+    API_SERVER_URL: process.env.API_SERVER_URL,
   },
 };
 

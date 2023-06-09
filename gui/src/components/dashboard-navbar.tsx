@@ -13,6 +13,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import MapIconRounded from "@mui/icons-material/Map";
 import MenuIcon from "@mui/icons-material/Menu";
 import { AccountPopover } from "./account-popover";
 import React from "react";
@@ -20,6 +21,7 @@ import { getInitials } from "../utils/get-initials";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useTheme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
+import MapDialog from "./intersection-selector/intersection-selector-dialog";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -72,6 +74,7 @@ export const DashboardNavbar = (props: Props) => {
   const settingsRef = useRef(null);
   const { intersectionId, setIntersection } = useDashboardContext();
   const [openAccountPopover, setOpenAccountPopover] = useState(false);
+  const [openMapDialog, setOpenMapDialog] = useState(false);
   const { data: session } = useSession();
   const theme = useTheme();
 
@@ -130,6 +133,16 @@ export const DashboardNavbar = (props: Props) => {
               </Select>
             </FormControl>
           </Tooltip>
+          <Tooltip title="Select Intersection on Map">
+            <IconButton
+              onClick={() => {
+                setOpenMapDialog(true);
+              }}
+            >
+              <MapIconRounded fontSize="large" />
+            </IconButton>
+          </Tooltip>
+
           <Box sx={{ flexGrow: 1 }} />
           <Avatar
             onClick={() => setOpenAccountPopover(true)}
@@ -144,6 +157,13 @@ export const DashboardNavbar = (props: Props) => {
         anchorEl={settingsRef.current}
         open={openAccountPopover}
         onClose={() => setOpenAccountPopover(false)}
+      />
+      <MapDialog
+        open={openMapDialog}
+        onClose={() => {
+          setOpenMapDialog(false);
+        }}
+        intersections={intersections}
       />
     </>
   );
