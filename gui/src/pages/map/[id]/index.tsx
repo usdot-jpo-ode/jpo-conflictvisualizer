@@ -30,7 +30,7 @@ const Map = () => {
 
   useEffect(() => {
     updateNotifications();
-  }, []);
+  }, [intersectionId]);
 
   return (
     <>

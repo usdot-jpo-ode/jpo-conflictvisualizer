@@ -1,7 +1,5 @@
-import { Avatar, Box, Card, CardContent, Grid, Typography, IconButton } from "@mui/material";
-import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import NextLink from "next/link";
 
 export const LaneDirectionOfTravelAssessmentCard = (props: {
   assessment: LaneDirectionOfTravelAssessment | undefined;
@@ -15,18 +13,22 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
             <Typography color="textSecondary" gutterBottom variant="overline">
               Lane Direction of Travel Assessment
             </Typography>
-            {assessment === undefined
-              ? ""
-              : assessment.laneDirectionOfTravelAssessmentGroup.map((group) => {
-                  const percentInvalid =
-                    group.outOfToleranceEvents /
-                    Math.min(group.inToleranceEvents + group.outOfToleranceEvents, 1);
-                  return (
-                    <Typography color="textPrimary" variant="h5" key={group.segmentID}>
-                      {`${group.segmentID}/${group.laneID}: ${percentInvalid.toFixed(2)}%`}
-                    </Typography>
-                  );
-                })}
+            {assessment === undefined ? (
+              <Typography color="textPrimary" variant="h5" key={""}>
+                No Data
+              </Typography>
+            ) : (
+              assessment.laneDirectionOfTravelAssessmentGroup.map((group) => {
+                const percentInvalid =
+                  (100 * group.outOfToleranceEvents) /
+                  Math.min(group.inToleranceEvents + group.outOfToleranceEvents, 1);
+                return (
+                  <Typography color="textPrimary" variant="h5" key={group.segmentID}>
+                    {`segment: ${group.segmentID}, lane: ${group.laneID}, ${percentInvalid.toFixed(0)}% Invalid`}
+                  </Typography>
+                );
+              })
+            )}
           </Grid>
         </Grid>
       </CardContent>

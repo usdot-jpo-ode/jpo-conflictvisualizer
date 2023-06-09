@@ -74,7 +74,7 @@ export const AccountPopover = (props) => {
         <MenuItem
           onClick={() => {
             window.open(
-              `http://${publicRuntimeConfig.DOCKER_HOST_IP}:8084/realms/${publicRuntimeConfig.KEYCLOAK_REALM}/account/#/`
+              `${publicRuntimeConfig.AUTH_SERVER_URL}/realms/${publicRuntimeConfig.KEYCLOAK_REALM}/account/#/`
             );
           }}
         >

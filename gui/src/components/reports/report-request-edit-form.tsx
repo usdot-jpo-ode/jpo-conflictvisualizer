@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -8,22 +7,34 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { Button, Card, CardActions, CardContent, Divider, Grid, TextField } from "@mui/material";
 
-export const ReportRequestEditForm = (props) => {
-  const { onGenerateReport, dbIntersectionId, ...other } = props;
+type Props = {
+  onGenerateReport: ({
+    intersection_id,
+    startTime,
+    endTime,
+  }: {
+    intersection_id?: number;
+    startTime: Date;
+    endTime: Date;
+  }) => void;
+  dbIntersectionId?: number;
+};
+
+export const ReportRequestEditForm = (props: Props) => {
+  const { onGenerateReport, dbIntersectionId } = props;
   const formik = useFormik({
     initialValues: {
-      startDate: new Date(),
-      endDate: new Date(Date.now() - 86400000), //yesterday
+      startDate: new Date(Date.now() - 86400000), //yesterday
+      endDate: new Date(),
       intersectionId: dbIntersectionId,
       //   roadRegulatorId: -1,
       submit: null,
     },
     validationSchema: Yup.object({
-      //   type: Yup.string().required("Type is required"),
       startDate: Yup.date().required("Start date is required"),
       endDate: Yup.date()
         .required("End date is required")
-        .max(Yup.ref("startDate"), "end date must be before start date"),
+        .min(Yup.ref("startDate"), "end date must be after start date"),
       intersectionId: Yup.string().required("Intersection ID is required"),
       // roadRegulatorId: Yup.string().required("Road Regulator ID is required"),
     }),
@@ -48,9 +59,8 @@ export const ReportRequestEditForm = (props) => {
   });
 
   return (
-    <form onSubmit={formik.handleSubmit} {...other}>
+    <form onSubmit={formik.handleSubmit}>
       <Card>
-        {/* <CardHeader title="Edit Configuration Parameter" /> */}
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
@@ -58,7 +68,6 @@ export const ReportRequestEditForm = (props) => {
               <TextField
                 error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
                 fullWidth
-                // helperText={formik.touched.intersectionId && formik.errors.intersectionId}
                 label="Intersection ID"
                 name="intersectionId"
                 onChange={formik.handleChange}
@@ -83,10 +92,8 @@ export const ReportRequestEditForm = (props) => {
                     <TextField
                       {...props}
                       error={Boolean(formik.touched.startDate && formik.errors.startDate)}
-                      //   helperText={formik.touched.startDate && formik.errors.startDate}
                       name="startDate"
                       label="Start Date"
-                      //   fullWidth
                     />
                   )}
                   value={formik.values.startDate}
@@ -102,10 +109,8 @@ export const ReportRequestEditForm = (props) => {
                     <TextField
                       {...props}
                       error={Boolean(formik.touched.endDate && formik.errors.endDate)}
-                      //   helperText={formik.touched.endDate && formik.errors.endDate}
                       name="endDate"
                       label="End Date"
-                      //   fullWidth
                     />
                   )}
                   value={formik.values.endDate}
@@ -129,9 +134,4 @@ export const ReportRequestEditForm = (props) => {
       </Card>
     </form>
   );
-};
-
-ReportRequestEditForm.propTypes = {
-  onGenerateReport: PropTypes.func.isRequired,
-  dbIntersectionId: PropTypes.number,
 };

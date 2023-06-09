@@ -19,8 +19,8 @@ const HANDLERS = {
 };
 
 const initialState = {
-  intersectionId: 12109,
-  roadRegulatorId: -1,
+  intersectionId: undefined,
+  roadRegulatorId: undefined,
   user: undefined,
   setIntersection: () => {},
   setRoadRegulator: () => {},

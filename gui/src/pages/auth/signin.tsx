@@ -93,9 +93,7 @@ const Page = () => {
                     {Object.values(providers).map((provider) => (
                       <div key={provider.name}>
                         <Button
-                          onClick={() =>
-                            signIn(provider.id, { callbackUrl: `http://${publicRuntimeConfig.DOCKER_HOST_IP}:3000/` })
-                          }
+                          onClick={() => signIn(provider.id, { callbackUrl: `${publicRuntimeConfig.GUI_SERVER_URL}/` })}
                           variant="contained"
                         >
                           Sign in with {provider.name}
