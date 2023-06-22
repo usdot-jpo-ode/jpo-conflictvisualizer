@@ -1,8 +1,9 @@
 import NextAuth from "next-auth";
 import { JWT } from "next-auth/jwt";
-import { OAuthConfig } from "next-auth/providers";
-import KeycloakProvider, { KeycloakProfile } from "next-auth/providers/keycloak";
+import KeycloakProvider from "next-auth/providers/keycloak";
 import keycloakApi from "../../../apis/keycloak-api";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 const parseJwt = (token) => {
   try {
@@ -16,15 +17,14 @@ export const authOptions = {
   // Configure one or more authentication providers
   providers: [
     KeycloakProvider({
-      // issuer: `http://${process.env.DOCKER_HOST_IP}:8084/realms/${process.env.KEYCLOAK_REALM}`,
-      issuer: `${process.env.AUTH_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}`,
-      clientId: process.env.KEYCLOAK_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      issuer: `${publicRuntimeConfig.AUTH_SERVER_URL}/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`,
+      clientId: publicRuntimeConfig.KEYCLOAK_CLIENT_ID!,
+      clientSecret: publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET!,
       checks: "state",
     }),
     // ...add more providers here
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: publicRuntimeConfig.NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/signin",
   },

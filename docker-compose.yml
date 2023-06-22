@@ -5,7 +5,6 @@ services:
       context: gui
       dockerfile: Dockerfile
       args:
-        DOCKER_HOST_IP: ${DOCKER_HOST_IP}
         NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
         NEXTAUTH_URL: ${NEXTAUTH_URL}
         KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
@@ -18,11 +17,6 @@ services:
     ports:
       - "3000:3000"
     image: jpo-conflictvisualizer-gui:latest
-    environment:
-      DOCKER_HOST_IP: ${DOCKER_HOST_IP}
-      GUI_SERVER_URL: ${GUI_SERVER_URL}
-      AUTH_SERVER_URL: ${AUTH_SERVER_URL}
-      API_SERVER_URL: ${API_SERVER_URL}
     logging:
       options:
         max-size: "10m"
