@@ -17,7 +17,7 @@ const DataSelectorPage = () => {
   const [type, setType] = useState("");
   const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [graphData, setGraphData] = useState<Array<any>>([]);
+  const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
   const { intersectionId } = useDashboardContext();
   const { data: session } = useSession();
 
@@ -47,7 +47,7 @@ const DataSelectorPage = () => {
     intersectionId,
     roadRegulatorId,
     startDate,
-    timeRange,
+    endTime,
     eventTypes,
     assessmentTypes,
     bsmVehicleId,
@@ -56,7 +56,6 @@ const DataSelectorPage = () => {
       return;
     }
     setType(type);
-    const endTime = new Date(startDate.getTime() + timeRange * 60 * 1000);
     switch (type) {
       case "events":
         const events: MessageMonitor.Event[] = [];
@@ -92,23 +91,30 @@ const DataSelectorPage = () => {
   };
 
   const onVisualize = async ({
-    type,
     intersectionId,
     roadRegulatorId,
     startDate,
-    timeRange,
+    endTime,
     eventTypes,
-    assessmentTypes,
-    bsmVehicleId,
+  }: {
+    intersectionId: number;
+    roadRegulatorId: number;
+    startDate: Date;
+    endTime: Date;
+    eventTypes: string[];
   }) => {
-    setGraphData([
-      { name: "Page A", uv: 400, pv: 2400, amt: 2400 },
-      { name: "Page B", uv: 500, pv: 2800, amt: 1200 },
-      { name: "Page C", uv: 600, pv: 1200, amt: 3600 },
-    ]);
     if (!session?.accessToken) {
       return;
     }
+    setGraphData(
+      await GraphsApi.getGraphData({
+        token: session?.accessToken,
+        intersection_id: intersectionId,
+        startTime: startDate,
+        endTime: endTime,
+        event_types: eventTypes,
+      })
+    );
     // setGraphData(
     //   await GraphsApi.getGraphData({
     //     token: session?.accessToken,

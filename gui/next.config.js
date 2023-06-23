@@ -15,7 +15,6 @@ const nextConfig = {
   publicRuntimeConfig: {
     KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
     KEYCLOAK_CLIENT_SECRET: process.env.KEYCLOAK_CLIENT_SECRET,
-    DOCKER_HOST_IP: process.env.DOCKER_HOST_IP,
     KEYCLOAK_REALM: process.env.KEYCLOAK_REALM,
     MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
     GUI_SERVER_URL: process.env.GUI_SERVER_URL,
