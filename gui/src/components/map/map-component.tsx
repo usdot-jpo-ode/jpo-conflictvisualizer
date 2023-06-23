@@ -272,6 +272,7 @@ const MapTab = (props: MyProps) => {
   };
 
   const createMarkerForNotification = (
+    center: number[],
     notification: MessageMonitor.Notification,
     connectingLanes: MapFeatureCollection
   ) => {
@@ -282,9 +283,9 @@ const MapTab = (props: MyProps) => {
     };
     switch (notification.notificationType) {
       case "ConnectionOfTravelNotification":
-        const notificationVal = notification as ConnectionOfTravelNotification;
-        const assessmentGroups = notificationVal.assessment.connectionOfTravelAssessment;
-        assessmentGroups.forEach((assessmentGroup) => {
+        const connTravelNotification = notification as ConnectionOfTravelNotification;
+        const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessment;
+        connTravelAssessmentGroups.forEach((assessmentGroup) => {
           const ingressLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
               return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
@@ -299,8 +300,8 @@ const MapTab = (props: MyProps) => {
           const marker = {
             type: "Feature",
             properties: {
-              description: `${notificationVal.notificationText}, egress lane ${assessmentGroup.egressLaneID}, incress lane ${assessmentGroup.ingressLaneID}, connection ID ${assessmentGroup.connectionID}, event count ${assessmentGroup.eventCount}`,
-              title: notificationVal.notificationType,
+              description: `${connTravelNotification.notificationText}, egress lane ${assessmentGroup.egressLaneID}, incress lane ${assessmentGroup.ingressLaneID}, connection ID ${assessmentGroup.connectionID}, event count ${assessmentGroup.eventCount}`,
+              title: connTravelNotification.notificationType,
             },
             geometry: {
               type: "LineString",
@@ -309,6 +310,64 @@ const MapTab = (props: MyProps) => {
           };
           markerCollection.features.push(marker);
         });
+        break;
+      case "IntersectionReferenceAlignmentNotification":
+        // No markers for this notification
+        break;
+      case "LaneDirectionOfTravelNotification":
+        const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
+        const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
+        laneDirTravelAssessmentGroups.forEach((assessmentGroup) => {
+          const laneLocation: number[] | undefined = connectingLanes.features.find(
+            (connectingLaneFeature: MapFeature) => {
+              return connectingLaneFeature.properties.laneId === assessmentGroup.laneID;
+            }
+          )?.geometry.coordinates[0];
+          if (!laneLocation) return;
+          const numEvents = assessmentGroup.inToleranceEvents + assessmentGroup.outOfToleranceEvents;
+          const eventsRatio = assessmentGroup.inToleranceEvents / numEvents;
+          const marker = {
+            type: "Feature",
+            properties: {
+              description: `${laneDirTravelNotification.notificationText}, lane ID ${assessmentGroup.laneID}, in tolerance events ${eventsRatio} (${assessmentGroup.inToleranceEvents}/${numEvents})`,
+              title: laneDirTravelNotification.notificationType,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: laneLocation,
+            },
+          };
+          markerCollection.features.push(marker);
+        });
+        break;
+      case "SignalGroupAlignmentNotification":
+        // No markers for this notification
+        break;
+      case "SignalStateConflictNotification":
+        const sigStateConflictNotification = notification as SignalStateConflictNotification;
+        const sigStateConflictEvent = sigStateConflictNotification.event;
+        const sigStateConflictMarker = {
+          type: "Feature",
+          properties: {
+            description: `${sigStateConflictNotification.notificationText}, Conflict type ${sigStateConflictEvent.conflictType}, First conflicting signal state ${sigStateConflictEvent.firstConflictingSignalState} of group ${sigStateConflictEvent.firstConflictingSignalGroup}, Second conflicting signal state ${sigStateConflictEvent.secondConflictingSignalState} of group ${sigStateConflictEvent.secondConflictingSignalGroup}`,
+            title: sigStateConflictNotification.notificationType,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: center,
+          },
+        };
+        markerCollection.features.push(sigStateConflictMarker);
+        break;
+      case "TimeChangeDetailsNotification":
+        // No markers for this notification
+        break;
+      case "KafkaStreamsAnomalyNotification":
+        // No markers for this notification
+        break;
+      case "BroadcastRateNotification":
+        // No markers for this notification
+        break;
     }
     return markerCollection;
   };
@@ -547,6 +606,7 @@ const MapTab = (props: MyProps) => {
     timeAfter?: number,
     timeWindowSeconds?: number
   ) => {
+    console.log("onTimeQueryChanged", eventTime, timeBefore, timeAfter, timeWindowSeconds);
     setQueryParams((prevState) => {
       return {
         startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
@@ -690,7 +750,10 @@ const MapTab = (props: MyProps) => {
             </Source>
           )}
           {mapData && props.notification && (
-            <Source type="geojson" data={createMarkerForNotification(props.notification, mapData.mapFeatureCollection)}>
+            <Source
+              type="geojson"
+              data={createMarkerForNotification([0, 0], props.notification, mapData.mapFeatureCollection)}
+            >
               <Layer {...markerLayer} />
             </Source>
           )}
