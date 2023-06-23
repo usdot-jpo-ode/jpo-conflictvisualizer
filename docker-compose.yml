@@ -48,8 +48,15 @@ services:
       - "8081:8081"
     image: jpo-conflictvisualizer-api:latest
     environment:
-      DOCKER_HOST_IP: ${DOCKER_HOST_IP}
       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      DB_HOST_IP: ${DB_HOST_IP}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
+      load: "false"
+      #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
+      #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
     logging:
       options:
         max-size: "10m"
