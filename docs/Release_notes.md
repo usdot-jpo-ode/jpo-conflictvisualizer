@@ -8,6 +8,7 @@ The first release for the jpo-conflictvisualizer, version 1.0.0, includes a full
 
 Enhancements in this release:
 
+- PR14: Adding additional project documentation
 - PR13: Adding counts graphs and documentation
 - PR11/12: Adding additional MAP and SPAT DB entries
 - PR10: Fixing types in API properties
