@@ -1,6 +1,6 @@
 # jpo-conflictvisualizer
 
-The CIMMS Conflict Visualizer is a web-based user interface for configuring the [CIMMS Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor), as well as displaying notifications, downloading data, and visualizing conflicts. This repository also contains the associated API, which hosts endpoints for the GUI to access data from the jpo-conflicmonitor MongoDB database.
+The CIMMS Conflict Visualizer is a web-based user interface for configuring the [CIMMS Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor), as well as displaying notifications, downloading data, and visualizing conflicts. This repository also contains the associated API, which hosts endpoints for the GUI to access data from the jpo-conflictmonitor MongoDB database.
 
 This application is fully dockerized, with the API and GUI alongside an instance of the [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode), [jpo-geojsonconverter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter), [jpo-conflictmonitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor). Information on how to build and run those projects is available in their repositories. The docker-compose available in this repository will build three components: the conflictvisualizer-api, the conflictvisualizer-gui and a [Keycloak](https://www.keycloak.org/getting-started/getting-started-docker) server used to authenticate both.
 
@@ -40,7 +40,7 @@ Alternatively, clone the repository first, then import submodules second
 git submodule update --init --recursive
 ```
 
-### 2. Clone and Run jpo-ode, jpo-geonjsonconverter, and jpo-conflictmonitor docker images
+### 2. Clone and Run jpo-ode, jpo-geojsonconverter, and jpo-conflictmonitor docker images
 
 Run ODE, then GeoJSONConverter, then ConflictMonitor. Please see the individual repositories for each for information on how to deploy each of these.
 
@@ -68,7 +68,7 @@ cp sample.env .env
 
 2. Modify the .env file and set the appropriate deployment variables
 
-### 6. Start Conflict Visualiser
+### 6. Start Conflict Visualizer
 
 There are two options to run the conflict visualizer, the first option is to run all components of the conflict visualizer together from docker-compose (recommended). The second option is to manually start up each component. This provides additional flexibility, but increases how much configuration is required.
 
@@ -114,7 +114,7 @@ The conflict visualizer API requires the following dependencies be installed to 
 - Maven
 
 Additionally there are other dependencies installed through maven.
-Before building the conflictvisualizer-api. Make sure that local copies of the ODE, JPO-GeoJsonConverter, and JPO-ConflictMonitor have been built and intalled on your system. For instructions on building these locally, please see each ones respective repository.
+Before building the conflictvisualizer-api. Make sure that local copies of the ODE, JPO-GeoJsonConverter, and JPO-ConflictMonitor have been built and installed on your system. For instructions on building these locally, please see each ones respective repository.
 
 Once these components have been installed. Download and install additional dependencies for the conflict visualizer using the following:
 
