@@ -72,6 +72,7 @@ export const DataSelectorEditForm = (props) => {
       type: "events",
       startDate: new Date(),
       timeRange: 0,
+      timeUnit: "minutes" as dayjs.ManipulateType,
       intersectionId: dbIntersectionId,
       roadRegulatorId: -1,
       submit: null,
@@ -90,17 +91,17 @@ export const DataSelectorEditForm = (props) => {
       //   bsmVehicleId: Yup.string(),
     }),
     onSubmit: async (values, helpers) => {
+      // const endTime = new Date(startDate.getTime() + timeRange * 60 * 1000);
+      // convert timeRange to endTime using the timeUnit field
+      const endTime = dayjs(values.startDate).add(values.timeRange, values.timeUnit).toDate();
       try {
         if (visualize) {
           onVisualize({
-            type: values.type,
             intersectionId: values.intersectionId,
             roadRegulatorId: values.roadRegulatorId,
             startDate: values.startDate,
-            timeRange: values.timeRange,
+            endTime: endTime,
             eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
-            assessmentTypes: values.assessmentTypes.map((e) => e.value).filter((e) => e !== "All"),
-            bsmVehicleId: values.bsmVehicleId,
           });
         } else {
           helpers.setStatus({ success: true });
@@ -110,7 +111,7 @@ export const DataSelectorEditForm = (props) => {
             intersectionId: values.intersectionId,
             roadRegulatorId: values.roadRegulatorId,
             startDate: values.startDate,
-            timeRange: values.timeRange,
+            endTime: endTime,
             eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
             assessmentTypes: values.assessmentTypes.map((e) => e.value).filter((e) => e !== "All"),
             bsmVehicleId: values.bsmVehicleId,
@@ -214,9 +215,6 @@ export const DataSelectorEditForm = (props) => {
               />
             </Grid>
             <Grid item md={4} xs={12}>
-              {/* <InputLabel variant="standard" htmlFor="uncontrolled-native">
-                Query Type
-              </InputLabel> */}
               <Select
                 error={Boolean(formik.touched.type && formik.errors.type)}
                 // fullWidth
@@ -231,8 +229,8 @@ export const DataSelectorEditForm = (props) => {
                 onBlur={formik.handleBlur}
               >
                 {/* <MenuItem value={"map"}>MAP</MenuItem>
-                <MenuItem value={"spat"}>SPAT</MenuItem>
-                <MenuItem value={"bsm"}>BSM</MenuItem> */}
+                            <MenuItem value={"spat"}>SPAT</MenuItem>
+                            <MenuItem value={"bsm"}>BSM</MenuItem> */}
                 <MenuItem value={"events"}>Events</MenuItem>
                 <MenuItem value={"assessments"}>Assessments</MenuItem>
                 {/* <MenuItem value={"notifications"}>Notifications</MenuItem> */}
@@ -266,7 +264,23 @@ export const DataSelectorEditForm = (props) => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 InputProps={{
-                  endAdornment: <InputAdornment position="end">minutes</InputAdornment>,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Select
+                        error={Boolean(formik.touched.timeUnit && formik.errors.timeUnit)}
+                        value={formik.values.timeUnit}
+                        label="Unit"
+                        onChange={(e) => {
+                          formik.setFieldValue("timeUnit", e.target.value);
+                        }}
+                        onBlur={formik.handleBlur}
+                      >
+                        <MenuItem value={"minutes"}>minutes</MenuItem>
+                        <MenuItem value={"hours"}>hours</MenuItem>
+                        <MenuItem value={"days"}>days</MenuItem>
+                      </Select>
+                    </InputAdornment>
+                  ),
                 }}
                 value={formik.values.timeRange}
               />
@@ -290,7 +304,7 @@ export const DataSelectorEditForm = (props) => {
             Query Data
           </Button>
           <Button
-            disabled={formik.isSubmitting}
+            disabled={formik.isSubmitting && formik.values.type === "events"}
             type="submit"
             sx={{ m: 1 }}
             variant="contained"
