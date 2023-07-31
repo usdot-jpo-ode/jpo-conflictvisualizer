@@ -14,6 +14,7 @@ services:
         GUI_SERVER_URL: ${GUI_SERVER_URL}
         AUTH_SERVER_URL: ${AUTH_SERVER_URL}
         API_SERVER_URL: ${API_SERVER_URL}
+    restart: always
     ports:
       - "3000:3000"
     image: jpo-conflictvisualizer-gui:latest
@@ -24,6 +25,7 @@ services:
 
   keycloak:
     container_name: jpo-conflictvisualizer-keycloak
+    restart: always
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -47,6 +49,7 @@ services:
     ports:
       - "8081:8081"
     image: jpo-conflictvisualizer-api:latest
+    restart: always
     environment:
       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
