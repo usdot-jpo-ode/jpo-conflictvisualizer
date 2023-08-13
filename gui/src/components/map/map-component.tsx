@@ -171,7 +171,7 @@ const markerHighlightLayer: LayerProps = {
 };
 
 const generateQueryParams = (notification: MessageMonitor.Notification | undefined) => {
-  const startOffset = 1000 * 60 * 5;
+  const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
   if (!notification) {
     return {
@@ -247,7 +247,9 @@ const MapTab = (props: MyProps) => {
   const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
-    mapMessage.mapFeatureCollection.features.forEach((mapFeature: MapFeature) => {
+    console.log("Map Message");
+    console.log(mapMessage);
+    (mapMessage?.mapFeatureCollection?.features ?? []).forEach((mapFeature: MapFeature) => {
       if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
       }
@@ -285,7 +287,7 @@ const MapTab = (props: MyProps) => {
       case "ConnectionOfTravelNotification":
         const connTravelNotification = notification as ConnectionOfTravelNotification;
         const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessment;
-        connTravelAssessmentGroups.forEach((assessmentGroup) => {
+        (connTravelAssessmentGroups ?? []).forEach((assessmentGroup) => {
           const ingressLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
               return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
@@ -317,7 +319,7 @@ const MapTab = (props: MyProps) => {
       case "LaneDirectionOfTravelNotification":
         const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
         const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
-        laneDirTravelAssessmentGroups.forEach((assessmentGroup) => {
+        (laneDirTravelAssessmentGroups ?? []).forEach((assessmentGroup) => {
           const laneLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
               return connectingLaneFeature.properties.laneId === assessmentGroup.laneID;
@@ -387,7 +389,9 @@ const MapTab = (props: MyProps) => {
 
   const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
     const timedSignalGroups: SpatSignalGroups = {};
-    spats.forEach((spat: ProcessedSpat) => {
+    console.log("Spats");
+    console.log(spats);
+    (spats ?? []).forEach((spat: ProcessedSpat) => {
       timedSignalGroups[Date.parse(spat.odeReceivedAt)] = spat.states.map((state) => {
         return {
           signalGroup: state.signalGroup,
@@ -399,6 +403,8 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
+	console.log("Ode Bsm Data");
+	console.log(bsmData);
     return {
       type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
@@ -441,7 +447,7 @@ const MapTab = (props: MyProps) => {
     const red: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     const yellow: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     const green: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    prevSignalStates.features.forEach((feature) => {
+    (prevSignalStates?.features ?? []).forEach((feature) => {
       feature.properties.color = parseSignalStateToColor(
         signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state
       );
@@ -463,8 +469,8 @@ const MapTab = (props: MyProps) => {
     const rawMap: ProcessedMap[] = await MessageMonitorApi.getMapMessages({
       token: session?.accessToken,
       intersection_id: dbIntersectionId?.toString(),
-      startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
-      endTime: queryParams.endDate,
+      //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
+      //endTime: queryParams.endDate,
       latest: true,
     });
     if (!rawMap || rawMap.length == 0) {
@@ -475,7 +481,16 @@ const MapTab = (props: MyProps) => {
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
     setMapSignalGroups(mapSignalGroupsLocal);
-
+    if(latestMapMessage != null){
+ 	setViewState({
+            latitude: latestMapMessage?.properties.refPoint.latitude,
+            longitude: latestMapMessage?.properties.refPoint.longitude,
+            zoom: 19,
+    	});
+    }else{
+	console.log("Cannot Zoom to Map Location");
+    }
+   
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
 
     const rawSpat = await MessageMonitorApi.getSpatMessages({
@@ -549,6 +564,7 @@ const MapTab = (props: MyProps) => {
     }
 
     // retrieve filtered BSMs
+    let start = performance.now();
     const filteredBsms: BsmFeature[] = [];
     (bsmData?.features ?? []).forEach((feature) => {
       if (
@@ -558,6 +574,7 @@ const MapTab = (props: MyProps) => {
         filteredBsms.push(feature);
       }
     });
+    console.log(performance.now() - start);
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
   }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);
