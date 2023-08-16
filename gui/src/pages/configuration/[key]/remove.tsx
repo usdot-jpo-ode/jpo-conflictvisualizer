@@ -17,12 +17,12 @@ const ConfigParamRemove = () => {
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    if (session?.accessToken && intersectionId && roadRegulatorId) {
+    if (session?.accessToken && intersectionId) {
       try {
         const data = await configParamApi.getParameter(
           session?.accessToken,
           key,
-          roadRegulatorId.toString(),
+          "-1",
           intersectionId.toString()
         );
 

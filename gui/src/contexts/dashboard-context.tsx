@@ -20,7 +20,7 @@ const HANDLERS = {
 
 const initialState = {
   intersectionId: undefined,
-  roadRegulatorId: undefined,
+  roadRegulatorId: -1,
   user: undefined,
   setIntersection: () => {},
   setRoadRegulator: () => {},
@@ -37,7 +37,7 @@ const handlers = {
     };
   },
   [HANDLERS.SET_ROAD_REGULATOR]: (state, action) => {
-    const roadRegulatorId = action.payload.roadRegulatorId;
+    const roadRegulatorId = -1;//action.payload.roadRegulatorId;
     const intersectionId = action.payload.intersectionId;
 
     return {
@@ -48,7 +48,7 @@ const handlers = {
   },
   [HANDLERS.SET_USER]: (state, action) => {
     const user = action.payload;
-
+    
     return {
       ...state,
       user,
@@ -74,6 +74,7 @@ export const DashboardProvider = (props) => {
   };
 
   const setRoadRegulator = (roadRegulatorId: number, intersectionId: number) => {
+    roadRegulatorId = -1;
     dispatch({
       type: HANDLERS.SET_ROAD_REGULATOR,
       payload: { roadRegulatorId, intersectionId },

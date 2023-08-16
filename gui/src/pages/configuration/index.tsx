@@ -106,12 +106,30 @@ const Page = () => {
   }, [currentTab]);
 
   const getParameters = async () => {
-    if (session?.accessToken && intersectionId && roadRegulatorId) {
+
+    if (session?.accessToken) {
       try {
+
+        // && intersectionId && roadRegulatorId
+        let intId = "";
+        let rrId = "";
+        if(intersectionId){
+          intId = intersectionId.toString();
+        }else{
+          intId = "-1";
+        }
+
+        if(roadRegulatorId){
+          rrId = roadRegulatorId.toString();
+        }else{
+          rrId = "-1";
+        }
+
+        
         const data = await configParamApi.getAllParameters(
           session?.accessToken,
-          intersectionId.toString(),
-          roadRegulatorId.toString()
+          intId,
+          rrId
         );
 
         setParameters(data);
