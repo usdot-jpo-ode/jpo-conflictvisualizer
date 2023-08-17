@@ -7,8 +7,7 @@ interface DashboardContextType {
   intersectionId?: number;
   roadRegulatorId?: number;
   user?: User;
-  setIntersection: (intersectionId?: number) => void;
-  setRoadRegulator: (intersectionId: number, roadRegulatorId: number) => void;
+  setIntersection: (intersectionId?: number, roadRegulatorId?: number) => void;
   setUser: (user: User) => void;
 }
 
@@ -20,10 +19,9 @@ const HANDLERS = {
 
 const initialState = {
   intersectionId: undefined,
-  roadRegulatorId: -1,
+  roadRegulatorId: undefined,
   user: undefined,
   setIntersection: () => {},
-  setRoadRegulator: () => {},
   setUser: () => {},
 };
 
@@ -37,7 +35,7 @@ const handlers = {
     };
   },
   [HANDLERS.SET_ROAD_REGULATOR]: (state, action) => {
-    const roadRegulatorId = -1;//action.payload.roadRegulatorId;
+    const roadRegulatorId = action.payload.roadRegulatorId ?? -1;
     const intersectionId = action.payload.intersectionId;
 
     return {
@@ -48,7 +46,7 @@ const handlers = {
   },
   [HANDLERS.SET_USER]: (state, action) => {
     const user = action.payload;
-    
+
     return {
       ...state,
       user,
@@ -66,18 +64,10 @@ export const DashboardProvider = (props) => {
   const { children } = props;
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const setIntersection = (intersectionId: number) => {
+  const setIntersection = (intersectionId?: number, roadRegulatorId?: number) => {
     dispatch({
       type: HANDLERS.SET_INTERSECTION,
-      payload: intersectionId,
-    });
-  };
-
-  const setRoadRegulator = (roadRegulatorId: number, intersectionId: number) => {
-    roadRegulatorId = -1;
-    dispatch({
-      type: HANDLERS.SET_ROAD_REGULATOR,
-      payload: { roadRegulatorId, intersectionId },
+      payload: { intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },
     });
   };
 
@@ -93,7 +83,6 @@ export const DashboardProvider = (props) => {
       value={{
         ...state,
         setIntersection,
-        setRoadRegulator,
         setUser,
       }}
     >

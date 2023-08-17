@@ -9,7 +9,7 @@ const { publicRuntimeConfig } = getConfig();
 type Props = {
   intersections: IntersectionReferenceData[];
   selectedIntersection: IntersectionReferenceData | undefined;
-  onSelectIntersection: (id: number) => void;
+  onSelectIntersection: (id: number, roadRegulatorId?: number) => void;
 };
 
 const IntersectionMap = (props: Props) => {
@@ -31,7 +31,7 @@ const IntersectionMap = (props: Props) => {
         longitude={intersection.longitude}
         onClick={(e) => {
           e.originalEvent.preventDefault();
-          props.onSelectIntersection(intersection.intersectionID);
+          props.onSelectIntersection(intersection.intersectionID, intersection.roadRegulatorID);
           setSelectedIntersection(intersection);
         }}
       >

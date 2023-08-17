@@ -118,9 +118,12 @@ export const DashboardNavbar = (props: Props) => {
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
                 value={intersectionId}
-                label="Age"
+                label="IntersectionId"
                 onChange={(e) => {
-                  setIntersection(e.target.value as number);
+                  setIntersection(
+                    e.target.value as number,
+                    intersections.find((v) => v.intersectionID == e.target.value)?.roadRegulatorID
+                  );
                 }}
               >
                 {intersections.map((intersection) => {
