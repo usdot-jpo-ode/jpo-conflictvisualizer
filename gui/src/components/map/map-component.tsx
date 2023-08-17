@@ -179,7 +179,6 @@ const generateQueryParams = (notification: MessageMonitor.Notification | undefin
       endDate: new Date(Date.now() + endOffset),
       eventDate: new Date(Date.now()),
       vehicleId: undefined,
-      timeWindowSeconds: 60,
     };
   } else {
     return {
@@ -187,7 +186,6 @@ const generateQueryParams = (notification: MessageMonitor.Notification | undefin
       endDate: new Date(notification.notificationGeneratedAt + endOffset),
       eventDate: new Date(notification.notificationGeneratedAt),
       vehicleId: undefined,
-      timeWindowSeconds: 60,
     };
   }
 };
@@ -204,14 +202,13 @@ const MapTab = (props: MyProps) => {
     endDate: Date;
     eventDate: Date;
     vehicleId?: string;
-    timeWindowSeconds: number;
   }>({
     startDate: new Date(Date.now() - 1000 * 60),
     endDate: new Date(Date.now() + 1000 * 60),
     eventDate: new Date(Date.now()),
     vehicleId: undefined,
-    timeWindowSeconds: 60,
   });
+
   const [mapData, setMapData] = useState<ProcessedMap>();
   const [mapSignalGroups, setMapSignalGroups] = useState<SignalStateFeatureCollection>();
   const [signalStateData, setSignalStateData] = useState<SignalStateFeatureCollection[]>();
@@ -232,6 +229,7 @@ const MapTab = (props: MyProps) => {
     longitude: -105.0907089,
     zoom: 19,
   });
+  const [timeWindowSeconds, setTimeWindowSeconds] = useState<number>(60);
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
   const mapRef = React.useRef<any>(null);
@@ -249,7 +247,7 @@ const MapTab = (props: MyProps) => {
 
     console.log("Map Message");
     console.log(mapMessage);
-    (mapMessage?.mapFeatureCollection?.features ?? []).forEach((mapFeature: MapFeature) => {
+    mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
       if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
       }
@@ -287,7 +285,7 @@ const MapTab = (props: MyProps) => {
       case "ConnectionOfTravelNotification":
         const connTravelNotification = notification as ConnectionOfTravelNotification;
         const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessment;
-        (connTravelAssessmentGroups ?? []).forEach((assessmentGroup) => {
+        connTravelAssessmentGroups?.forEach((assessmentGroup) => {
           const ingressLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
               return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
@@ -319,7 +317,7 @@ const MapTab = (props: MyProps) => {
       case "LaneDirectionOfTravelNotification":
         const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
         const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
-        (laneDirTravelAssessmentGroups ?? []).forEach((assessmentGroup) => {
+        laneDirTravelAssessmentGroups?.forEach((assessmentGroup) => {
           const laneLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
               return connectingLaneFeature.properties.laneId === assessmentGroup.laneID;
@@ -389,9 +387,7 @@ const MapTab = (props: MyProps) => {
 
   const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
     const timedSignalGroups: SpatSignalGroups = {};
-    console.log("Spats");
-    console.log(spats);
-    (spats ?? []).forEach((spat: ProcessedSpat) => {
+    spats?.forEach((spat: ProcessedSpat) => {
       timedSignalGroups[Date.parse(spat.odeReceivedAt)] = spat.states.map((state) => {
         return {
           signalGroup: state.signalGroup,
@@ -403,8 +399,8 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
-	console.log("Ode Bsm Data");
-	console.log(bsmData);
+    console.log("Ode Bsm Data");
+    console.log(bsmData);
     return {
       type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
@@ -481,16 +477,16 @@ const MapTab = (props: MyProps) => {
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
     setMapSignalGroups(mapSignalGroupsLocal);
-    if(latestMapMessage != null){
- 	setViewState({
-            latitude: latestMapMessage?.properties.refPoint.latitude,
-            longitude: latestMapMessage?.properties.refPoint.longitude,
-            zoom: 19,
-    	});
-    }else{
-	console.log("Cannot Zoom to Map Location");
+    if (latestMapMessage != null) {
+      setViewState({
+        latitude: latestMapMessage?.properties.refPoint.latitude,
+        longitude: latestMapMessage?.properties.refPoint.longitude,
+        zoom: 19,
+      });
+    } else {
+      console.log("Cannot Zoom to Map Location");
     }
-   
+
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
 
     const rawSpat = await MessageMonitorApi.getSpatMessages({
@@ -529,6 +525,7 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     const query_params = generateQueryParams(props.notification);
     setQueryParams(query_params);
+    setTimeWindowSeconds(60);
   }, [props.notification]);
 
   useEffect(() => {
@@ -583,11 +580,11 @@ const MapTab = (props: MyProps) => {
     const startTime = queryParams.startDate.getTime() / 1000;
     const timeRange = getTimeRange(queryParams.startDate, queryParams.endDate);
 
-    const filteredStartTime = startTime + sliderValue - queryParams.timeWindowSeconds;
+    const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
     const filteredEndTime = startTime + sliderValue;
 
     setRenderTimeInterval([filteredStartTime, filteredEndTime]);
-  }, [sliderValue, queryParams]);
+  }, [sliderValue, queryParams, timeWindowSeconds]);
 
   const getTimeRange = (startDate: Date, endDate: Date) => {
     return (endDate.getTime() - startDate.getTime()) / 1000;
@@ -629,9 +626,9 @@ const MapTab = (props: MyProps) => {
         startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
         endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
         eventDate: eventTime,
-        timeWindowSeconds: timeWindowSeconds ?? prevState.timeWindowSeconds,
       };
     });
+    setTimeWindowSeconds((prevState) => timeWindowSeconds ?? prevState);
   };
 
   const onClickMap = (e) => {
