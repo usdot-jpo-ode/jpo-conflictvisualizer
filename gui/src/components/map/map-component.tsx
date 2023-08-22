@@ -571,7 +571,7 @@ const MapTab = (props: MyProps) => {
         filteredBsms.push(feature);
       }
     });
-    console.log(performance.now() - start);
+    console.debug(performance.now() - start);
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
   }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);

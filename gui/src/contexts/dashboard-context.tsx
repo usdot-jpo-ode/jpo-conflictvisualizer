@@ -27,7 +27,7 @@ const initialState = {
 
 const handlers = {
   [HANDLERS.SET_INTERSECTION]: (state, action) => {
-    const intersectionId = action.payload;
+    const intersectionId = action.payload.intersectionId;
 
     return {
       ...state,
@@ -67,7 +67,7 @@ export const DashboardProvider = (props) => {
   const setIntersection = (intersectionId?: number, roadRegulatorId?: number) => {
     dispatch({
       type: HANDLERS.SET_INTERSECTION,
-      payload: { intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },
+      payload: { intersectionId:intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },
     });
   };
 
