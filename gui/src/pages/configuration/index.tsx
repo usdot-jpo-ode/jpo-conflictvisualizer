@@ -106,12 +106,12 @@ const Page = () => {
   }, [currentTab]);
 
   const getParameters = async () => {
-    if (session?.accessToken && intersectionId && roadRegulatorId) {
+    if (session?.accessToken) {
       try {
         const data = await configParamApi.getAllParameters(
           session?.accessToken,
-          intersectionId.toString(),
-          roadRegulatorId.toString()
+          (intersectionId ?? -1).toString(),
+          (roadRegulatorId ?? -1).toString()
         );
 
         setParameters(data);

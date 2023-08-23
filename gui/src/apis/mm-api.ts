@@ -79,6 +79,8 @@ class MessageMonitorApi {
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
+    console.log("Query BSM Messages");
+    console.log(queryParams);
     var response = await authApiHelper.invokeApi({
       path: "/bsm/json",
       token: token,

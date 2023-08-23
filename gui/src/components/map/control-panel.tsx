@@ -94,7 +94,7 @@ function ControlPanel(props) {
   }, [props.timeQueryParams]);
 
   useEffect(() => {
-    props.onTimeQueryChanged(dateParams.eventTime, dateParams.timeBefore, dateParams.timeAfter);
+    props.onTimeQueryChanged(dateParams.eventTime, dateParams.timeBefore, dateParams.timeAfter, dateParams.timeWindowSeconds);
   }, [dateParams]);
 
   const getNumber = (value: string): number | undefined => {

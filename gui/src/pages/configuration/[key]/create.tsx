@@ -17,12 +17,12 @@ const ConfigParamCreate = () => {
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    if (intersectionId && roadRegulatorId && session?.accessToken) {
+    if (intersectionId  && session?.accessToken) {
       try {
         const data = await configParamApi.getParameter(
           session?.accessToken,
           key,
-          roadRegulatorId.toString(),
+          "-1",
           intersectionId.toString()
         );
 
