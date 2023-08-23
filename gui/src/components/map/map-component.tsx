@@ -399,8 +399,8 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
-    console.log("Ode Bsm Data");
-    console.log(bsmData);
+    console.debug("Ode Bsm Data");
+    console.debug(bsmData);
     return {
       type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
@@ -507,7 +507,8 @@ const MapTab = (props: MyProps) => {
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
       long: mapCoordinates.longitude,
-      lat: mapCoordinates.latitude
+      lat: mapCoordinates.latitude,
+      distance: 500
     });
     setBsmData(parseBsmToGeojson(rawBsm));
 
