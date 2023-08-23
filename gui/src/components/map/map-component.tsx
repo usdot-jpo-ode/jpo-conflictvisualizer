@@ -621,13 +621,22 @@ const MapTab = (props: MyProps) => {
     timeWindowSeconds?: number
   ) => {
     console.log("onTimeQueryChanged", eventTime, timeBefore, timeAfter, timeWindowSeconds);
-    setQueryParams((prevState) => {
-      return {
-        startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
-        endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
-        eventDate: eventTime,
-      };
-    });
+
+    const updatedQueryParams = {
+      startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
+      endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
+      eventDate: eventTime,
+    };
+    if (
+      queryParams.startDate.getTime() != updatedQueryParams.startDate.getTime() ||
+      queryParams.endDate.getTime() != updatedQueryParams.endDate.getTime() ||
+      queryParams.eventDate.getTime() != updatedQueryParams.eventDate.getTime()
+    ) {
+      // Detected change in query params
+      setQueryParams(updatedQueryParams);
+    } else {
+      // No change in query params
+    }
     setTimeWindowSeconds((prevState) => timeWindowSeconds ?? prevState);
   };
 
