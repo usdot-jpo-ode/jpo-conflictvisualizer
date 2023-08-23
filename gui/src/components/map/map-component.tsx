@@ -500,14 +500,14 @@ const MapTab = (props: MyProps) => {
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
-    const mapCoordinates: number[] = latestMapMessage?.connectingLanesFeatureCollection.features[0].geometry.coordinates[0];
+    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint
     const rawBsm = await MessageMonitorApi.getBsmMessages({
       token: session?.accessToken,
       vehicleId: queryParams.vehicleId,
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
-      long: mapCoordinates[0],
-      lat: mapCoordinates[1]
+      long: mapCoordinates.longitude,
+      lat: mapCoordinates.latitude
     });
     setBsmData(parseBsmToGeojson(rawBsm));
 
