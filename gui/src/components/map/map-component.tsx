@@ -499,7 +499,7 @@ const MapTab = (props: MyProps) => {
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
-    console.log("latestMapMessage: " + latestMapMessage)
+
     const mapCoordinates: number[] = latestMapMessage?.connectingLanesFeatureCollection.features[0].geometry.coordinates[0];
     const rawBsm = await MessageMonitorApi.getBsmMessages({
       token: session?.accessToken,
