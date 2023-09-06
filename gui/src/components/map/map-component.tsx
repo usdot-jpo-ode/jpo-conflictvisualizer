@@ -399,8 +399,8 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
-    console.log("Ode Bsm Data");
-    console.log(bsmData);
+    console.debug("Ode Bsm Data");
+    console.debug(bsmData);
     return {
       type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
@@ -500,11 +500,15 @@ const MapTab = (props: MyProps) => {
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
+    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint
     const rawBsm = await MessageMonitorApi.getBsmMessages({
       token: session?.accessToken,
       vehicleId: queryParams.vehicleId,
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
+      long: mapCoordinates.longitude,
+      lat: mapCoordinates.latitude,
+      distance: 500
     });
     setBsmData(parseBsmToGeojson(rawBsm));
 
