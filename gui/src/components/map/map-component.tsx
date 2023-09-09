@@ -15,6 +15,7 @@ import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
 import { useSession } from "next-auth/react";
 import getConfig from "next/config";
+import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
@@ -578,6 +579,13 @@ const MapTab = (props: MyProps) => {
     console.debug(performance.now() - start);
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
+    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id));
+    // generate equally spaced unique colors for each uniqueId
+    const colors = generateColorDictionary(uniqueIds);
+    // add color to each feature
+    const bsmLayerStyle = generateMapboxStyleExpression(colors);
+    console.log(bsmLayerStyle);
+    bsmLayer.paint!["circle-color"] = bsmLayerStyle;
   }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
@@ -593,8 +601,6 @@ const MapTab = (props: MyProps) => {
   const getTimeRange = (startDate: Date, endDate: Date) => {
     return (endDate.getTime() - startDate.getTime()) / 1000;
   };
-
-  const getSignalGroups = () => {};
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number);
@@ -685,7 +691,7 @@ const MapTab = (props: MyProps) => {
                 sliderValue={sliderValue}
                 setSlider={handleSliderChange}
                 downloadAllData={downloadAllData}
-                timeQueryParams={queryParams}
+                timeQueryParams={{ ...queryParams, timeWindowSeconds }}
                 onTimeQueryChanged={onTimeQueryChanged}
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
               />
