@@ -24,6 +24,9 @@ services:
         max-file: "5"
 
   keycloak:
+    build:
+      context: keycloak
+      dockerfile: Dockerfile
     container_name: jpo-conflictvisualizer-keycloak
     restart: always
     environment:
@@ -32,16 +35,14 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
-
     command:
       - start-dev
       - --log-level=INFO
       - --import-realm
       - --proxy edge
-    image: quay.io/keycloak/keycloak
     volumes:
       - keycloak:/opt/keycloak/data/
-      - ${DOCKER_HOST_DIR}/realm.json:/opt/keycloak/data/import/realm.json
+      - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
 
@@ -70,4 +71,3 @@ services:
 
 volumes:
   keycloak:
-    driver: local
