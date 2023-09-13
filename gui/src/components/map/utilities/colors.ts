@@ -6,7 +6,7 @@ export function generateColorDictionary(inputSet: Set<string>): { [key: string]:
 
   keysArray.forEach((key, index) => {
     const hue = index * colorStep; // Calculate hue for each key
-    const color = `hsl(${hue}, 100%, 50%)`; // Create an HSL color
+    const color = `hsl(${hue}, 100%, 35%)`; // Create an HSL color
     colorDictionary[key] = color;
   });
 
@@ -19,6 +19,6 @@ export function generateMapboxStyleExpression(colors: { [key: string]: string })
     layerStyle.push(key);
     layerStyle.push(value);
   }
-  layerStyle.push("#ccc"); // other
+  layerStyle.push("#000000"); // other
   return layerStyle;
 }
