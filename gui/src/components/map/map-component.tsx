@@ -6,7 +6,7 @@ import { Container, Col } from "reactstrap";
 import { Paper, Box, Typography } from "@mui/material";
 
 // import mapMessageData from "./processed_map_v4.json";
-import type { LayerProps } from "react-map-gl";
+import type { CircleLayer, LayerProps, LineLayer } from "react-map-gl";
 import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
@@ -15,6 +15,8 @@ import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
 import { useSession } from "next-auth/react";
 import getConfig from "next/config";
+import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
+import { MapLegend } from "./map-legend";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
@@ -30,16 +32,16 @@ const allInteractiveLayerIds = [
   "invalidLaneCollection",
 ];
 
-const mapMessageLayer: LayerProps = {
+const mapMessageLayer: LineLayer = {
   id: "mapMessage",
   type: "line",
   paint: {
     "line-width": 5,
-    "line-color": "#eb34e8",
+    "line-color": ["case", ["==", ["get", "ingressPath"], true], "#eb34e8", "#0004ff"],
   },
 };
 
-const mapMessageHighlightLayer: LayerProps = {
+const mapMessageHighlightLayer: LineLayer = {
   id: "mapMessageHighlight",
   type: "line",
   paint: {
@@ -48,7 +50,7 @@ const mapMessageHighlightLayer: LayerProps = {
   },
 };
 
-const connectingLanesLayer: LayerProps = {
+const connectingLanesLayer: LineLayer = {
   id: "connectingLanes",
   type: "line",
   paint: {
@@ -58,7 +60,7 @@ const connectingLanesLayer: LayerProps = {
   },
 };
 
-const connectingLanesLayerYellow: LayerProps = {
+const connectingLanesLayerYellow: LineLayer = {
   id: "connectingLanesYellow",
   type: "line",
   paint: {
@@ -68,7 +70,7 @@ const connectingLanesLayerYellow: LayerProps = {
   },
 };
 
-const connectingLanesLayerInactive: LayerProps = {
+const connectingLanesLayerInactive: LineLayer = {
   id: "connectingLanesInactive",
   type: "line",
   paint: {
@@ -78,7 +80,7 @@ const connectingLanesLayerInactive: LayerProps = {
   },
 };
 
-const connectingLanesLayerMissing: LayerProps = {
+const connectingLanesLayerMissing: LineLayer = {
   id: "connectingLanesMissing",
   type: "line",
   paint: {
@@ -88,7 +90,7 @@ const connectingLanesLayerMissing: LayerProps = {
   },
 };
 
-const connectingLanesHighlightLayer: LayerProps = {
+const connectingLanesHighlightLayer: LineLayer = {
   id: "connectingLanesHighlight",
   type: "line",
   paint: {
@@ -129,15 +131,6 @@ const signalStateLayerYellow: LayerProps = {
     "icon-image": "traffic-light-icon-yellow-1",
     "icon-allow-overlap": true,
     "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const bsmLayer: LayerProps = {
-  id: "bsm",
-  type: "circle",
-  paint: {
-    "circle-color": "#0000FF",
-    "circle-radius": 8,
   },
 };
 
@@ -207,6 +200,28 @@ const MapTab = (props: MyProps) => {
     endDate: new Date(Date.now() + 1000 * 60),
     eventDate: new Date(Date.now()),
     vehicleId: undefined,
+  });
+
+  const [mapLegendColors, setMapLegendColors] = useState<{
+    bsmColors: { [key: string]: string };
+    laneColors: { [key: string]: string };
+  }>({
+    bsmColors: { Other: "#0004ff" },
+    laneColors: {
+      Green: "#30af25",
+      Yellow: "#c5b800",
+      Red: "#da2f2f",
+      "No SPAT": "#000000",
+    },
+  });
+
+  const [bsmLayerStyle, setBsmLayerStyle] = useState<CircleLayer>({
+    id: "bsm",
+    type: "circle",
+    paint: {
+      "circle-color": ["match", ["get", "id"], "#0004ff"],
+      "circle-radius": 8,
+    },
   });
 
   const [mapData, setMapData] = useState<ProcessedMap>();
@@ -500,7 +515,7 @@ const MapTab = (props: MyProps) => {
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
-    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint
+    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
     const rawBsm = await MessageMonitorApi.getBsmMessages({
       token: session?.accessToken,
       vehicleId: queryParams.vehicleId,
@@ -508,9 +523,27 @@ const MapTab = (props: MyProps) => {
       endTime: queryParams.endDate,
       long: mapCoordinates.longitude,
       lat: mapCoordinates.latitude,
-      distance: 500
+      distance: 500,
     });
-    setBsmData(parseBsmToGeojson(rawBsm));
+    const bsmGeojson = parseBsmToGeojson(rawBsm);
+    const uniqueIds = new Set(bsmGeojson.features.map((bsm) => bsm.properties?.id));
+    console.log("BSM Data Unique IDs", uniqueIds);
+    // generate equally spaced unique colors for each uniqueId
+    const colors = generateColorDictionary(uniqueIds);
+    setMapLegendColors((prevValue) => ({
+      ...prevValue,
+      bsmColors: colors,
+    }));
+    // add color to each feature
+    const bsmLayerStyle = generateMapboxStyleExpression(colors);
+    console.log("BSM Data", bsmLayerStyle);
+    setBsmLayerStyle((prevValue) => {
+      prevValue.paint!["circle-color"] = bsmLayerStyle;
+      return prevValue;
+    });
+    console.debug("SETTING BSM LAYER STYLE");
+    console.debug("SETTING BSM GEOJSON", bsmGeojson);
+    setBsmData(bsmGeojson);
 
     setSliderValue(
       Math.min(
@@ -576,6 +609,7 @@ const MapTab = (props: MyProps) => {
       }
     });
     console.debug(performance.now() - start);
+    console.debug("SETTING CURRENT BSMs");
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
   }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);
@@ -593,8 +627,6 @@ const MapTab = (props: MyProps) => {
   const getTimeRange = (startDate: Date, endDate: Date) => {
     return (endDate.getTime() - startDate.getTime()) / 1000;
   };
-
-  const getSignalGroups = () => {};
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number);
@@ -625,13 +657,22 @@ const MapTab = (props: MyProps) => {
     timeWindowSeconds?: number
   ) => {
     console.log("onTimeQueryChanged", eventTime, timeBefore, timeAfter, timeWindowSeconds);
-    setQueryParams((prevState) => {
-      return {
-        startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
-        endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
-        eventDate: eventTime,
-      };
-    });
+
+    const updatedQueryParams = {
+      startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
+      endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
+      eventDate: eventTime,
+    };
+    if (
+      queryParams.startDate.getTime() != updatedQueryParams.startDate.getTime() ||
+      queryParams.endDate.getTime() != updatedQueryParams.endDate.getTime() ||
+      queryParams.eventDate.getTime() != updatedQueryParams.eventDate.getTime()
+    ) {
+      // Detected change in query params
+      setQueryParams(updatedQueryParams);
+    } else {
+      // No change in query params
+    }
     setTimeWindowSeconds((prevState) => timeWindowSeconds ?? prevState);
   };
 
@@ -674,13 +715,33 @@ const MapTab = (props: MyProps) => {
               <ControlPanel
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}
+                sliderTimeValue={{
+                  start: new Date((queryParams.startDate.getTime() / 1000 + sliderValue - timeWindowSeconds) * 1000),
+                  end: new Date((queryParams.startDate.getTime() / 1000 + sliderValue) * 1000),
+                }}
                 setSlider={handleSliderChange}
                 downloadAllData={downloadAllData}
-                timeQueryParams={queryParams}
+                timeQueryParams={{ ...queryParams, timeWindowSeconds }}
                 onTimeQueryChanged={onTimeQueryChanged}
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
               />
             </Paper>
+          </Box>
+        </div>
+        <div
+          style={{
+            padding: "0px 0px 6px 12px",
+            position: "absolute",
+            zIndex: 9,
+            bottom: 0,
+            left: 0,
+            fontSize: "16px",
+            overflow: "auto",
+            scrollBehavior: "auto",
+          }}
+        >
+          <Box style={{ position: "relative" }}>
+            <MapLegend bsmColors={mapLegendColors.bsmColors} laneColors={mapLegendColors.laneColors} />
           </Box>
         </div>
 
@@ -744,7 +805,7 @@ const MapTab = (props: MyProps) => {
           )}
           {currentBsms && (
             <Source type="geojson" data={currentBsms}>
-              <Layer {...bsmLayer} />
+              <Layer {...bsmLayerStyle} />
             </Source>
           )}
           {mapData && (

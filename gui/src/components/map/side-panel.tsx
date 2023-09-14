@@ -21,23 +21,20 @@ import MessageMonitorApi from "../../apis/mm-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { Marker } from "mapbox-gl";
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  //border: `1px solid ${theme.palette.divider}`,
-  // '&:not(:last-child)': {
-  //   borderBottom: 0,
-  // },
-  // '&:before': {
-  //   display: 'none',
-  // },
-}));
+const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
+  ({ theme }) => ({
+    //border: `1px solid ${theme.palette.divider}`,
+    // '&:not(:last-child)': {
+    //   borderBottom: 0,
+    // },
+    // '&:before': {
+    //   display: 'none',
+    // },
+  })
+);
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />}
-    {...props}
-  />
+  <MuiAccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />} {...props} />
 ))(({ theme }) => ({
   minHeight: 0,
   paddingLeft: 10,
@@ -73,9 +70,7 @@ export const SidePanel = (props) => {
 
   const getNotificationTable = (notification: MessageMonitor.Notification) => {
     if (!notification) return <Typography>No Data</Typography>;
-    const fields = [
-      ["time", format(new Date(notification.notificationGeneratedAt), "yyyy-MM-dd HH:mm:ss")],
-    ];
+    const fields = [["time", format(new Date(notification.notificationGeneratedAt), "yyyy-MM-dd HH:mm:ss")]];
     switch (notification.notificationType) {
       case "SpatBroadcastRateNotification":
         break;
@@ -105,9 +100,7 @@ export const SidePanel = (props) => {
         ]);
         break;
     }
-    return (
-      <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />
-    );
+    return <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />;
   };
 
   return (
@@ -153,9 +146,8 @@ export const SidePanel = (props) => {
                           laneInfo?.features?.map((lane) => [
                             lane.properties.ingressLaneId,
                             lane.properties.egressLaneId,
-                            signalGroups?.find(
-                              (grp) => grp.signalGroup == lane.properties.signalGroupId
-                            )?.state ?? "no data",
+                            signalGroups?.find((grp) => grp.signalGroup == lane.properties.signalGroupId)?.state ??
+                              "no data",
                           ]) ?? []
                         }
                       />
@@ -169,10 +161,11 @@ export const SidePanel = (props) => {
                   <AccordionDetails>
                     <Box sx={{ mt: 1 }}>
                       <CustomTable
-                        headers={["time", "speed", "heading"]}
+                        headers={["time", "Vehicle ID", "speed", "heading"]}
                         data={
                           bsms?.features.map((bsm) => [
                             bsm.properties.secMark / 1000,
+                            bsm.properties.id,
                             bsm.properties.speed,
                             bsm.properties.heading,
                           ]) ?? []

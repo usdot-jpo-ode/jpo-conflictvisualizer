@@ -1,0 +1,2694 @@
+{
+  "_id": {
+    "$oid": "6501d4b211017b50c04d6979"
+  },
+  "mapFeatureCollection": {
+    "features": [
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907089,
+              39.587905
+            ],
+            [
+              -105.0906245,
+              39.5876246
+            ],
+            [
+              -105.0905203,
+              39.587281
+            ],
+            [
+              -105.0904383,
+              39.5870554
+            ],
+            [
+              -105.0903588,
+              39.5868383
+            ],
+            [
+              -105.0902622,
+              39.5865865
+            ],
+            [
+              -105.0901249,
+              39.5862612
+            ],
+            [
+              -105.0900451,
+              39.5860819
+            ],
+            [
+              -105.0899283,
+              39.5858283
+            ],
+            [
+              -105.0898739,
+              39.5857117
+            ],
+            [
+              -105.0895814,
+              39.5851569
+            ],
+            [
+              -105.0888764,
+              39.5839527
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "1"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "2"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "15"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": true,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "1"
+          },
+          "nodes": [
+            {
+              "delta": [
+                {
+                  "$numberLong": "1511"
+                },
+                {
+                  "$numberLong": "-1514"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "723"
+                },
+                {
+                  "$numberLong": "-3116"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "892"
+                },
+                {
+                  "$numberLong": "-3818"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "702"
+                },
+                {
+                  "$numberLong": "-2507"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "681"
+                },
+                {
+                  "$numberLong": "-2412"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "827"
+                },
+                {
+                  "$numberLong": "-2798"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1176"
+                },
+                {
+                  "$numberLong": "-3614"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "683"
+                },
+                {
+                  "$numberLong": "-1992"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1000"
+                },
+                {
+                  "$numberLong": "-2818"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "466"
+                },
+                {
+                  "$numberLong": "-1295"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "2505"
+                },
+                {
+                  "$numberLong": "-6164"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "70"
+              },
+              "delta": [
+                {
+                  "$numberLong": "6037"
+                },
+                {
+                  "$numberLong": "-13380"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "1"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": true,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907462,
+              39.5878956
+            ],
+            [
+              -105.090652,
+              39.5875596
+            ],
+            [
+              -105.090534,
+              39.5871793
+            ],
+            [
+              -105.0903457,
+              39.5866864
+            ],
+            [
+              -105.0902123,
+              39.5863581
+            ],
+            [
+              -105.0900802,
+              39.5860572
+            ],
+            [
+              -105.0898164,
+              39.5855019
+            ],
+            [
+              -105.0895409,
+              39.5849856
+            ],
+            [
+              -105.088922,
+              39.5839259
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "2"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "2"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "14"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": true,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "2"
+          },
+          "nodes": [
+            {
+              "delta": [
+                {
+                  "$numberLong": "1192"
+                },
+                {
+                  "$numberLong": "-1619"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "807"
+                },
+                {
+                  "$numberLong": "-3733"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1010"
+                },
+                {
+                  "$numberLong": "-4226"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1612"
+                },
+                {
+                  "$numberLong": "-5477"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1142"
+                },
+                {
+                  "$numberLong": "-3648"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "1131"
+                },
+                {
+                  "$numberLong": "-3343"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "2259"
+                },
+                {
+                  "$numberLong": "-6170"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "2359"
+                },
+                {
+                  "$numberLong": "-5737"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "50"
+              },
+              "delta": [
+                {
+                  "$numberLong": "5300"
+                },
+                {
+                  "$numberLong": "-11774"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "1"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": true,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907914,
+              39.5878879
+            ],
+            [
+              -105.090747,
+              39.5877247
+            ],
+            [
+              -105.0906498,
+              39.5874141
+            ],
+            [
+              -105.0906262,
+              39.5873356
+            ],
+            [
+              -105.0905865,
+              39.5872922
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "3"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "2"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "10"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": false,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": true,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "3"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "805"
+                },
+                {
+                  "$numberLong": "-1704"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "380"
+                },
+                {
+                  "$numberLong": "-1813"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "832"
+                },
+                {
+                  "$numberLong": "-3451"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "202"
+                },
+                {
+                  "$numberLong": "-872"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "340"
+                },
+                {
+                  "$numberLong": "-482"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "1"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": false,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": true,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910008,
+              39.5878477
+            ],
+            [
+              -105.0909927,
+              39.5878181
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "6"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "6"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-988"
+                },
+                {
+                  "$numberLong": "-2151"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "69"
+                },
+                {
+                  "$numberLong": "-329"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "2"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.090959,
+              39.5878557
+            ],
+            [
+              -105.0909501,
+              39.5878218
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "5"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "5"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-630"
+                },
+                {
+                  "$numberLong": "-2062"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "76"
+                },
+                {
+                  "$numberLong": "-377"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "2"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.090914,
+              39.5878612
+            ],
+            [
+              -105.0909051,
+              39.5878298
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "4"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "4"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-245"
+                },
+                {
+                  "$numberLong": "-2001"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "76"
+                },
+                {
+                  "$numberLong": "-349"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "2"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911626,
+              39.5880622
+            ],
+            [
+              -105.0912043,
+              39.5880536
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "10"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "10"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2374"
+                },
+                {
+                  "$numberLong": "232"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-357"
+                },
+                {
+                  "$numberLong": "-96"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "4"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911477,
+              39.587995
+            ],
+            [
+              -105.0914565,
+              39.5879427
+            ],
+            [
+              -105.0917937,
+              39.5879029
+            ],
+            [
+              -105.0922121,
+              39.5878724
+            ],
+            [
+              -105.0926509,
+              39.5878748
+            ],
+            [
+              -105.0930303,
+              39.5879073
+            ],
+            [
+              -105.0932697,
+              39.5879503
+            ],
+            [
+              -105.0937243,
+              39.5880569
+            ],
+            [
+              -105.0940309,
+              39.5881258
+            ],
+            [
+              -105.0943257,
+              39.5881804
+            ],
+            [
+              -105.094592,
+              39.5882097
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "8"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "4"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "15"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": false,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": true,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "8"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2246"
+                },
+                {
+                  "$numberLong": "-514"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-2644"
+                },
+                {
+                  "$numberLong": "-581"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2887"
+                },
+                {
+                  "$numberLong": "-442"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-3583"
+                },
+                {
+                  "$numberLong": "-339"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-3757"
+                },
+                {
+                  "$numberLong": "27"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-3249"
+                },
+                {
+                  "$numberLong": "361"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-2050"
+                },
+                {
+                  "$numberLong": "478"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-3893"
+                },
+                {
+                  "$numberLong": "1184"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2625"
+                },
+                {
+                  "$numberLong": "766"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2524"
+                },
+                {
+                  "$numberLong": "607"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2280"
+                },
+                {
+                  "$numberLong": "325"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "3"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": false,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": true,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911442,
+              39.5879589
+            ],
+            [
+              -105.0914154,
+              39.5879165
+            ],
+            [
+              -105.0916346,
+              39.5878851
+            ],
+            [
+              -105.0918433,
+              39.5878639
+            ],
+            [
+              -105.0921546,
+              39.5878547
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "7"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "6"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": false,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": true,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "7"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2216"
+                },
+                {
+                  "$numberLong": "-915"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-2322"
+                },
+                {
+                  "$numberLong": "-471"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-1877"
+                },
+                {
+                  "$numberLong": "-349"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-1787"
+                },
+                {
+                  "$numberLong": "-235"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2666"
+                },
+                {
+                  "$numberLong": "-102"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "3"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": false,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": true,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911534,
+              39.5880261
+            ],
+            [
+              -105.091436,
+              39.5879812
+            ],
+            [
+              -105.0916658,
+              39.5879507
+            ],
+            [
+              -105.091881,
+              39.5879277
+            ],
+            [
+              -105.0921287,
+              39.5878972
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "9"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "4"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "14"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": false,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": true,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "9"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-2295"
+                },
+                {
+                  "$numberLong": "-169"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-2420"
+                },
+                {
+                  "$numberLong": "-499"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-1968"
+                },
+                {
+                  "$numberLong": "-339"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-1843"
+                },
+                {
+                  "$numberLong": "-256"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-2121"
+                },
+                {
+                  "$numberLong": "-339"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "3"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": false,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": true,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910447,
+              39.5881948
+            ],
+            [
+              -105.0911481,
+              39.5886317
+            ],
+            [
+              -105.091196,
+              39.588862
+            ],
+            [
+              -105.0912349,
+              39.5890282
+            ],
+            [
+              -105.0912722,
+              39.5893202
+            ],
+            [
+              -105.0913306,
+              39.5897261
+            ],
+            [
+              -105.0913695,
+              39.5900324
+            ],
+            [
+              -105.0914008,
+              39.5903008
+            ],
+            [
+              -105.0914893,
+              39.5913099
+            ],
+            [
+              -105.091527,
+              39.5923157
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "12"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "6"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "5"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": true,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "12"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-1364"
+                },
+                {
+                  "$numberLong": "1705"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-885"
+                },
+                {
+                  "$numberLong": "4854"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-410"
+                },
+                {
+                  "$numberLong": "2559"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-333"
+                },
+                {
+                  "$numberLong": "1847"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-319"
+                },
+                {
+                  "$numberLong": "3244"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-500"
+                },
+                {
+                  "$numberLong": "4510"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-333"
+                },
+                {
+                  "$numberLong": "3403"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-268"
+                },
+                {
+                  "$numberLong": "2982"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-758"
+                },
+                {
+                  "$numberLong": "11212"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-70"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-323"
+                },
+                {
+                  "$numberLong": "11176"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "5"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": true,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910013,
+              39.5881975
+            ],
+            [
+              -105.0911059,
+              39.5886309
+            ],
+            [
+              -105.091144,
+              39.5888313
+            ],
+            [
+              -105.0911829,
+              39.5890442
+            ],
+            [
+              -105.0912308,
+              39.5893169
+            ],
+            [
+              -105.0912689,
+              39.5895877
+            ],
+            [
+              -105.0913005,
+              39.5898143
+            ],
+            [
+              -105.0913313,
+              39.5900714
+            ],
+            [
+              -105.0913597,
+              39.5902968
+            ],
+            [
+              -105.0914461,
+              39.5913017
+            ],
+            [
+              -105.0914756,
+              39.592324
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "13"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "signalGroup": {
+                "$numberLong": "6"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "4"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": true,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": false,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "13"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-992"
+                },
+                {
+                  "$numberLong": "1735"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-896"
+                },
+                {
+                  "$numberLong": "4816"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-326"
+                },
+                {
+                  "$numberLong": "2227"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-333"
+                },
+                {
+                  "$numberLong": "2366"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-410"
+                },
+                {
+                  "$numberLong": "3030"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-326"
+                },
+                {
+                  "$numberLong": "3009"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-271"
+                },
+                {
+                  "$numberLong": "2518"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-264"
+                },
+                {
+                  "$numberLong": "2857"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-243"
+                },
+                {
+                  "$numberLong": "2504"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-30"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-740"
+                },
+                {
+                  "$numberLong": "11165"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-70"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-253"
+                },
+                {
+                  "$numberLong": "11359"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "5"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": true,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": false,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910891,
+              39.5881859
+            ],
+            [
+              -105.0911549,
+              39.5884681
+            ],
+            [
+              -105.091196,
+              39.5886783
+            ],
+            [
+              -105.091222,
+              39.5888049
+            ],
+            [
+              -105.0912401,
+              39.5889649
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "11"
+        },
+        "type": "Feature",
+        "properties": {
+          "connectsTo": [
+            {
+              "connectionID": {
+                "$numberLong": "1"
+              },
+              "connectingLane": {
+                "lane": {
+                  "$numberLong": "10"
+                },
+                "maneuver": {
+                  "maneuverStraightAllowed": false,
+                  "maneuverNoStoppingAllowed": false,
+                  "goWithHalt": false,
+                  "maneuverLeftAllowed": false,
+                  "maneuverUTurnAllowed": false,
+                  "maneuverLeftTurnOnRedAllowed": false,
+                  "reserved1": false,
+                  "maneuverRightAllowed": true,
+                  "maneuverLaneChangeAllowed": false,
+                  "yieldAllwaysRequired": false,
+                  "maneuverRightTurnOnRedAllowed": false,
+                  "caution": false
+                }
+              }
+            }
+          ],
+          "laneId": {
+            "$numberLong": "11"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-1744"
+                },
+                {
+                  "$numberLong": "1607"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-563"
+                },
+                {
+                  "$numberLong": "3136"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-352"
+                },
+                {
+                  "$numberLong": "2336"
+                }
+              ]
+            },
+            {
+              "delevation": {
+                "$numberLong": "10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "-223"
+                },
+                {
+                  "$numberLong": "1407"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-155"
+                },
+                {
+                  "$numberLong": "1778"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "0"
+          },
+          "ingressApproach": {
+            "$numberLong": "5"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": true,
+          "maneuvers": {
+            "maneuverStraightAllowed": false,
+            "maneuverNoStoppingAllowed": false,
+            "goWithHalt": false,
+            "maneuverLeftAllowed": false,
+            "maneuverUTurnAllowed": false,
+            "maneuverLeftTurnOnRedAllowed": false,
+            "reserved1": false,
+            "maneuverRightAllowed": true,
+            "maneuverLaneChangeAllowed": false,
+            "yieldAllwaysRequired": false,
+            "maneuverRightTurnOnRedAllowed": false,
+            "caution": false
+          },
+          "egressPath": false
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0908389,
+              39.5882151
+            ],
+            [
+              -105.0908478,
+              39.5882471
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "14"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "14"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "-10"
+              },
+              "delta": [
+                {
+                  "$numberLong": "398"
+                },
+                {
+                  "$numberLong": "1931"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-76"
+                },
+                {
+                  "$numberLong": "356"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "6"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907875,
+              39.58822
+            ],
+            [
+              -105.0907979,
+              39.5882514
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": {
+          "$numberLong": "15"
+        },
+        "type": "Feature",
+        "properties": {
+          "laneId": {
+            "$numberLong": "15"
+          },
+          "nodes": [
+            {
+              "delevation": {
+                "$numberLong": "-20"
+              },
+              "delta": [
+                {
+                  "$numberLong": "838"
+                },
+                {
+                  "$numberLong": "1985"
+                }
+              ]
+            },
+            {
+              "delta": [
+                {
+                  "$numberLong": "-89"
+                },
+                {
+                  "$numberLong": "349"
+                }
+              ]
+            }
+          ],
+          "egressApproach": {
+            "$numberLong": "6"
+          },
+          "ingressApproach": {
+            "$numberLong": "0"
+          },
+          "sharedWith": {
+            "busVehicleTraffic": false,
+            "trackedVehicleTraffic": false,
+            "individualMotorizedVehicleTraffic": false,
+            "taxiVehicleTraffic": false,
+            "overlappingLaneDescriptionProvided": false,
+            "cyclistVehicleTraffic": false,
+            "otherNonMotorizedTrafficTypes": false,
+            "multipleLanesTreatedAsOneLane": false,
+            "pedestrianTraffic": false,
+            "pedestriansTraffic": false
+          },
+          "ingressPath": false,
+          "egressPath": true
+        }
+      }
+    ],
+    "type": "FeatureCollection"
+  },
+  "connectingLanesFeatureCollection": {
+    "features": [
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907089,
+              39.587905
+            ],
+            [
+              -105.0907875,
+              39.58822
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "1-15",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "15"
+          },
+          "ingressLaneId": {
+            "$numberLong": "1"
+          },
+          "signalGroupId": {
+            "$numberLong": "2"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907462,
+              39.5878956
+            ],
+            [
+              -105.0908389,
+              39.5882151
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "2-14",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "14"
+          },
+          "ingressLaneId": {
+            "$numberLong": "2"
+          },
+          "signalGroupId": {
+            "$numberLong": "2"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0907914,
+              39.5878879
+            ],
+            [
+              -105.0911626,
+              39.5880622
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "3-10",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "10"
+          },
+          "ingressLaneId": {
+            "$numberLong": "3"
+          },
+          "signalGroupId": {
+            "$numberLong": "2"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911477,
+              39.587995
+            ],
+            [
+              -105.0907875,
+              39.58822
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "8-15",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "15"
+          },
+          "ingressLaneId": {
+            "$numberLong": "8"
+          },
+          "signalGroupId": {
+            "$numberLong": "4"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911442,
+              39.5879589
+            ],
+            [
+              -105.0910008,
+              39.5878477
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "7-6",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "6"
+          },
+          "ingressLaneId": {
+            "$numberLong": "7"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0911534,
+              39.5880261
+            ],
+            [
+              -105.0908389,
+              39.5882151
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "9-14",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "14"
+          },
+          "ingressLaneId": {
+            "$numberLong": "9"
+          },
+          "signalGroupId": {
+            "$numberLong": "4"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910447,
+              39.5881948
+            ],
+            [
+              -105.090959,
+              39.5878557
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "12-5",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "5"
+          },
+          "ingressLaneId": {
+            "$numberLong": "12"
+          },
+          "signalGroupId": {
+            "$numberLong": "6"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910013,
+              39.5881975
+            ],
+            [
+              -105.090914,
+              39.5878612
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "13-4",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "4"
+          },
+          "ingressLaneId": {
+            "$numberLong": "13"
+          },
+          "signalGroupId": {
+            "$numberLong": "6"
+          }
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              -105.0910891,
+              39.5881859
+            ],
+            [
+              -105.0911626,
+              39.5880622
+            ]
+          ],
+          "type": "LineString"
+        },
+        "id": "11-10",
+        "type": "Feature",
+        "properties": {
+          "egressLaneId": {
+            "$numberLong": "10"
+          },
+          "ingressLaneId": {
+            "$numberLong": "11"
+          }
+        }
+      }
+    ],
+    "type": "FeatureCollection"
+  },
+  "properties": {
+    "timeStamp": "2023-09-13T15:26:40.736Z",
+    "validationMessages": [
+      {
+        "schemaPath": "#/$defs/J2735RoadRegulatorID/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].id.region",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].id.region: null found, integer expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[3].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[3].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[3].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[3].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[4].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[4].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[4].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[4].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[5].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[5].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[5].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[5].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[6].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[6].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[6].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[6].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735SignalGroupID/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[8].connectsTo.connectsTo[0].signalGroup",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[8].connectsTo.connectsTo[0].signalGroup: null found, integer expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735SignalGroupID/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[12].connectsTo.connectsTo[0].signalGroup",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[12].connectsTo.connectsTo[0].signalGroup: null found, integer expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[13].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[13].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[13].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[13].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735ConnectsToList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[14].connectsTo",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[14].connectsTo: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735AllowedManeuvers/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[14].maneuvers",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].laneSet.GenericLane[14].maneuvers: null found, object expected"
+      },
+      {
+        "schemaPath": "#/$defs/J2735SpeedLimitList_Wrapper/type",
+        "jsonPath": "$.payload.data.intersections.intersectionGeometry[0].speedLimits",
+        "message": "$.payload.data.intersections.intersectionGeometry[0].speedLimits: null found, object expected"
+      }
+    ],
+    "mapSource": "RSU",
+    "messageType": "MAP",
+    "cti4501Conformant": false,
+    "refPoint": {
+      "elevation": {
+        "$numberLong": "1691"
+      },
+      "latitude": 39.5880413,
+      "longitude": -105.0908854
+    },
+    "laneWidth": {
+      "$numberLong": "366"
+    },
+    "intersectionId": {
+      "$numberLong": "12109"
+    },
+    "odeReceivedAt": "2023-09-13T15:26:40.736Z",
+    "msgIssueRevision": {
+      "$numberLong": "2"
+    },
+    "originIp": "10.11.81.12",
+    "revision": {
+      "$numberLong": "2"
+    }
+  }
+}

@@ -27,24 +27,22 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled } from "@mui/material/styles";
+import { format } from "date-fns";
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  //border: `1px solid ${theme.palette.divider}`,
-  // '&:not(:last-child)': {
-  //   borderBottom: 0,
-  // },
-  // '&:before': {
-  //   display: 'none',
-  // },
-}));
+const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
+  ({ theme }) => ({
+    //border: `1px solid ${theme.palette.divider}`,
+    // '&:not(:last-child)': {
+    //   borderBottom: 0,
+    // },
+    // '&:before': {
+    //   display: 'none',
+    // },
+  })
+);
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />}
-    {...props}
-  />
+  <MuiAccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />} {...props} />
 ))(({ theme }) => ({
   minHeight: 0,
   paddingLeft: 10,
@@ -94,7 +92,12 @@ function ControlPanel(props) {
   }, [props.timeQueryParams]);
 
   useEffect(() => {
-    props.onTimeQueryChanged(dateParams.eventTime, dateParams.timeBefore, dateParams.timeAfter, dateParams.timeWindowSeconds);
+    props.onTimeQueryChanged(
+      dateParams.eventTime,
+      dateParams.timeBefore,
+      dateParams.timeAfter,
+      dateParams.timeWindowSeconds
+    );
   }, [dateParams]);
 
   const getNumber = (value: string): number | undefined => {
@@ -185,7 +188,10 @@ function ControlPanel(props) {
           padding: "20px 50px 0px 50px",
         }}
       >
-        <h3>Visualization Time</h3>
+        <h3>
+          Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
+          {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
+        </h3>
         <Slider
           aria-label="Volume"
           //   value={[20, 37]}
