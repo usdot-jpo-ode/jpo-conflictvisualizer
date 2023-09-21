@@ -26,6 +26,7 @@ export const ConfigParamEditForm = (props) => {
     }),
     onSubmit: async (values, helpers) => {
       if (!session?.accessToken) {
+        console.error("Did not attempt to edit configuration parameter. Access token:", session?.accessToken);
         return;
       }
       try {

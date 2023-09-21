@@ -22,12 +22,12 @@ const PerformanceReportPage = () => {
     endTime: Date;
   }) => {
     if (!session?.accessToken || !intersection_id) {
-      if (!session?.accessToken) {
-        toast.error("No access token");
-      }
-      if (!intersection_id) {
-        toast.error("No intersection ID");
-      }
+      console.error(
+        "Did not attempt to generate report. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        intersection_id
+      );
       return;
     }
     const promise = ReportsApi.getReport({ token: session?.accessToken, intersection_id, startTime, endTime });

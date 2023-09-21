@@ -25,6 +25,13 @@ const Map = () => {
         const notif = notifications?.pop();
         setNotification(notif);
       });
+    } else {
+      console.error(
+        "Did not attempt to get notification data in map. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        intersectionId
+      );
     }
   };
 

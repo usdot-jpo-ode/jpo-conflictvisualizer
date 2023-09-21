@@ -93,13 +93,13 @@ const Page = () => {
   const { data: session } = useSession();
 
   const getAssessments = async () => {
-    if (intersectionId && roadRegulatorId && session?.accessToken) {
+    if (intersectionId && session?.accessToken) {
       setSignalStateAssessment(
         (await AssessmentsApi.getAssessment(
           session?.accessToken,
           "signal_state_assessment",
           intersectionId.toString(),
-          roadRegulatorId.toString()
+          roadRegulatorId?.toString()
         )) as SignalStateAssessment
       );
       setSignalStateEventAssessment(
@@ -107,7 +107,7 @@ const Page = () => {
           session?.accessToken,
           "signal_state_event_assessment",
           intersectionId.toString(),
-          roadRegulatorId.toString()
+          roadRegulatorId?.toString()
         )) as SignalStateEventAssessment
       );
       setConnectionOfTravelAssessment(
@@ -115,7 +115,7 @@ const Page = () => {
           session?.accessToken,
           "connection_of_travel",
           intersectionId.toString(),
-          roadRegulatorId.toString()
+          roadRegulatorId?.toString()
         )) as ConnectionOfTravelAssessment
       );
       setLaneDirectionOfTravelAssessment(
@@ -123,8 +123,15 @@ const Page = () => {
           session?.accessToken,
           "lane_direction_of_travel",
           intersectionId.toString(),
-          roadRegulatorId.toString()
+          roadRegulatorId?.toString()
         )) as LaneDirectionOfTravelAssessment
+      );
+    } else {
+      console.error(
+        "Did not attempt to get assessment data. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        intersectionId
       );
     }
   };
@@ -136,6 +143,13 @@ const Page = () => {
           token: session?.accessToken,
           intersection_id: intersectionId.toString(),
         })
+      );
+    } else {
+      console.error(
+        "Did not attempt to update notifications. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        intersectionId
       );
     }
   };

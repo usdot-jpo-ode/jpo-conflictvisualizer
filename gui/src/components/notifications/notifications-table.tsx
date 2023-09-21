@@ -85,12 +85,26 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
         token: session?.accessToken,
         intersection_id: dbIntersectionId.toString(),
       }).then((notifs) => setNotifications(notifs));
+    } else {
+      console.error(
+        "Did not attempt to update notifications. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        dbIntersectionId
+      );
     }
   };
 
   const dismissNotifications = (ids: string[]) => {
     if (session?.accessToken && dbIntersectionId) {
       NotificationApi.dismissNotifications({ token: session?.accessToken, ids });
+    } else {
+      console.error(
+        "Did not attempt to dismiss notifications. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        dbIntersectionId
+      );
     }
   };
 

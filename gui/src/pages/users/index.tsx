@@ -93,6 +93,8 @@ const Page = () => {
         const data = await keycloakApi.getUsersList({ token: session?.accessToken });
 
         setUsers(data);
+      } else {
+        console.error("Did not attempt to get list of users. Access token:", session?.accessToken);
       }
     } catch (err) {
       console.error(err);
@@ -105,6 +107,8 @@ const Page = () => {
         const data = await userCreationRequestApi.getUserCreationRequests({ token: session?.accessToken });
 
         setUserCreationRequests(data);
+      } else {
+        console.error("Did not attempt to retrieve user creation requests. Access token:", session?.accessToken);
       }
     } catch (err) {
       console.error(err);

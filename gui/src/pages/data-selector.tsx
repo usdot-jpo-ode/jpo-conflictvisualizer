@@ -53,6 +53,7 @@ const DataSelectorPage = () => {
     bsmVehicleId,
   }) => {
     if (!session?.accessToken) {
+      console.error("Did not attempt to query for data. Access token:", session?.accessToken);
       return;
     }
     setType(type);
@@ -104,6 +105,7 @@ const DataSelectorPage = () => {
     eventTypes: string[];
   }) => {
     if (!session?.accessToken) {
+      console.error("Did not attempt to visualize data counts. Access token:", session?.accessToken);
       return;
     }
     setGraphData(
