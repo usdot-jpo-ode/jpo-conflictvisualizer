@@ -475,6 +475,12 @@ const MapTab = (props: MyProps) => {
 
   const pullInitialData = async () => {
     if (!session?.accessToken || !dbIntersectionId) {
+      console.error(
+        "Did not attempt to pull initial map data. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        dbIntersectionId
+      );
       return;
     }
     const rawMap: ProcessedMap[] = await MessageMonitorApi.getMapMessages({

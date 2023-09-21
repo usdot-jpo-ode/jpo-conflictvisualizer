@@ -23,7 +23,15 @@ export const AccountPopover = (props) => {
           token: session?.accessToken,
           refresh_token: session?.refreshToken,
         });
-      } // This can be call inside AuthProvider component, but we do it here for simplicity
+      } else {
+        console.error(
+          "Did not attempt to logout. Access token:",
+          session?.accessToken,
+          "Refresh Token:",
+          session?.refreshToken
+        );
+      }
+      // This can be call inside AuthProvider component, but we do it here for simplicity
       signOut();
 
       // Redirect to sign-in page

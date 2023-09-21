@@ -40,6 +40,12 @@ const Page = () => {
       };
       setUserProfile(localUser);
     } else {
+      console.error(
+        "Did not attempt to get user email preferences. Access token:",
+        session?.accessToken,
+        "Role:",
+        session?.role
+      );
       setUserProfile(user);
     }
   };
@@ -54,6 +60,13 @@ const Page = () => {
       if (success && user !== undefined) {
         setUser({ ...user, email_preference: emailPreference });
       }
+    } else {
+      console.error(
+        "Did not attempt to update user email preferences. Access token:",
+        session?.accessToken,
+        "User Email:",
+        session?.user?.email
+      );
     }
   };
 

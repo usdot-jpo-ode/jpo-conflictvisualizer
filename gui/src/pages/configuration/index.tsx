@@ -118,6 +118,8 @@ const Page = () => {
       } catch (err) {
         console.error(err);
       }
+    } else {
+      console.error("Did not attempt to get configuration parameters. Access token:", session?.accessToken);
     }
   };
 

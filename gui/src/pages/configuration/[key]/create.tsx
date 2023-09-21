@@ -17,19 +17,21 @@ const ConfigParamCreate = () => {
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    if (intersectionId  && session?.accessToken) {
+    if (intersectionId && session?.accessToken) {
       try {
-        const data = await configParamApi.getParameter(
-          session?.accessToken,
-          key,
-          "-1",
-          intersectionId.toString()
-        );
+        const data = await configParamApi.getParameter(session?.accessToken, key, "-1", intersectionId.toString());
 
         setParameter(data);
       } catch (err) {
         console.error(err);
       }
+    } else {
+      console.error(
+        "Did not attempt to get configuration parameter in create form. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        intersectionId
+      );
     }
   };
 
