@@ -45,7 +45,7 @@ const Page = () => {
   };
 
   const updateSettings = async (emailPreference: EmailPreferences) => {
-    if (session?.accessToken && !session?.user?.email) {
+    if (session?.accessToken && session?.user?.email) {
       const success = await userManagementApi.updateUserEmailPreference({
         token: session?.accessToken,
         email: session?.user?.email!,
