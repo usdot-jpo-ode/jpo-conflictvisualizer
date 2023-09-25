@@ -88,15 +88,15 @@ export const SidePanel = (props) => {
         const connectionOfTravelNotification = notification as ConnectionOfTravelNotification;
         fields.push([
           "ingress Lane ID",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.ingressLaneID.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.ingressLaneID.toString(),
         ]);
         fields.push([
           "egress Lane ID",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.egressLaneID.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.egressLaneID.toString(),
         ]);
         fields.push([
           "event count",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.eventCount.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.eventCount.toString(),
         ]);
         break;
     }
