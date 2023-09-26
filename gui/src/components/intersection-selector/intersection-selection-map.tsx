@@ -45,7 +45,7 @@ const IntersectionMap = (props: Props) => {
       <Col className="mapContainer" style={{ overflow: "hidden" }}>
         <Map
           {...viewState}
-          mapStyle="mapbox://styles/tonyenglish/cld2bdrk3000201qmx2jb95kf"
+          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}

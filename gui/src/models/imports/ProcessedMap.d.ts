@@ -73,11 +73,25 @@ type ConnectingLanesFeatureCollection = {
   features: ConnectingLanesFeature[];
 };
 
+type ConnectingLanesFeatureCollectionWithSignalState = {
+  type: "FeatureCollection";
+  features: ConnectingLanesFeatureWithSignalState[];
+};
+
 type ConnectingLanesFeature = {
   type: "Feature";
   id: number | string;
   geometry: GeoJSON.LineString;
   properties: ConnectingLanesProperties;
+};
+
+type ConnectingLanesFeatureWithSignalState = {
+  type: "Feature";
+  id: number | string;
+  geometry: GeoJSON.LineString;
+  properties: ConnectingLanesProperties & {
+    signalState?: SignalState;
+  };
 };
 
 type ConnectingLanesProperties = {
