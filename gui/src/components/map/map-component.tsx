@@ -393,7 +393,7 @@ const MapTab = (props: MyProps) => {
     switch (notification.notificationType) {
       case "ConnectionOfTravelNotification":
         const connTravelNotification = notification as ConnectionOfTravelNotification;
-        const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessment;
+        const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessmentGroups;
         connTravelAssessmentGroups?.forEach((assessmentGroup) => {
           const ingressLocation: number[] | undefined = connectingLanes.features.find(
             (connectingLaneFeature: MapFeature) => {
