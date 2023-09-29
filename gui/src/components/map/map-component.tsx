@@ -120,7 +120,7 @@ const connectingLanesLayer: LineLayer = {
       "#e6b000",
       "CAUTION_CONFLICTING_TRAFFIC",
       "#e6b000",
-      "##79797",
+      "#797979",
     ],
     "line-dasharray": [
       "match",
@@ -255,28 +255,63 @@ const pulsingDotLayer: LayerProps = {
   },
 };
 
-const generateQueryParams = (notification: MessageMonitor.Notification | undefined) => {
+const generateQueryParams = (
+  source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+) => {
   const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
-  if (!notification) {
-    return {
-      startDate: new Date(Date.now() - startOffset),
-      endDate: new Date(Date.now() + endOffset),
-      eventDate: new Date(Date.now()),
-      vehicleId: undefined,
-    };
-  } else {
-    return {
-      startDate: new Date(notification.notificationGeneratedAt - startOffset),
-      endDate: new Date(notification.notificationGeneratedAt + endOffset),
-      eventDate: new Date(notification.notificationGeneratedAt),
-      vehicleId: undefined,
-    };
+
+  switch (sourceDataType) {
+    case "notification":
+      const notification = source as MessageMonitor.Notification;
+      return {
+        startDate: new Date(notification.notificationGeneratedAt - startOffset),
+        endDate: new Date(notification.notificationGeneratedAt + endOffset),
+        eventDate: new Date(notification.notificationGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "event":
+      const event = source as MessageMonitor.Event;
+      return {
+        startDate: new Date(event.eventGeneratedAt - startOffset),
+        endDate: new Date(event.eventGeneratedAt + endOffset),
+        eventDate: new Date(event.eventGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "assessment":
+      const assessment = source as Assessment;
+      return {
+        startDate: new Date(assessment.assessmentGeneratedAt - startOffset),
+        endDate: new Date(assessment.assessmentGeneratedAt + endOffset),
+        eventDate: new Date(assessment.assessmentGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "timestamp":
+      const ts = (source as timestamp).timestamp;
+      return {
+        startDate: new Date(ts - startOffset),
+        endDate: new Date(ts + endOffset),
+        eventDate: new Date(ts),
+        vehicleId: undefined,
+      };
+    default:
+      return {
+        startDate: new Date(Date.now() - startOffset),
+        endDate: new Date(Date.now() + endOffset),
+        eventDate: new Date(Date.now()),
+        vehicleId: undefined,
+      };
   }
 };
 
+type timestamp = {
+  timestamp: number;
+};
+
 type MyProps = {
-  notification: MessageMonitor.Notification | undefined;
+  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
 };
 
 const MapTab = (props: MyProps) => {
@@ -348,6 +383,7 @@ const MapTab = (props: MyProps) => {
   const { intersectionId: dbIntersectionId } = useDashboardContext();
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
+  const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const { data: session } = useSession();
 
   //   const size = 200;
@@ -666,6 +702,10 @@ const MapTab = (props: MyProps) => {
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
+    setMapSpatTimes((prevValue) => ({
+      ...prevValue,
+      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+    }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
       setViewState({
@@ -710,11 +750,20 @@ const MapTab = (props: MyProps) => {
     }));
     // add color to each feature
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    setBsmLayerStyle((prevValue) => {
-      prevValue.paint!["circle-color"] = bsmLayerStyle;
-      return prevValue;
-    });
+    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
     setBsmData(bsmGeojson);
+
+    rawData["map"] = rawMap;
+    rawData["spat"] = rawSpat;
+    rawData["bsm"] = rawBsm;
+    if (props.sourceDataType == "notification") {
+      rawData["notification"] = props.sourceData;
+    } else if (props.sourceDataType == "event") {
+      rawData["event"] = props.sourceData;
+    } else if (props.sourceDataType == "assessment") {
+      rawData["assessment"] = props.sourceData;
+    }
+    setRawData(rawData);
 
     setSliderValue(
       Math.min(
@@ -722,28 +771,21 @@ const MapTab = (props: MyProps) => {
         getTimeRange(queryParams.startDate, queryParams.endDate)
       )
     );
-
-    rawData["map"] = rawMap;
-    rawData["spat"] = rawSpat;
-    rawData["bsm"] = rawBsm;
-    rawData["notification"] = props.notification;
-    setRawData(rawData);
   };
 
   useEffect(() => {
-    const query_params = generateQueryParams(props.notification);
+    const query_params = generateQueryParams(props.sourceData, props.sourceDataType);
     setQueryParams(query_params);
     setTimeWindowSeconds(60);
-  }, [props.notification]);
+  }, [props.sourceData]);
 
   useEffect(() => {
     pullInitialData();
   }, [queryParams, dbIntersectionId]);
 
-  useEffect(() => {}, [sliderValue]);
-
   useEffect(() => {
     if (!mapSignalGroups || !spatSignalGroups) {
+      console.error("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
       return;
     }
 
@@ -763,6 +805,7 @@ const MapTab = (props: MyProps) => {
     if (closestSignalGroup !== null) {
       setCurrentSignalGroups(closestSignalGroup.spat);
       setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
+      setMapSpatTimes((prevValue) => ({ ...prevValue, spatTime: closestSignalGroup!.datetime }));
     } else {
       setCurrentSignalGroups(undefined);
       setSignalStateData(undefined);
@@ -780,10 +823,13 @@ const MapTab = (props: MyProps) => {
       }
     });
 
+    console.error("Filtered BSMs", renderTimeInterval, (bsmData?.features ?? []).length, filteredBsms.length);
+
     setCurrentBsms({ ...bsmData, features: filteredBsms });
-  }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);
+  }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
+    console.log("SETTING RENDER TIME INTERVAL", sliderValue, queryParams, timeWindowSeconds);
     const startTime = queryParams.startDate.getTime() / 1000;
     const timeRange = getTimeRange(queryParams.startDate, queryParams.endDate);
 
@@ -890,6 +936,7 @@ const MapTab = (props: MyProps) => {
                 downloadAllData={downloadAllData}
                 timeQueryParams={{ ...queryParams, timeWindowSeconds }}
                 onTimeQueryChanged={onTimeQueryChanged}
+                mapSpatTimes={mapSpatTimes}
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
               />
             </Paper>
@@ -1015,10 +1062,14 @@ const MapTab = (props: MyProps) => {
               <Layer {...signalStateLayerUnknown} />
             </Source>
           )}
-          {mapData && props.notification && (
+          {mapData && props.sourceData && props.sourceDataType == "notification" && (
             <Source
               type="geojson"
-              data={createMarkerForNotification([0, 0], props.notification, mapData.mapFeatureCollection)}
+              data={createMarkerForNotification(
+                [0, 0],
+                props.sourceData as MessageMonitor.Notification,
+                mapData.mapFeatureCollection
+              )}
             >
               <Layer {...markerLayer} />
             </Source>
@@ -1031,7 +1082,8 @@ const MapTab = (props: MyProps) => {
           laneInfo={connectingLanes}
           signalGroups={currentSignalGroups}
           bsms={currentBsms}
-          notification={props.notification}
+          sourceData={props.sourceData}
+          sourceDataType={props.sourceDataType}
         />
       </Col>
     </Container>

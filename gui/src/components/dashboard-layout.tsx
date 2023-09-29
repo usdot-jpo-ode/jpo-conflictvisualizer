@@ -52,7 +52,12 @@ export const DashboardLayout = (props) => {
       };
       setUser(user);
     } else {
-      console.error("Did not attempt to update user. Access token:", session?.accessToken, "Role:", session?.role);
+      console.error(
+        "Did not attempt to update user. Access token:",
+        Boolean(session?.accessToken),
+        "Role:",
+        session?.role
+      );
     }
   };
 
@@ -64,7 +69,7 @@ export const DashboardLayout = (props) => {
         setIntersection(intersections?.[0]?.intersectionID);
       });
     } else {
-      console.error("Did not attempt to update user automatically. Access token:", session?.accessToken);
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
     }
   }, [session?.accessToken]);
 

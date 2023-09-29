@@ -48,101 +48,10 @@ export const CustomPopup = (props) => {
             <CustomTable
               headers={["Field", "Value"]}
               data={[
-                ["State", "PROTECTED_MOVEMENT_ALLOWED"],
-                ["Color", "Green"],
+                ["State", feature.properties.signalState],
                 ["Ingress Lane", feature.properties?.ingressLaneId],
                 ["Egress Lane", feature.properties?.egressLaneId],
                 ["Signal Group", feature.properties?.signalGroupId],
-              ]}
-            />
-          </Box>
-        );
-      case "connectingLanesYellow":
-        return (
-          <Box>
-            <Typography>Connecting Lane</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "PROTECTED_CLEARANCE"],
-                ["Color", "Yellow"],
-                ["Ingress Lane", feature.properties?.ingressLaneId],
-                ["Egress Lane", feature.properties?.egressLaneId],
-                ["Signal Group", feature.properties?.signalGroupId],
-              ]}
-            />
-          </Box>
-        );
-      case "connectingLanesInactive":
-        return (
-          <Box>
-            <Typography>Connecting Lane</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "STOP_AND_REMAIN"],
-                ["Color", "Red"],
-                ["Ingress Lane", feature.properties?.ingressLaneId],
-                ["Egress Lane", feature.properties?.egressLaneId],
-                ["Signal Group", feature.properties?.signalGroupId],
-              ]}
-            />
-          </Box>
-        );
-      case "connectingLanesMissing":
-        return (
-          <Box>
-            <Typography>Connecting Lane</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "unknown"],
-                ["Color", "unknown"],
-                ["Ingress Lane", feature.properties?.ingressLaneId],
-                ["Egress Lane", feature.properties?.egressLaneId],
-                ["Signal Group", feature.properties?.signalGroupId],
-              ]}
-            />
-          </Box>
-        );
-      case "signalStatesGreen":
-        return (
-          <Box>
-            <Typography>Signal State</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "PROTECTED_MOVEMENT_ALLOWED"],
-                ["Color", "Green"],
-                ["Signal Group", feature.properties?.signalGroup],
-              ]}
-            />
-          </Box>
-        );
-      case "signalStatesYellow":
-        return (
-          <Box>
-            <Typography>Signal State</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "PROTECTED_CLEARANCE"],
-                ["Color", "Yellow"],
-                ["Signal Group", feature.properties?.signalGroup],
-              ]}
-            />
-          </Box>
-        );
-      case "signalStatesRed":
-        return (
-          <Box>
-            <Typography>Signal State</Typography>
-            <CustomTable
-              headers={["Field", "Value"]}
-              data={[
-                ["State", "STOP_AND_REMAIN"],
-                ["Color", "Red"],
-                ["Signal Group", feature.properties?.signalGroup],
               ]}
             />
           </Box>

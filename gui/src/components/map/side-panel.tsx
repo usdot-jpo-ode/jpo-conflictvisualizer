@@ -56,20 +56,41 @@ export const SidePanel = (props) => {
     laneInfo,
     signalGroups,
     bsms,
-    notification,
+    sourceData,
+    sourceDataType,
     selectedFeature,
   }: {
     laneInfo: ConnectingLanesFeatureCollection | undefined;
     signalGroups: SpatSignalGroup[];
     bsms: BsmFeatureCollection;
-    notification: MessageMonitor.Notification;
+    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
     selectedFeature: any;
   } = props;
 
   const [open, setOpen] = useState(true);
 
+  const getDataTable = (
+    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined,
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+  ) => {
+    switch (sourceDataType) {
+      case "notification":
+        return getNotificationTable(sourceData as MessageMonitor.Notification);
+      case "event":
+        return <Typography>No Data</Typography>; //getNotificationTableFromEvent(sourceData as MessageMonitor.Event);
+      case "assessment":
+        return <Typography>No Data</Typography>; //getNotificationTableFromAssessment(sourceData as Assessment);
+      case "timestamp":
+        return (
+          <Typography>{format((sourceData as { timestamp: number }).timestamp, "MM/dd/yyyy HH:mm:ss")}</Typography>
+        ); //getNotificationTableFromAssessment(sourceData as Assessment);
+      default:
+        return <Typography>No Data</Typography>;
+    }
+  };
+
   const getNotificationTable = (notification: MessageMonitor.Notification) => {
-    if (!notification) return <Typography>No Data</Typography>;
     const fields = [["time", format(new Date(notification.notificationGeneratedAt), "yyyy-MM-dd HH:mm:ss")]];
     switch (notification.notificationType) {
       case "SpatBroadcastRateNotification":
@@ -100,7 +121,14 @@ export const SidePanel = (props) => {
         ]);
         break;
     }
-    return <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />;
+    return (
+      <>
+        <Typography variant="h6">{notification?.notificationText}</Typography>
+        <Box sx={{ mt: 1 }}>
+          <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />
+        </Box>
+      </>
+    );
   };
 
   return (
@@ -176,12 +204,9 @@ export const SidePanel = (props) => {
                 </Accordion>
                 <Accordion disableGutters>
                   <AccordionSummary>
-                    <Typography variant="h5">Notification</Typography>
+                    <Typography variant="h5">{sourceDataType}</Typography>
                   </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography variant="h6">{notification?.notificationText}</Typography>
-                    <Box sx={{ mt: 1 }}>{getNotificationTable(notification)}</Box>
-                  </AccordionDetails>
+                  <AccordionDetails>{getDataTable(sourceData, sourceDataType)}</AccordionDetails>
                 </Accordion>
               </>
             )}

@@ -54,7 +54,7 @@ export const UserEditForm = (props: { user: User }) => {
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: "Not Authenticated" });
         helpers.setSubmitting(false);
-        console.error("Did not attempt to edit user. Access token:", session?.accessToken);
+        console.error("Did not attempt to edit user. Access token:", Boolean(session?.accessToken));
         return;
       }
       try {

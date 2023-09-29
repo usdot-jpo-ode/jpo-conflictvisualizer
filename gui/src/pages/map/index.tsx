@@ -18,11 +18,8 @@ const Map = () => {
           py: 8,
         }}
       >
-        <Container
-          maxWidth={false}
-          style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}
-        >
-          <MapTab notification={undefined} />
+        <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
+          <MapTab sourceData={undefined} sourceDataType={undefined} />
         </Container>
       </Box>
     </>

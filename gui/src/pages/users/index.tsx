@@ -94,7 +94,7 @@ const Page = () => {
 
         setUsers(data);
       } else {
-        console.error("Did not attempt to get list of users. Access token:", session?.accessToken);
+        console.error("Did not attempt to get list of users. Access token:", Boolean(session?.accessToken));
       }
     } catch (err) {
       console.error(err);
@@ -108,7 +108,10 @@ const Page = () => {
 
         setUserCreationRequests(data);
       } else {
-        console.error("Did not attempt to retrieve user creation requests. Access token:", session?.accessToken);
+        console.error(
+          "Did not attempt to retrieve user creation requests. Access token:",
+          Boolean(session?.accessToken)
+        );
       }
     } catch (err) {
       console.error(err);

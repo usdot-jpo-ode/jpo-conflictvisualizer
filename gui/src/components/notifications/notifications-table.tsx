@@ -68,6 +68,7 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<MessageMonitor.Notification[]>([]);
   const [acceptedNotifications, setAcceptedNotifications] = useState<string[]>([]);
+  const [expandedNotifications, setExpandedNotifications] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -261,6 +262,8 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
             notificationsCount={filteredNotifications.length}
             selectedNotifications={acceptedNotifications}
             onSelectedItemsChanged={setAcceptedNotifications}
+            expandedNotifications={expandedNotifications}
+            onExpandedItemsChanged={setExpandedNotifications}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPage={rowsPerPage}
