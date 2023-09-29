@@ -80,8 +80,17 @@ export const NotificationsTableResults = ({
           </Typography>
         );
       case "IntersectionReferenceAlignmentNotification":
-        // No markers for this notification
-        return <Typography>No Data</Typography>;
+        const intersectionReferenceAlignmentNotification = notification as IntersectionReferenceAlignmentNotification;
+        const intersectionReferenceAlignmentEvent = intersectionReferenceAlignmentNotification.event;
+        return (
+          <Typography>
+            {`Source ID: ${intersectionReferenceAlignmentEvent.sourceID}`}
+            <br />
+            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapIntersectionIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatIntersectionIds}`}
+            <br />
+            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRoadRegulatorIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatRoadRegulatorIds}`}
+          </Typography>
+        );
       case "LaneDirectionOfTravelNotification":
         const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
         const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
@@ -108,17 +117,20 @@ export const NotificationsTableResults = ({
         );
       case "SignalGroupAlignmentNotification":
         const sigGroupAlignmentNotification = notification as SignalGroupAlignmentNotification;
-        const sigGroupAlignmentEvent = sigGroupAlignmentNotification.event;
-        // return (
-        //   <Typography>
-        //     {`Source ID: ${sigGroupAlignmentEvent.}`}
-        //     <br />
-        //     {`- First conflicting signal state: ${sigGroupAlignmentEvent.firstConflictingSignalState} of group: ${sigGroupAlignmentEvent.firstConflictingSignalGroup}`}
-        //     <br />
-        //     {`- Second conflicting signal state: ${sigGroupAlignmentEvent.secondConflictingSignalState} of group: ${sigGroupAlignmentEvent.secondConflictingSignalGroup}`}
-        //   </Typography>
-        // );
-        return <Typography>No Data</Typography>;
+        const sigGroupAlignmentEvent = sigGroupAlignmentNotification.event as SignalGroupAlignmentEvent & {
+          sourceID: string;
+          spatSignalGroupIds: number[];
+          mapSignalGroupIds: number[];
+        };
+        return (
+          <Typography>
+            {`Source ID: ${sigGroupAlignmentEvent.sourceID}`}
+            <br />
+            {`- SPAT Signal Group IDs: ${sigGroupAlignmentEvent.spatSignalGroupIds}`}
+            <br />
+            {`- MAP Signal Group IDs: ${sigGroupAlignmentEvent.mapSignalGroupIds}`}
+          </Typography>
+        );
       case "SignalStateConflictNotification":
         const sigStateConflictNotification = notification as SignalStateConflictNotification;
         const sigStateConflictEvent = sigStateConflictNotification.event;
@@ -132,8 +144,17 @@ export const NotificationsTableResults = ({
           </Typography>
         );
       case "TimeChangeDetailsNotification":
-        // No markers for this notification
-        return <Typography>No Data</Typography>;
+        const timeChangeDetailsNotification = notification as TimeChangeDetailsNotification;
+        const timeChangeDetailsEvent = timeChangeDetailsNotification.event;
+        return (
+          <Typography>
+            {`Signal group: ${timeChangeDetailsEvent.signalGroup}`}
+            <br />
+            {`- First conflicting timemark: ${timeChangeDetailsEvent.firstConflictingTimemark}, spat timestamp: ${timeChangeDetailsEvent.firstSpatTimestamp}, type: ${timeChangeDetailsEvent.firstTimeMarkType}`}
+            <br />
+            {`- Second conflicting timemark: ${timeChangeDetailsEvent.secondConflictingTimemark} spat timestamp: ${timeChangeDetailsEvent.secondSpatTimestamp}, type: ${timeChangeDetailsEvent.secondTimeMarkType}`}
+          </Typography>
+        );
       case "KafkaStreamsAnomalyNotification":
         // No markers for this notification
         return <Typography>No Data</Typography>;
