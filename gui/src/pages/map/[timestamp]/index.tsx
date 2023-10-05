@@ -10,34 +10,14 @@ import { useSession } from "next-auth/react";
 
 const Map = () => {
   const router = useRouter();
-  const { id } = router.query;
-  const [notification, setNotification] = useState<MessageMonitor.Notification | undefined>();
-  const { intersectionId } = useDashboardContext();
-  const { data: session } = useSession();
+  const { timestamp } = router.query;
 
-  const updateNotifications = () => {
-    if (session?.accessToken && intersectionId) {
-      NotificationApi.getActiveNotifications({
-        token: session?.accessToken,
-        intersection_id: intersectionId.toString(),
-        key: id as string,
-      }).then((notifications) => {
-        const notif = notifications?.pop();
-        setNotification(notif);
-      });
-    } else {
-      console.error(
-        "Did not attempt to get notification data in map. Access token:",
-        session?.accessToken,
-        "Intersection ID:",
-        intersectionId
-      );
-    }
-  };
-
-  useEffect(() => {
-    updateNotifications();
-  }, [intersectionId]);
+  let timestampInt: number | undefined = undefined;
+  try {
+    timestampInt = parseInt(timestamp as string);
+  } catch (e) {
+    timestampInt = undefined;
+  }
 
   return (
     <>
@@ -52,7 +32,10 @@ const Map = () => {
         }}
       >
         <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
-          <MapTab notification={notification} />
+          <MapTab
+            sourceData={timestampInt !== undefined ? { timestamp: timestampInt } : undefined}
+            sourceDataType={timestampInt !== undefined ? "timestamp" : undefined}
+          />
         </Container>
       </Box>
     </>

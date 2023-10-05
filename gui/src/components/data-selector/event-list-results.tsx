@@ -1,9 +1,11 @@
 import PerfectScrollbar from "react-perfect-scrollbar";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
+import NextLink from "next/link";
 import {
   Box,
   Card,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -13,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
   const getEventDescription = (event: MessageMonitor.Event) => {
@@ -20,6 +23,8 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
     const newEvent: any = { ...event };
     delete newEvent["eventType"];
     delete newEvent["eventGeneratedAt"];
+    delete newEvent["intersectionId"];
+    delete newEvent["roadRegulatorId"];
     const eventString = JSON.stringify(newEvent);
     return eventString.substring(1, eventString.length - 1);
   };
@@ -33,13 +38,14 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
               <TableRow>
                 <TableCell>Event Type</TableCell>
                 <TableCell>Date</TableCell>
+                <TableCell></TableCell>
                 <TableCell>Message</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {events.map((event) => {
+              {events.map((event: MessageMonitor.Event) => {
                 return (
-                  <TableRow hover key={event.id}>
+                  <TableRow hover key={event.eventGeneratedAt}>
                     <TableCell>
                       <Box
                         sx={{
@@ -53,6 +59,13 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
                       </Box>
                     </TableCell>
                     <TableCell>{format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
+                    <TableCell align="right">
+                      <NextLink href={`/map/${event.eventGeneratedAt}`} passHref>
+                        <IconButton component="a">
+                          <MapRoundedIcon fontSize="medium" />
+                        </IconButton>
+                      </NextLink>
+                    </TableCell>
                     <TableCell>{getEventDescription(event)}</TableCell>
                   </TableRow>
                 );

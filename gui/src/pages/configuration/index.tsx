@@ -119,7 +119,7 @@ const Page = () => {
         console.error(err);
       }
     } else {
-      console.error("Did not attempt to get configuration parameters. Access token:", session?.accessToken);
+      console.error("Did not attempt to get configuration parameters. Access token:", Boolean(session?.accessToken));
     }
   };
 

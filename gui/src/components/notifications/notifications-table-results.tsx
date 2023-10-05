@@ -14,9 +14,13 @@ import {
   TableRow,
   Typography,
   IconButton,
+  TableContainer,
+  Collapse,
 } from "@mui/material";
-import React from "react";
+import React, { ReactElement } from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 export const NotificationsTableResults = ({
   customers,
@@ -24,6 +28,8 @@ export const NotificationsTableResults = ({
   notificationsCount,
   selectedNotifications,
   onSelectedItemsChanged,
+  expandedNotifications,
+  onExpandedItemsChanged,
   onPageChange,
   onRowsPerPageChange,
   page,
@@ -33,7 +39,7 @@ export const NotificationsTableResults = ({
     let newSelectedCustomerIds: string[] = [];
     if (notificationsCount === 0) return;
     if (event.target.checked) {
-      newSelectedCustomerIds = allTabNotifications.map((customer) => customer.key);
+      newSelectedCustomerIds = allTabNotifications.map((notification) => notification.key);
     } else {
       newSelectedCustomerIds = [];
     }
@@ -49,6 +55,117 @@ export const NotificationsTableResults = ({
     }
   };
 
+  const handleExpandOne = (notificationId: string) => {
+    if (!expandedNotifications.includes(notificationId)) {
+      onExpandedItemsChanged((prevExpanded: string[]) => [...prevExpanded, notificationId]);
+    } else {
+      onExpandedItemsChanged((prevExpanded: string[]) => prevExpanded.filter((key: string) => key !== notificationId));
+    }
+  };
+
+  const getDescriptionTextForNotification = (notification: MessageMonitor.Notification): ReactElement => {
+    switch (notification.notificationType) {
+      case "ConnectionOfTravelNotification":
+        const connectionOfTravelNotification = notification as ConnectionOfTravelNotification;
+        return (
+          <Typography>
+            {"Associated Assessment Data"}
+            <br />
+            {connectionOfTravelNotification.assessment.connectionOfTravelAssessmentGroups.map((assessmentGroup) => (
+              <>
+                {`- Ingress lane: ${assessmentGroup.ingressLaneID}, egress lane: ${assessmentGroup.egressLaneID}, connectionId: ${assessmentGroup.connectionID}, eventCount: ${assessmentGroup.eventCount}`}
+                <br />
+              </>
+            ))}
+          </Typography>
+        );
+      case "IntersectionReferenceAlignmentNotification":
+        const intersectionReferenceAlignmentNotification = notification as IntersectionReferenceAlignmentNotification;
+        const intersectionReferenceAlignmentEvent = intersectionReferenceAlignmentNotification.event;
+        return (
+          <Typography>
+            {`Source ID: ${intersectionReferenceAlignmentEvent.sourceID}`}
+            <br />
+            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapIntersectionIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatIntersectionIds}`}
+            <br />
+            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRoadRegulatorIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatRoadRegulatorIds}`}
+          </Typography>
+        );
+      case "LaneDirectionOfTravelNotification":
+        const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
+        const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
+        return (
+          <Typography>
+            {"Associated Assessment Data"}
+            <br />
+            {laneDirTravelAssessmentGroups.map((assessmentGroup) => {
+              const numEvents = assessmentGroup.inToleranceEvents + assessmentGroup.outOfToleranceEvents;
+              const eventsRatio = assessmentGroup.inToleranceEvents / numEvents;
+              assessmentGroup.distanceFromCenterlineTolerance;
+              return (
+                <>
+                  {`- lane ID ${assessmentGroup.laneID}, in tolerance events ${eventsRatio} (${assessmentGroup.inToleranceEvents}/${numEvents})`}
+                  <br />
+                  {`  - Centerline Distance. Expected: ${assessmentGroup.distanceFromCenterlineTolerance}, Median: ${assessmentGroup.medianCenterlineDistance}, Median in tolerance: ${assessmentGroup.medianInToleranceCenterlineDistance}`}
+                  <br />
+                  {`  - Heading. Expected: ${assessmentGroup.expectedHeading}, Median: ${assessmentGroup.medianHeading}, Median in tolerance: ${assessmentGroup.medianInToleranceHeading}`}
+                  <br />
+                </>
+              );
+            })}
+          </Typography>
+        );
+      case "SignalGroupAlignmentNotification":
+        const sigGroupAlignmentNotification = notification as SignalGroupAlignmentNotification;
+        const sigGroupAlignmentEvent = sigGroupAlignmentNotification.event as SignalGroupAlignmentEvent & {
+          sourceID: string;
+          spatSignalGroupIds: number[];
+          mapSignalGroupIds: number[];
+        };
+        return (
+          <Typography>
+            {`Source ID: ${sigGroupAlignmentEvent.sourceID}`}
+            <br />
+            {`- SPAT Signal Group IDs: ${sigGroupAlignmentEvent.spatSignalGroupIds}`}
+            <br />
+            {`- MAP Signal Group IDs: ${sigGroupAlignmentEvent.mapSignalGroupIds}`}
+          </Typography>
+        );
+      case "SignalStateConflictNotification":
+        const sigStateConflictNotification = notification as SignalStateConflictNotification;
+        const sigStateConflictEvent = sigStateConflictNotification.event;
+        return (
+          <Typography>
+            {`Conflict type: ${sigStateConflictEvent.conflictType}`}
+            <br />
+            {`- First conflicting signal state: ${sigStateConflictEvent.firstConflictingSignalState} of group: ${sigStateConflictEvent.firstConflictingSignalGroup}`}
+            <br />
+            {`- Second conflicting signal state: ${sigStateConflictEvent.secondConflictingSignalState} of group: ${sigStateConflictEvent.secondConflictingSignalGroup}`}
+          </Typography>
+        );
+      case "TimeChangeDetailsNotification":
+        const timeChangeDetailsNotification = notification as TimeChangeDetailsNotification;
+        const timeChangeDetailsEvent = timeChangeDetailsNotification.event;
+        return (
+          <Typography>
+            {`Signal group: ${timeChangeDetailsEvent.signalGroup}`}
+            <br />
+            {`- First conflicting timemark: ${timeChangeDetailsEvent.firstConflictingTimemark}, spat timestamp: ${timeChangeDetailsEvent.firstSpatTimestamp}, type: ${timeChangeDetailsEvent.firstTimeMarkType}`}
+            <br />
+            {`- Second conflicting timemark: ${timeChangeDetailsEvent.secondConflictingTimemark} spat timestamp: ${timeChangeDetailsEvent.secondSpatTimestamp}, type: ${timeChangeDetailsEvent.secondTimeMarkType}`}
+          </Typography>
+        );
+      case "KafkaStreamsAnomalyNotification":
+        // No markers for this notification
+        return <Typography>No Data</Typography>;
+      case "BroadcastRateNotification":
+        // No markers for this notification
+        return <Typography>No Data</Typography>;
+      default:
+        return <Typography>No Data</Typography>;
+    }
+  };
+
   return (
     <Card>
       <PerfectScrollbar>
@@ -56,6 +173,7 @@ export const NotificationsTableResults = ({
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell></TableCell>
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={selectedNotifications.length === notificationsCount && selectedNotifications.length}
@@ -73,39 +191,66 @@ export const NotificationsTableResults = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {customers.map((customer: MessageMonitor.Notification) => {
-                const isNotificationSelected = [...selectedNotifications].indexOf(customer.key) !== -1;
+              {customers.map((notification: MessageMonitor.Notification) => {
+                const isNotificationSelected = [...selectedNotifications].indexOf(notification.key) !== -1;
+                const isNotificationExpanded = [...expandedNotifications].indexOf(notification.key) !== -1;
                 return (
-                  <TableRow hover key={customer.key} selected={[...selectedNotifications].indexOf(customer.key) !== -1}>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isNotificationSelected}
-                        onChange={(event) => handleSelectOne(event, customer.key)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box
-                        sx={{
-                          alignItems: "center",
-                          display: "flex",
-                        }}
-                      >
-                        <Typography color="textPrimary" variant="body1">
-                          {customer.notificationType}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{format(customer.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
-                    <TableCell>{customer.notificationText}</TableCell>
-                    <TableCell align="right">
-                      <NextLink href={`/map/${customer.key}`} passHref>
-                        <IconButton component="a">
-                          <MapRoundedIcon fontSize="medium" />
+                  <>
+                    <TableRow
+                      hover
+                      key={notification.key}
+                      selected={[...selectedNotifications].indexOf(notification.key) !== -1}
+                    >
+                      <TableCell padding="checkbox">
+                        <IconButton
+                          aria-label="expand row"
+                          size="small"
+                          onClick={() => handleExpandOne(notification.key)}
+                        >
+                          {isNotificationExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                         </IconButton>
-                      </NextLink>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={isNotificationSelected}
+                          onChange={(event) => handleSelectOne(event, notification.key)}
+                          value="true"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{
+                            alignItems: "center",
+                            display: "flex",
+                          }}
+                        >
+                          <Typography color="textPrimary" variant="body1">
+                            {notification.notificationType}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{format(notification.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
+                      <TableCell>{notification.notificationText}</TableCell>
+                      <TableCell align="right">
+                        <NextLink href={`/map/notification/${notification.key}`} passHref>
+                          <IconButton component="a">
+                            <MapRoundedIcon fontSize="medium" />
+                          </IconButton>
+                        </NextLink>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                        <Collapse in={isNotificationExpanded} timeout="auto" unmountOnExit>
+                          <Box sx={{ margin: 1 }}>
+                            <Typography color="textPrimary" variant="body1">
+                              {getDescriptionTextForNotification(notification)}
+                            </Typography>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </>
                 );
               })}
             </TableBody>

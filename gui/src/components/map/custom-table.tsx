@@ -18,7 +18,7 @@ export const CustomTable = (props) => {
 
   return (
     <TableContainer component={Paper} sx={{ pt: 0, pb: 0, px: 4 }}>
-      <Table size="small">
+      <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
             {headers.map((head) => (
