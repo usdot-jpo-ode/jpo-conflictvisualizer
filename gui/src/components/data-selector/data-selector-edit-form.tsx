@@ -49,10 +49,10 @@ const EVENT_TYPES: Item[] = [
   { label: "SignalStateEvent", value: "signal_state" },
   { label: "SignalStateStopEvent", value: "signal_state_stop" },
   { label: "TimeChangeDetailsEvent", value: "time_change_details" },
-  //   { label: "MapMinimumDataEvent", value: "All" },
-  //   { label: "SpatMinimumDataEvent", value: "All" },
-  //   { label: "MapBroadcastRateEvent", value: "All" },
-  //   { label: "SpatBroadcastRateEvent", value: "All" },
+  { label: "MapMinimumDataEvent", value: "map_minimum_data" },
+  { label: "SpatMinimumDataEvent", value: "spat_minimum_data" },
+  { label: "MapBroadcastRateEvent", value: "map_broadcast_rate" },
+  { label: "SpatBroadcastRateEvent", value: "spat_broadcast_rate" },
 ];
 
 const ASSESSMENT_TYPES: Item[] = [
