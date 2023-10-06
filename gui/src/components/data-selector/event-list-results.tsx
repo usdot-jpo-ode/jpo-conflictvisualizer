@@ -18,13 +18,16 @@ import React from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
+  console.log("EventListResults Events", events.length);
   const getEventDescription = (event: MessageMonitor.Event) => {
     // convert event to JSON string
     const newEvent: any = { ...event };
-    delete newEvent["eventType"];
-    delete newEvent["eventGeneratedAt"];
-    delete newEvent["intersectionId"];
-    delete newEvent["roadRegulatorId"];
+    try {
+      delete newEvent["eventType"];
+      delete newEvent["eventGeneratedAt"];
+      delete newEvent["intersectionID"];
+      delete newEvent["roadRegulatorID"];
+    } catch (e) {}
     const eventString = JSON.stringify(newEvent);
     return eventString.substring(1, eventString.length - 1);
   };
@@ -32,18 +35,19 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
   return (
     <Card>
       <PerfectScrollbar>
-        <Box sx={{ minWidth: 1050 }}>
+        <Box sx={{ minWidth: 1050, overflowX: "scroll" }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Event Type</TableCell>
                 <TableCell>Date</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Open Map</TableCell>
                 <TableCell>Message</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {events.map((event: MessageMonitor.Event) => {
+                console.log("Rendering Event", event.eventGeneratedAt, event);
                 return (
                   <TableRow hover key={event.eventGeneratedAt}>
                     <TableCell>

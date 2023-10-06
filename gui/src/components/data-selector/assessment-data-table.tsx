@@ -25,8 +25,12 @@ import React, { useEffect, useState, useRef } from "react";
 const applyPagination = (parameters, page, rowsPerPage) =>
   parameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: () => void }) => {
-  const { events, onDownload } = props;
+export const AssessmentDataTable = (props: {
+  events: Assessment[];
+  onDownload: () => void;
+  onDownloadJson: () => void;
+}) => {
+  const { events, onDownload, onDownloadJson } = props;
   const queryRef = useRef<TextFieldProps>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -77,6 +81,14 @@ export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: (
                   disabled={events.length <= 0 ? true : false}
                 >
                   Download
+                </Button>
+                <Button
+                  sx={{ m: 1 }}
+                  variant="contained"
+                  onClick={onDownloadJson}
+                  disabled={events.length <= 0 ? true : false}
+                >
+                  Download JSON
                 </Button>
               </Grid>
             </Grid>

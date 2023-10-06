@@ -39,13 +39,13 @@ export const AssessmentListResults = ({
   return (
     <Card>
       <PerfectScrollbar>
-        <Box sx={{ minWidth: 1050 }}>
+        <Box sx={{ minWidth: 1050, overflowX: "scroll" }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Assessment Type</TableCell>
                 <TableCell>Date</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Open Map</TableCell>
                 <TableCell>Message</TableCell>
               </TableRow>
             </TableHead>

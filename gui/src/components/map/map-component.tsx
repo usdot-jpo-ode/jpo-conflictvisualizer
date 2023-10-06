@@ -692,7 +692,7 @@ const MapTab = (props: MyProps) => {
       token: session?.accessToken,
       intersection_id: dbIntersectionId?.toString(),
       //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
-      //endTime: queryParams.endDate,
+      endTime: queryParams.endDate,
       latest: true,
     });
     if (!rawMap || rawMap.length == 0) {
@@ -727,6 +727,7 @@ const MapTab = (props: MyProps) => {
     });
 
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
+    console.log("SPAT SIGNAL GROUPS", spatSignalGroupsLocal);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
@@ -796,13 +797,14 @@ const MapTab = (props: MyProps) => {
       if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
         if (
           closestSignalGroup === null ||
-          Math.abs(datetimeNum - renderTimeInterval[0]) < Math.abs(closestSignalGroup.datetime - renderTimeInterval[0])
+          Math.abs(datetimeNum - renderTimeInterval[1]) < Math.abs(closestSignalGroup.datetime - renderTimeInterval[1])
         ) {
           closestSignalGroup = { datetime: datetimeNum, spat: spatSignalGroups[datetime] };
         }
       }
     }
     if (closestSignalGroup !== null) {
+      console.log("SPAT Query Time", closestSignalGroup!.datetime);
       setCurrentSignalGroups(closestSignalGroup.spat);
       setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
       setMapSpatTimes((prevValue) => ({ ...prevValue, spatTime: closestSignalGroup!.datetime }));

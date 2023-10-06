@@ -63,8 +63,13 @@ const ASSESSMENT_TYPES: Item[] = [
   { label: "ConnectionOfTravelAssessment", value: "connection_of_travel" },
 ];
 
-export const DataSelectorEditForm = (props) => {
-  const { onQuery, onVisualize, dbIntersectionId, ...other } = props;
+export const DataSelectorEditForm = (props: {
+  onQuery: (query: any) => void;
+  onVisualize: (query: any) => void;
+  dbIntersectionId: number | undefined;
+  roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] };
+}) => {
+  const { onQuery, onVisualize, dbIntersectionId, roadRegulatorIntersectionIds, ...other } = props;
   const [visualize, setVisualize] = useState(false);
   const router = useRouter();
   const formik = useFormik({
@@ -193,7 +198,26 @@ export const DataSelectorEditForm = (props) => {
         <CardContent>
           <Grid container spacing={3}>
             <Grid item md={6} xs={12}>
-              <TextField
+              <Select
+                error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
+                fullWidth
+                value={formik.values.intersectionId}
+                label="Intersection ID"
+                name="intersectionId"
+                onChange={(e) => {
+                  formik.setFieldValue("intersectionId", Number(e.target.value));
+                }}
+                onBlur={formik.handleBlur}
+              >
+                {roadRegulatorIntersectionIds?.[formik.values.roadRegulatorId]?.map((intersectionId) => {
+                  return (
+                    <MenuItem value={intersectionId} key={intersectionId}>
+                      {intersectionId}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+              {/* <TextField
                 error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
                 fullWidth
                 // helperText={formik.touched.intersectionId && formik.errors.intersectionId}
@@ -201,10 +225,29 @@ export const DataSelectorEditForm = (props) => {
                 name="intersectionId"
                 onChange={formik.handleChange}
                 value={formik.values.intersectionId}
-              />
+              /> */}
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
+              <Select
+                error={Boolean(formik.touched.roadRegulatorId && formik.errors.roadRegulatorId)}
+                fullWidth
+                value={formik.values.roadRegulatorId}
+                label="Road Regulator ID"
+                name="roadRegulatorId"
+                onChange={(e) => {
+                  formik.setFieldValue("roadRegulatorId", Number(e.target.value));
+                }}
+                onBlur={formik.handleBlur}
+              >
+                {Object.keys(roadRegulatorIntersectionIds)?.map((roadRegulatorId) => {
+                  return (
+                    <MenuItem value={roadRegulatorId} key={roadRegulatorId}>
+                      {roadRegulatorId}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+              {/* <TextField
                 error={Boolean(formik.touched.roadRegulatorId && formik.errors.roadRegulatorId)}
                 fullWidth
                 helperText={formik.touched.roadRegulatorId && formik.errors.roadRegulatorId}
@@ -212,7 +255,7 @@ export const DataSelectorEditForm = (props) => {
                 name="roadRegulatorId"
                 onChange={formik.handleChange}
                 value={formik.values.roadRegulatorId}
-              />
+              /> */}
             </Grid>
             <Grid item md={4} xs={12}>
               <Select
@@ -316,10 +359,4 @@ export const DataSelectorEditForm = (props) => {
       </Card>
     </form>
   );
-};
-
-DataSelectorEditForm.propTypes = {
-  onQuery: PropTypes.func.isRequired,
-  onVisualize: PropTypes.func.isRequired,
-  dbIntersectionId: PropTypes.number,
 };

@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { Box, Container, Typography } from "@mui/material";
 import EventsApi from "../apis/events-api";
 import AssessmentsApi from "../apis/assessments-api";
+import MessageMonitorApi from "../apis/mm-api";
 import GraphsApi from "../apis/graphs-api";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { DataSelectorEditForm } from "../components/data-selector/data-selector-edit-form";
@@ -12,6 +13,8 @@ import { AssessmentDataTable } from "../components/data-selector/assessment-data
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
 import { DataVisualizer } from "../components/data-selector/data-visualizer";
+import toast from "react-hot-toast";
+import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
 
 const DataSelectorPage = () => {
   const [type, setType] = useState("");
@@ -19,6 +22,10 @@ const DataSelectorPage = () => {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
   const { intersectionId } = useDashboardContext();
+  const [openMapDialog, setOpenMapDialog] = useState(false);
+  const [roadRegulatorIntersectionIds, setRoadRegulatorIntersectionIds] = useState<{
+    [roadRegulatorId: number]: number[];
+  }>({});
   const { data: session } = useSession();
 
   const getPaddedTimestamp = () => {
@@ -42,6 +49,76 @@ const DataSelectorPage = () => {
     element.click();
   };
 
+  useEffect(() => {
+    if (session?.accessToken) {
+      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
+        const roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] } = {};
+        for (const intersection of [
+          {
+            ingressLanes: [],
+            egressLanes: [],
+            stopLines: [],
+            startLines: [],
+            referencePoint: {
+              x: 40.014629,
+              y: -105.240808,
+            },
+            intersectionID: 12109,
+            roadRegulatorID: -1,
+            laneConnections: [],
+          },
+          {
+            ingressLanes: [],
+            egressLanes: [],
+            stopLines: [],
+            startLines: [],
+            referencePoint: {
+              x: 40.014698,
+              y: -105.213163,
+            },
+            intersectionID: 12110,
+            roadRegulatorID: -1,
+            laneConnections: [],
+          },
+          {
+            ingressLanes: [],
+            egressLanes: [],
+            stopLines: [],
+            startLines: [],
+            referencePoint: {
+              x: 39.958535,
+              y: -105.090251,
+            },
+            intersectionID: 12112,
+            roadRegulatorID: 2,
+            laneConnections: [],
+          },
+          {
+            ingressLanes: [],
+            egressLanes: [],
+            stopLines: [],
+            startLines: [],
+            referencePoint: {
+              x: 39.958535,
+              y: -105.090251,
+            },
+            intersectionID: 12113,
+            roadRegulatorID: 3,
+            laneConnections: [],
+          },
+        ]) {
+          if (!roadRegulatorIntersectionIds[intersection.roadRegulatorID]) {
+            roadRegulatorIntersectionIds[intersection.roadRegulatorID] = [];
+          }
+          roadRegulatorIntersectionIds[intersection.roadRegulatorID].push(intersection.intersectionID);
+        }
+        setRoadRegulatorIntersectionIds(roadRegulatorIntersectionIds);
+      });
+    } else {
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
+    }
+  }, [session?.accessToken]);
+
   const query = async ({
     type,
     intersectionId,
@@ -63,7 +140,13 @@ const DataSelectorPage = () => {
         // iterate through each event type in a for loop and add the events to events array
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const event = await EventsApi.getEvent(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          const promise = EventsApi.getEvent(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          toast.promise(promise, {
+            loading: `Loading event data For ${eventType}`,
+            success: `Successfully got event data for ${eventType}`,
+            error: `Failed to get event data for ${eventType}`,
+          });
+          const event = await promise;
           events.push(...event);
         }
         setEvents(events);
@@ -74,7 +157,7 @@ const DataSelectorPage = () => {
         // iterate through each event type in a for loop and add the events to events array
         for (let i = 0; i < assessmentTypes.length; i++) {
           const eventType = assessmentTypes[i];
-          const event = await AssessmentsApi.getAssessment(
+          const promise = AssessmentsApi.getAssessment(
             session?.accessToken,
             eventType,
             intersectionId,
@@ -82,6 +165,12 @@ const DataSelectorPage = () => {
             startDate,
             endTime
           );
+          toast.promise(promise, {
+            loading: `Loading assessment data For ${eventType}`,
+            success: `Successfully got assessment data for ${eventType}`,
+            error: `Failed to get assessment data for ${eventType}`,
+          });
+          const event = await promise;
           if (event) assessments.push({ ...event });
         }
         setAssessments(assessments);
@@ -129,12 +218,17 @@ const DataSelectorPage = () => {
   };
 
   function sanitizeCsvString(term) {
-    if (term instanceof Object || term instanceof Array) {
-      return `"${JSON.stringify(term).replaceAll('"', '""')}"`;
-    }
-    if (term.match && term.match(/,|"/)) {
-      return `"${term.replaceAll('"', '""')}"`;
-    } else {
+    try {
+      if (term instanceof Object || term instanceof Array) {
+        return `"${JSON.stringify(term).replaceAll('"', '""')}"`;
+      }
+      if (term.match && term.match(/,|"/)) {
+        return `"${term.replaceAll('"', '""')}"`;
+      } else {
+        return term;
+      }
+    } catch (e) {
+      console.error(e);
       return term;
     }
   }
@@ -217,13 +311,32 @@ const DataSelectorPage = () => {
             </div>
           </Box>
           <Box mt={3}>
-            <DataSelectorEditForm onQuery={query} onVisualize={onVisualize} dbIntersectionId={intersectionId} />
+            <DataSelectorEditForm
+              onQuery={query}
+              onVisualize={onVisualize}
+              roadRegulatorIntersectionIds={roadRegulatorIntersectionIds}
+              dbIntersectionId={intersectionId}
+            />
           </Box>
         </Container>
         <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
-          {type == "events" && <EventDataTable events={events} onDownload={() => downloadEventCsvFiles(events)} />}
+          {type == "events" && (
+            <EventDataTable
+              events={events}
+              onDownload={() => downloadEventCsvFiles(events)}
+              onDownloadJson={() =>
+                downloadFile(events.map((e) => JSON.stringify(e)).join("\n"), "cimms_events_export")
+              }
+            />
+          )}
           {type == "assessments" && (
-            <AssessmentDataTable events={assessments} onDownload={() => downloadAssessmentCsvFiles(assessments)} />
+            <AssessmentDataTable
+              events={assessments}
+              onDownload={() => downloadAssessmentCsvFiles(assessments)}
+              onDownloadJson={() =>
+                downloadFile(assessments.map((e) => JSON.stringify(e)).join("\n"), "cimms_assessments_export")
+              }
+            />
           )}
           {graphData.length > 0 && (
             <DataVisualizer
@@ -235,6 +348,13 @@ const DataSelectorPage = () => {
           )}
         </Container>
       </Box>
+      <MapDialog
+        open={openMapDialog}
+        onClose={() => {
+          setOpenMapDialog(false);
+        }}
+        intersections={[]}
+      />
     </>
   );
 };
