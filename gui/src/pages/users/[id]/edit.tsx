@@ -21,7 +21,7 @@ const UserEdit = () => {
 
         if (data) setUser(data);
       } else {
-        console.error("Did not attempt to get user info. Access token:", session?.accessToken);
+        console.error("Did not attempt to get user info. Access token:", Boolean(session?.accessToken));
       }
     } catch (err) {
       console.error(err);

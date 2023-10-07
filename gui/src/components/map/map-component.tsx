@@ -50,65 +50,138 @@ const mapMessageHighlightLayer: LineLayer = {
   },
 };
 
-const connectingLanesLayer: LineLayer = {
+const preMovementBaseLayer: LineLayer = {
   id: "connectingLanes",
   type: "line",
   paint: {
     "line-width": 5,
-    "line-color": "#30af25",
-    "line-dasharray": [2, 1],
+    "line-color": "#e6b000",
   },
 };
 
-const connectingLanesLayerYellow: LineLayer = {
-  id: "connectingLanesYellow",
+const connectingLanesPreMovementLayer: LineLayer = {
+  id: "connectingLanesPreMovement",
   type: "line",
   paint: {
     "line-width": 5,
-    "line-color": "#c5b800",
-    "line-dasharray": [2, 1],
+    "line-color": "#e6b000",
   },
 };
 
-const connectingLanesLayerInactive: LineLayer = {
-  id: "connectingLanesInactive",
+const connectingLanesLayer: LineLayer = {
+  id: "connectingLanes",
   type: "line",
   paint: {
-    "line-width": 5,
-    "line-color": "#da2f2f",
-    "line-dasharray": [2, 1],
+    "line-width": [
+      "match",
+      ["get", "signalState"],
+      "UNAVAILABLE",
+      3,
+      "DARK",
+      3,
+      "STOP_THEN_PROCEED",
+      3,
+      "STOP_AND_REMAIN",
+      3,
+      "PRE_MOVEMENT",
+      5,
+      "PERMISSIVE_MOVEMENT_ALLOWED",
+      5,
+      "PROTECTED_MOVEMENT_ALLOWED",
+      5,
+      "PERMISSIVE_CLEARANCE",
+      5,
+      "PROTECTED_CLEARANCE",
+      5,
+      "CAUTION_CONFLICTING_TRAFFIC",
+      5,
+      5,
+    ],
+    "line-color": [
+      "match",
+      ["get", "signalState"],
+      "UNAVAILABLE",
+      "#797979",
+      "DARK",
+      "#3a3a3a",
+      "STOP_THEN_PROCEED",
+      "#c00000",
+      "STOP_AND_REMAIN",
+      "#c00000",
+      "PRE_MOVEMENT",
+      "#c00000",
+      "PERMISSIVE_MOVEMENT_ALLOWED",
+      "#267700",
+      "PROTECTED_MOVEMENT_ALLOWED",
+      "#267700",
+      "PERMISSIVE_CLEARANCE",
+      "#e6b000",
+      "PROTECTED_CLEARANCE",
+      "#e6b000",
+      "CAUTION_CONFLICTING_TRAFFIC",
+      "#e6b000",
+      "#797979",
+    ],
+    "line-dasharray": [
+      "match",
+      ["get", "signalState"],
+      "UNAVAILABLE",
+      ["literal", [2, 1]],
+      "DARK",
+      ["literal", [2, 1]],
+      "STOP_THEN_PROCEED",
+      ["literal", [2, 1]],
+      "STOP_AND_REMAIN",
+      ["literal", [1]],
+      "PRE_MOVEMENT",
+      ["literal", [2, 2]],
+      "PERMISSIVE_MOVEMENT_ALLOWED",
+      ["literal", [2, 1]],
+      "PROTECTED_MOVEMENT_ALLOWED",
+      ["literal", [1]],
+      "PERMISSIVE_CLEARANCE",
+      ["literal", [2, 1]],
+      "PROTECTED_CLEARANCE",
+      ["literal", [1]],
+      "CAUTION_CONFLICTING_TRAFFIC",
+      ["literal", [1, 4]],
+      ["literal", [2, 1]],
+    ],
   },
 };
 
-const connectingLanesLayerMissing: LineLayer = {
-  id: "connectingLanesMissing",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": "#000000",
-    "line-dasharray": [2, 1],
-  },
-};
-
-const connectingLanesHighlightLayer: LineLayer = {
-  id: "connectingLanesHighlight",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": "#fffc50",
-    "line-dasharray": [2, 1],
-  },
-};
-
-const RED_LIGHT = "#FF0000";
-const YELLOW_LIGHT = "#FFFF00";
-const GREEN_LIGHT = "#187019";
+const RED_LIGHT = "RED_LIGHT";
+const YELLOW_LIGHT = "YELLOW_LIGHT";
+const GREEN_LIGHT = "GREEN_LIGHT";
+const YELLOW_RED_LIGHT = "YELLOW_RED_LIGHT";
+const RED_FLASHING_LIGHT = "RED_FLASHING_LIGHT";
+const UNKNOWN_LIGHT = "UNKNOWN_LIGHT";
 
 const signalStateLayerGreen: LayerProps = {
   id: "signalStatesGreen",
   type: "symbol",
   layout: {
     "icon-image": "traffic-light-icon-green-1",
+    "icon-allow-overlap": true,
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
+  },
+};
+
+const signalStateLayerYellowRed: LayerProps = {
+  id: "signalStateYellowRed",
+  type: "symbol",
+  layout: {
+    "icon-image": "traffic-light-icon-yellow-red-1",
+    "icon-allow-overlap": true,
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
+  },
+};
+
+const signalStateLayerRedFlashing: LayerProps = {
+  id: "signalStateRedFlashing",
+  type: "symbol",
+  layout: {
+    "icon-image": "traffic-light-icon-red-flashing",
     "icon-allow-overlap": true,
     "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
   },
@@ -129,6 +202,16 @@ const signalStateLayerYellow: LayerProps = {
   type: "symbol",
   layout: {
     "icon-image": "traffic-light-icon-yellow-1",
+    "icon-allow-overlap": true,
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
+  },
+};
+
+const signalStateLayerUnknown: LayerProps = {
+  id: "signalStatesUnknown",
+  type: "symbol",
+  layout: {
+    "icon-image": "traffic-light-icon-unknown",
     "icon-allow-overlap": true,
     "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
   },
@@ -163,28 +246,72 @@ const markerHighlightLayer: LayerProps = {
   },
 };
 
-const generateQueryParams = (notification: MessageMonitor.Notification | undefined) => {
+const pulsingDotLayer: LayerProps = {
+  id: "layer-with-pulsing-dot",
+  type: "symbol",
+  source: "dot-point",
+  layout: {
+    "icon-image": "pulsing-dot",
+  },
+};
+
+const generateQueryParams = (
+  source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+) => {
   const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
-  if (!notification) {
-    return {
-      startDate: new Date(Date.now() - startOffset),
-      endDate: new Date(Date.now() + endOffset),
-      eventDate: new Date(Date.now()),
-      vehicleId: undefined,
-    };
-  } else {
-    return {
-      startDate: new Date(notification.notificationGeneratedAt - startOffset),
-      endDate: new Date(notification.notificationGeneratedAt + endOffset),
-      eventDate: new Date(notification.notificationGeneratedAt),
-      vehicleId: undefined,
-    };
+
+  switch (sourceDataType) {
+    case "notification":
+      const notification = source as MessageMonitor.Notification;
+      return {
+        startDate: new Date(notification.notificationGeneratedAt - startOffset),
+        endDate: new Date(notification.notificationGeneratedAt + endOffset),
+        eventDate: new Date(notification.notificationGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "event":
+      const event = source as MessageMonitor.Event;
+      return {
+        startDate: new Date(event.eventGeneratedAt - startOffset),
+        endDate: new Date(event.eventGeneratedAt + endOffset),
+        eventDate: new Date(event.eventGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "assessment":
+      const assessment = source as Assessment;
+      return {
+        startDate: new Date(assessment.assessmentGeneratedAt - startOffset),
+        endDate: new Date(assessment.assessmentGeneratedAt + endOffset),
+        eventDate: new Date(assessment.assessmentGeneratedAt),
+        vehicleId: undefined,
+      };
+    case "timestamp":
+      const ts = (source as timestamp).timestamp;
+      return {
+        startDate: new Date(ts - startOffset),
+        endDate: new Date(ts + endOffset),
+        eventDate: new Date(ts),
+        vehicleId: undefined,
+      };
+    default:
+      return {
+        startDate: new Date(Date.now() - startOffset),
+        endDate: new Date(Date.now() + endOffset),
+        eventDate: new Date(Date.now()),
+        vehicleId: undefined,
+      };
   }
 };
 
+type timestamp = {
+  timestamp: number;
+};
+
 type MyProps = {
-  notification: MessageMonitor.Notification | undefined;
+  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
 };
 
 const MapTab = (props: MyProps) => {
@@ -205,13 +332,18 @@ const MapTab = (props: MyProps) => {
   const [mapLegendColors, setMapLegendColors] = useState<{
     bsmColors: { [key: string]: string };
     laneColors: { [key: string]: string };
+    travelConnectionColors: { [key: string]: string };
   }>({
     bsmColors: { Other: "#0004ff" },
     laneColors: {
+      Ingress: "#0004ff",
+      Egress: "#eb34e8",
+    },
+    travelConnectionColors: {
       Green: "#30af25",
       Yellow: "#c5b800",
       Red: "#da2f2f",
-      "No SPAT": "#000000",
+      "No SPAT/Unknown": "#000000",
     },
   });
 
@@ -219,7 +351,7 @@ const MapTab = (props: MyProps) => {
     id: "bsm",
     type: "circle",
     paint: {
-      "circle-color": ["match", ["get", "id"], "#0004ff"],
+      "circle-color": ["match", ["get", "id"], "temp-id", "#0004ff", "#0004ff"],
       "circle-radius": 8,
     },
   });
@@ -251,7 +383,71 @@ const MapTab = (props: MyProps) => {
   const { intersectionId: dbIntersectionId } = useDashboardContext();
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
+  const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const { data: session } = useSession();
+
+  //   const size = 200;
+  //   const context: CanvasRenderingContext2D | null = null;
+
+  //   const pulsingDot: {
+  //     width: number;
+  //     height: number;
+  //     data: Uint8Array | Uint8ClampedArray;
+  //     context: CanvasRenderingContext2D | null;
+  //     onAdd: () => void;
+  //     render: () => boolean;
+  //   } = {
+  //     width: size,
+  //     height: size,
+  //     data: new Uint8Array(size * size * 4),
+  //     context: context,
+
+  //     // When the layer is added to the map,
+  //     // get the rendering context for the map canvas.
+  //     onAdd: function () {
+  //       const canvas = document.createElement("canvas");
+  //       canvas.width = this.width;
+  //       canvas.height = this.height;
+  //       this.context = canvas.getContext("2d");
+  //     },
+
+  //     // Call once before every frame where the icon will be used.
+  //     render: function () {
+  //       const duration = 1000;
+  //       const t = (performance.now() % duration) / duration;
+
+  //       const radius = (size / 2) * 0.3;
+  //       const outerRadius = (size / 2) * 0.7 * t + radius;
+  //       const context = this.context;
+  //       if (context != null) {
+  //         // Draw the outer circle.
+  //         context.clearRect(0, 0, this.width, this.height);
+  //         context.beginPath();
+  //         context.arc(this.width / 2, this.height / 2, outerRadius, 0, Math.PI * 2);
+  //         context.fillStyle = `rgba(255, 200, 200, ${1 - t})`;
+  //         context.fill();
+
+  //         // Draw the inner circle.
+  //         context.beginPath();
+  //         context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2);
+  //         context.fillStyle = "rgba(255, 100, 100, 1)";
+  //         context.strokeStyle = "white";
+  //         context.lineWidth = 2 + 4 * (1 - t);
+  //         context.fill();
+  //         context.stroke();
+
+  //         // Update this image's data with data from the canvas.
+  //         this.data = context.getImageData(0, 0, this.width, this.height).data;
+
+  //         // Continuously repaint the map, resulting
+  //         // in the smooth animation of the dot.
+  //         mapRef.current.triggerRepaint();
+  //       }
+
+  //       // Return `true` to let the map know that the image was updated.
+  //       return true;
+  //     },
+  //   };
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
@@ -260,8 +456,6 @@ const MapTab = (props: MyProps) => {
   const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
-    console.log("Map Message");
-    console.log(mapMessage);
     mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
       if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
@@ -391,12 +585,19 @@ const MapTab = (props: MyProps) => {
     switch (state) {
       case "STOP_AND_REMAIN":
         return RED_LIGHT; // red
+      case "PRE_MOVEMENT":
+        return YELLOW_RED_LIGHT; // red
+      case "STOP_THEN_PROCEED":
+        return RED_FLASHING_LIGHT; // red
       case "PROTECTED_CLEARANCE":
+      case "PERMISSIVE_MOVEMENT_ALLOWED":
+      case "PERMISSIVE_CLEARANCE":
+      case "CAUTION_CONFLICTING_TRAFFIC":
         return YELLOW_LIGHT; // yellow
       case "PROTECTED_MOVEMENT_ALLOWED":
         return GREEN_LIGHT; // green
       default:
-        return "#FFFFFF";
+        return UNKNOWN_LIGHT;
     }
   };
 
@@ -414,8 +615,6 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
-    console.debug("Ode Bsm Data");
-    console.debug(bsmData);
     return {
       type: "FeatureCollection" as "FeatureCollection",
       features: bsmData.map((bsm) => {
@@ -434,20 +633,20 @@ const MapTab = (props: MyProps) => {
     };
   };
 
-  const filterConnections = (
+  const addConnections = (
     connectingLanes: ConnectingLanesFeatureCollection,
-    signalGroups: SpatSignalGroup[],
-    state: SignalState | null
-  ): ConnectingLanesFeatureCollection => {
+    signalGroups: SpatSignalGroup[]
+  ): ConnectingLanesFeatureCollectionWithSignalState => {
     return {
       ...connectingLanes,
-      features: connectingLanes.features.filter((feature) => {
-        const val: boolean =
-          signalGroups.find(
-            (signalGroup) => signalGroup.signalGroup == feature.properties.signalGroupId && signalGroup.state != state
-          ) !== undefined;
-        return !val;
-      }),
+      features: connectingLanes.features.map((feature) => ({
+        ...feature,
+        properties: {
+          ...feature.properties,
+          signalState: signalGroups.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroupId)
+            ?.state,
+        },
+      })),
     };
   };
 
@@ -458,15 +657,21 @@ const MapTab = (props: MyProps) => {
     const red: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     const yellow: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     const green: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
+    const yellowRed: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
+    const redFlashing: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
+    const unknown: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
     (prevSignalStates?.features ?? []).forEach((feature) => {
       feature.properties.color = parseSignalStateToColor(
         signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state
       );
       if (feature.properties.color == RED_LIGHT) red.features.push(feature);
-      if (feature.properties.color == YELLOW_LIGHT) yellow.features.push(feature);
-      if (feature.properties.color == GREEN_LIGHT) green.features.push(feature);
+      else if (feature.properties.color == YELLOW_LIGHT) yellow.features.push(feature);
+      else if (feature.properties.color == GREEN_LIGHT) green.features.push(feature);
+      else if (feature.properties.color == YELLOW_RED_LIGHT) yellowRed.features.push(feature);
+      else if (feature.properties.color == GREEN_LIGHT) redFlashing.features.push(feature);
+      else unknown.features.push(feature);
     });
-    return [red, yellow, green];
+    return [red, yellow, green, yellowRed, redFlashing, unknown];
   };
 
   //   useEffect(() => {
@@ -497,6 +702,10 @@ const MapTab = (props: MyProps) => {
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
+    setMapSpatTimes((prevValue) => ({
+      ...prevValue,
+      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+    }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
       setViewState({
@@ -533,7 +742,6 @@ const MapTab = (props: MyProps) => {
     });
     const bsmGeojson = parseBsmToGeojson(rawBsm);
     const uniqueIds = new Set(bsmGeojson.features.map((bsm) => bsm.properties?.id));
-    console.log("BSM Data Unique IDs", uniqueIds);
     // generate equally spaced unique colors for each uniqueId
     const colors = generateColorDictionary(uniqueIds);
     setMapLegendColors((prevValue) => ({
@@ -542,14 +750,20 @@ const MapTab = (props: MyProps) => {
     }));
     // add color to each feature
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    console.log("BSM Data", bsmLayerStyle);
-    setBsmLayerStyle((prevValue) => {
-      prevValue.paint!["circle-color"] = bsmLayerStyle;
-      return prevValue;
-    });
-    console.debug("SETTING BSM LAYER STYLE");
-    console.debug("SETTING BSM GEOJSON", bsmGeojson);
+    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
     setBsmData(bsmGeojson);
+
+    rawData["map"] = rawMap;
+    rawData["spat"] = rawSpat;
+    rawData["bsm"] = rawBsm;
+    if (props.sourceDataType == "notification") {
+      rawData["notification"] = props.sourceData;
+    } else if (props.sourceDataType == "event") {
+      rawData["event"] = props.sourceData;
+    } else if (props.sourceDataType == "assessment") {
+      rawData["assessment"] = props.sourceData;
+    }
+    setRawData(rawData);
 
     setSliderValue(
       Math.min(
@@ -557,28 +771,21 @@ const MapTab = (props: MyProps) => {
         getTimeRange(queryParams.startDate, queryParams.endDate)
       )
     );
-
-    rawData["map"] = rawMap;
-    rawData["spat"] = rawSpat;
-    rawData["bsm"] = rawBsm;
-    rawData["notification"] = props.notification;
-    setRawData(rawData);
   };
 
   useEffect(() => {
-    const query_params = generateQueryParams(props.notification);
+    const query_params = generateQueryParams(props.sourceData, props.sourceDataType);
     setQueryParams(query_params);
     setTimeWindowSeconds(60);
-  }, [props.notification]);
+  }, [props.sourceData]);
 
   useEffect(() => {
     pullInitialData();
   }, [queryParams, dbIntersectionId]);
 
-  useEffect(() => {}, [sliderValue]);
-
   useEffect(() => {
     if (!mapSignalGroups || !spatSignalGroups) {
+      console.error("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
       return;
     }
 
@@ -598,6 +805,7 @@ const MapTab = (props: MyProps) => {
     if (closestSignalGroup !== null) {
       setCurrentSignalGroups(closestSignalGroup.spat);
       setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
+      setMapSpatTimes((prevValue) => ({ ...prevValue, spatTime: closestSignalGroup!.datetime }));
     } else {
       setCurrentSignalGroups(undefined);
       setSignalStateData(undefined);
@@ -614,13 +822,14 @@ const MapTab = (props: MyProps) => {
         filteredBsms.push(feature);
       }
     });
-    console.debug(performance.now() - start);
-    console.debug("SETTING CURRENT BSMs");
+
+    console.error("Filtered BSMs", renderTimeInterval, (bsmData?.features ?? []).length, filteredBsms.length);
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
-  }, [mapSignalGroups, renderTimeInterval, spatSignalGroups]);
+  }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
+    console.log("SETTING RENDER TIME INTERVAL", sliderValue, queryParams, timeWindowSeconds);
     const startTime = queryParams.startDate.getTime() / 1000;
     const timeRange = getTimeRange(queryParams.startDate, queryParams.endDate);
 
@@ -662,8 +871,6 @@ const MapTab = (props: MyProps) => {
     timeAfter?: number,
     timeWindowSeconds?: number
   ) => {
-    console.log("onTimeQueryChanged", eventTime, timeBefore, timeAfter, timeWindowSeconds);
-
     const updatedQueryParams = {
       startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
       endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
@@ -729,6 +936,7 @@ const MapTab = (props: MyProps) => {
                 downloadAllData={downloadAllData}
                 timeQueryParams={{ ...queryParams, timeWindowSeconds }}
                 onTimeQueryChanged={onTimeQueryChanged}
+                mapSpatTimes={mapSpatTimes}
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
               />
             </Paper>
@@ -747,7 +955,11 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <MapLegend bsmColors={mapLegendColors.bsmColors} laneColors={mapLegendColors.laneColors} />
+            <MapLegend
+              bsmColors={mapLegendColors.bsmColors}
+              laneColors={mapLegendColors.laneColors}
+              travelConnectionColors={mapLegendColors.travelConnectionColors}
+            />
           </Box>
         </div>
 
@@ -755,15 +967,9 @@ const MapTab = (props: MyProps) => {
           {...viewState}
           ref={mapRef}
           onLoad={() => {
-            // const image = new Image(35, 35);
-            // image.src = "./icons/traffic-light-green.svg";
-            // mapRef.current.addImage("traffic_light_icon_green", image);
-            // mapRef.current.loadImage(traffic_light_icon_green, (error, image) => {
-            //   if (error) throw error;
-            // });
+            //     mapRef.current.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 });
           }}
-          //   mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
-          mapStyle="mapbox://styles/tonyenglish/cld2bdrk3000201qmx2jb95kf"
+          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
@@ -778,35 +984,42 @@ const MapTab = (props: MyProps) => {
           // onMouseEnter={() => this.setState({ cursor: "pointer" })}
           // onMouseLeave={() => this.setState({ cursor: "grab" })}
         >
-          {/* {mapData && (
-            <Source type="geojson" data={mapData?.connectingLanesFeatureCollection}>
-              <Layer {...connectingLanesLayer} />
+          {/* {
+            <Source
+              type="geojson"
+              data={{
+                type: "FeatureCollection",
+                features: [
+                  {
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                      type: "Point",
+                      coordinates: [0, 0],
+                    },
+                  },
+                ],
+              }}
+            >
+              <Layer {...pulsingDotLayer} />
             </Source>
-          )} */}
+          } */}
           {connectingLanes && currentSignalGroups && (
             <Source
               type="geojson"
-              data={filterConnections(connectingLanes, currentSignalGroups, "PROTECTED_MOVEMENT_ALLOWED")}
+              data={{
+                type: "FeatureCollection",
+                features: addConnections(connectingLanes, currentSignalGroups).features.filter(
+                  (feature) => feature.properties.signalState == "PRE_MOVEMENT"
+                ),
+              }}
             >
+              <Layer {...connectingLanesPreMovementLayer} />
+            </Source>
+          )}
+          {connectingLanes && currentSignalGroups && (
+            <Source type="geojson" data={addConnections(connectingLanes, currentSignalGroups)}>
               <Layer {...connectingLanesLayer} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && (
-            <Source
-              type="geojson"
-              data={filterConnections(connectingLanes, currentSignalGroups, "PROTECTED_CLEARANCE")}
-            >
-              <Layer {...connectingLanesLayerYellow} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && (
-            <Source type="geojson" data={filterConnections(connectingLanes, currentSignalGroups, "STOP_AND_REMAIN")}>
-              <Layer {...connectingLanesLayerInactive} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && (
-            <Source type="geojson" data={filterConnections(connectingLanes, currentSignalGroups, null)!}>
-              <Layer {...connectingLanesLayerMissing} />
             </Source>
           )}
           {currentBsms && (
@@ -834,10 +1047,29 @@ const MapTab = (props: MyProps) => {
               <Layer {...signalStateLayerGreen} />
             </Source>
           )}
-          {mapData && props.notification && (
+          {connectingLanes && currentSignalGroups && signalStateData && (
+            <Source type="geojson" data={signalStateData[3]}>
+              <Layer {...signalStateLayerYellowRed} />
+            </Source>
+          )}
+          {connectingLanes && currentSignalGroups && signalStateData && (
+            <Source type="geojson" data={signalStateData[4]}>
+              <Layer {...signalStateLayerRedFlashing} />
+            </Source>
+          )}
+          {connectingLanes && currentSignalGroups && signalStateData && (
+            <Source type="geojson" data={signalStateData[5]}>
+              <Layer {...signalStateLayerUnknown} />
+            </Source>
+          )}
+          {mapData && props.sourceData && props.sourceDataType == "notification" && (
             <Source
               type="geojson"
-              data={createMarkerForNotification([0, 0], props.notification, mapData.mapFeatureCollection)}
+              data={createMarkerForNotification(
+                [0, 0],
+                props.sourceData as MessageMonitor.Notification,
+                mapData.mapFeatureCollection
+              )}
             >
               <Layer {...markerLayer} />
             </Source>
@@ -850,7 +1082,8 @@ const MapTab = (props: MyProps) => {
           laneInfo={connectingLanes}
           signalGroups={currentSignalGroups}
           bsms={currentBsms}
-          notification={props.notification}
+          sourceData={props.sourceData}
+          sourceDataType={props.sourceDataType}
         />
       </Col>
     </Container>

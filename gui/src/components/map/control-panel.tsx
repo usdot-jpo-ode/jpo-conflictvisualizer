@@ -192,6 +192,20 @@ function ControlPanel(props) {
           Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
           {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
         </h3>
+        <h3>
+          MAP Message Time:{" "}
+          {props.mapSpatTimes.mapTime == 0
+            ? "No Data"
+            : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+        </h3>
+
+        <h3>
+          SPAT Message Time:{" "}
+          {props.mapSpatTimes.spatTime == 0
+            ? "No Data"
+            : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+        </h3>
+
         <Slider
           aria-label="Volume"
           //   value={[20, 37]}

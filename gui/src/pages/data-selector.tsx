@@ -53,7 +53,7 @@ const DataSelectorPage = () => {
     bsmVehicleId,
   }) => {
     if (!session?.accessToken) {
-      console.error("Did not attempt to query for data. Access token:", session?.accessToken);
+      console.error("Did not attempt to query for data. Access token:", Boolean(session?.accessToken));
       return;
     }
     setType(type);
@@ -105,7 +105,7 @@ const DataSelectorPage = () => {
     eventTypes: string[];
   }) => {
     if (!session?.accessToken) {
-      console.error("Did not attempt to visualize data counts. Access token:", session?.accessToken);
+      console.error("Did not attempt to visualize data counts. Access token:", Boolean(session?.accessToken));
       return;
     }
     setGraphData(
@@ -128,16 +128,65 @@ const DataSelectorPage = () => {
     // );
   };
 
+  function sanitizeCsvString(term) {
+    if (term instanceof Object || term instanceof Array) {
+      return `"${JSON.stringify(term).replaceAll('"', '""')}"`;
+    }
+    if (term.match && term.match(/,|"/)) {
+      return `"${term.replaceAll('"', '""')}"`;
+    } else {
+      return term;
+    }
+  }
+
   const convertToCsv = (data: any[]) => {
     const csvRows: string[] = [];
     const headers = Object.keys(data[0]);
     csvRows.push(headers.join(","));
 
     for (const row of data) {
-      const values = headers.map((header) => row[header].toString());
+      const values = headers.map((header) => row[header]?.toString() ?? "undefined");
       csvRows.push(values.join(","));
     }
     return csvRows.join("\n");
+  };
+
+  const downloadEventCsvFiles = (data: MessageMonitor.Event[]) => {
+    const csvRows: { [id: string]: string[] } = {};
+    for (const event of data) {
+      if (!csvRows[event.eventType]) {
+        csvRows[event.eventType] = [Object.keys(event).join(",")];
+      }
+      csvRows[event.eventType].push(Object.values(event).map(sanitizeCsvString).join(","));
+    }
+    for (const eventType in csvRows) {
+      downloadFile(csvRows[eventType].join("\n"), `cimms_events_${eventType}_export`, "csv");
+    }
+  };
+
+  const downloadAssessmentCsvFiles = (data: Assessment[]) => {
+    const csvRows: { [id: string]: string[] } = {};
+    for (const event of data) {
+      if (!csvRows[event.assessmentType]) {
+        csvRows[event.assessmentType] = [Object.keys(event).join(",")];
+      }
+      //   switch(event.assessmentType) {
+      //     case "SignalStateAssessment":
+      //         const signalStateAssessment = event as SignalStateAssessment;
+      //         signalStateAssessment
+      //         break;
+      //         case "LaneDirectionOfTravelAssessment":
+      //             break;
+      //             case "ConnectionOfTravelAssessment":
+      //                 break;
+      //                 case "VehicleStopAssessment":
+      //                     break;
+      //   }
+      csvRows[event.assessmentType].push(Object.values(event).map(sanitizeCsvString).join(","));
+    }
+    for (const assessmentType in csvRows) {
+      downloadFile(csvRows[assessmentType].join("\n"), `cimms_assessments_${assessmentType}_export`, "csv");
+    }
   };
 
   return (
@@ -171,22 +220,10 @@ const DataSelectorPage = () => {
             <DataSelectorEditForm onQuery={query} onVisualize={onVisualize} dbIntersectionId={intersectionId} />
           </Box>
         </Container>
-        <Container maxWidth="md" sx={{ mt: 5, alignItems: "center", display: "flex" }}>
-          {type == "events" && (
-            <EventDataTable
-              events={events}
-              onDownload={() => {
-                return downloadFile(events.map((e) => JSON.stringify(e)).join("\n"), "cimms_events_export");
-              }}
-            />
-          )}
+        <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
+          {type == "events" && <EventDataTable events={events} onDownload={() => downloadEventCsvFiles(events)} />}
           {type == "assessments" && (
-            <AssessmentDataTable
-              events={assessments}
-              onDownload={() => {
-                return downloadFile(assessments.map((e) => JSON.stringify(e)).join("\n"), "cimms_assessments_export");
-              }}
-            />
+            <AssessmentDataTable events={assessments} onDownload={() => downloadAssessmentCsvFiles(assessments)} />
           )}
           {graphData.length > 0 && (
             <DataVisualizer
