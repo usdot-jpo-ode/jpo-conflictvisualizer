@@ -27,7 +27,9 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
       delete newEvent["eventGeneratedAt"];
       delete newEvent["intersectionID"];
       delete newEvent["roadRegulatorID"];
-    } catch (e) {}
+    } catch (e) {
+      console.log("Key not found:", e);
+    }
     const eventString = JSON.stringify(newEvent);
     return eventString.substring(1, eventString.length - 1);
   };

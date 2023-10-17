@@ -15,18 +15,41 @@ import { useSession } from "next-auth/react";
 import { DataVisualizer } from "../components/data-selector/data-visualizer";
 import toast from "react-hot-toast";
 import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
+import { useQueryContext } from "../contexts/query-context";
 
 const DataSelectorPage = () => {
-  const [type, setType] = useState("");
-  const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
+  //   const [type, setType] = useState("");
+  //   const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
+  //   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  //   const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
   const { intersectionId } = useDashboardContext();
-  const [openMapDialog, setOpenMapDialog] = useState(false);
-  const [roadRegulatorIntersectionIds, setRoadRegulatorIntersectionIds] = useState<{
-    [roadRegulatorId: number]: number[];
-  }>({});
+  //   const [openMapDialog, setOpenMapDialog] = useState(false);
+  //   const [roadRegulatorIntersectionIds, setRoadRegulatorIntersectionIds] = useState<{
+  //     [roadRegulatorId: number]: number[];
+  //   }>({});
   const { data: session } = useSession();
+  const {
+    type,
+    events,
+    assessments,
+    graphData,
+    openMapDialog,
+    roadRegulatorIntersectionIds,
+    setType,
+    setEvents,
+    setAssessments,
+    setGraphData,
+    setOpenMapDialog,
+    setRoadRegulatorIntersectionIds,
+  } = useQueryContext();
+
+  useEffect(() => {
+    console.log("TYPE CHANGED:", type);
+  }, [type]);
+
+  useEffect(() => {
+    console.log("EVENTS CHANGED:", events.length);
+  }, [events]);
 
   const getPaddedTimestamp = () => {
     const date = new Date();
@@ -53,60 +76,7 @@ const DataSelectorPage = () => {
     if (session?.accessToken) {
       MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
         const roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] } = {};
-        for (const intersection of [
-          {
-            ingressLanes: [],
-            egressLanes: [],
-            stopLines: [],
-            startLines: [],
-            referencePoint: {
-              x: 40.014629,
-              y: -105.240808,
-            },
-            intersectionID: 12109,
-            roadRegulatorID: -1,
-            laneConnections: [],
-          },
-          {
-            ingressLanes: [],
-            egressLanes: [],
-            stopLines: [],
-            startLines: [],
-            referencePoint: {
-              x: 40.014698,
-              y: -105.213163,
-            },
-            intersectionID: 12110,
-            roadRegulatorID: -1,
-            laneConnections: [],
-          },
-          {
-            ingressLanes: [],
-            egressLanes: [],
-            stopLines: [],
-            startLines: [],
-            referencePoint: {
-              x: 39.958535,
-              y: -105.090251,
-            },
-            intersectionID: 12112,
-            roadRegulatorID: 2,
-            laneConnections: [],
-          },
-          {
-            ingressLanes: [],
-            egressLanes: [],
-            stopLines: [],
-            startLines: [],
-            referencePoint: {
-              x: 39.958535,
-              y: -105.090251,
-            },
-            intersectionID: 12113,
-            roadRegulatorID: 3,
-            laneConnections: [],
-          },
-        ]) {
+        for (const intersection of intersections) {
           if (!roadRegulatorIntersectionIds[intersection.roadRegulatorID]) {
             roadRegulatorIntersectionIds[intersection.roadRegulatorID] = [];
           }
@@ -150,7 +120,7 @@ const DataSelectorPage = () => {
           events.push(...event);
         }
         setEvents(events);
-        setAssessments([]);
+        // setAssessments([]);
         return events;
       case "assessments":
         const assessments: Assessment[] = [];
@@ -174,7 +144,7 @@ const DataSelectorPage = () => {
           if (event) assessments.push({ ...event });
         }
         setAssessments(assessments);
-        setEvents([]);
+        // setEvents([]);
         return assessments;
     }
     return;

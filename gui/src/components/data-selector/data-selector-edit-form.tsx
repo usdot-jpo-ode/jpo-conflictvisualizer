@@ -32,6 +32,7 @@ import {
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { FormikCheckboxList } from "./formik-checkbox-list";
+import { useQueryContext } from "../../contexts/query-context";
 
 interface Item {
   label: string;
@@ -71,21 +72,14 @@ export const DataSelectorEditForm = (props: {
 }) => {
   const { onQuery, onVisualize, dbIntersectionId, roadRegulatorIntersectionIds, ...other } = props;
   const [visualize, setVisualize] = useState(false);
+
+  const { dataSelectorForm, setDataSelectorForm } = useQueryContext();
+
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      type: "events",
-      startDate: new Date(),
-      timeRange: 0,
-      timeUnit: "minutes" as dayjs.ManipulateType,
+      ...dataSelectorForm,
       intersectionId: dbIntersectionId,
-      roadRegulatorId: -1,
-      submit: null,
-
-      // type specific filters
-      bsmVehicleId: null,
-      eventTypes: [] as Item[],
-      assessmentTypes: [] as Item[],
     },
     validationSchema: Yup.object({
       //   type: Yup.string().required("Type is required"),
@@ -109,6 +103,7 @@ export const DataSelectorEditForm = (props: {
             eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
           });
         } else {
+          setDataSelectorForm(values);
           helpers.setStatus({ success: true });
           helpers.setSubmitting(false);
           onQuery({
