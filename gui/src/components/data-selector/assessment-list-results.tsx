@@ -18,8 +18,8 @@ import React from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const AssessmentListResults = ({
-  events,
-  eventsCount,
+  assessments,
+  assessmentsCount,
   onPageChange,
   onRowsPerPageChange,
   page,
@@ -28,11 +28,15 @@ export const AssessmentListResults = ({
   const getAssessmentDescription = (assessment: Assessment) => {
     // convert event to JSON string
     const newAssessment: any = { ...assessment };
-    delete newAssessment["assessmentType"];
-    delete newAssessment["assessmentGeneratedAt"];
-    delete newAssessment["intersectionId"];
-    delete newAssessment["roadRegulatorId"];
-    const assessmentString = JSON.stringify(newAssessment);
+    try {
+      delete newAssessment["assessmentType"];
+      delete newAssessment["assessmentGeneratedAt"];
+      delete newAssessment["intersectionId"];
+      delete newAssessment["roadRegulatorId"];
+    } catch (e) {
+      console.log("Key not found:", e);
+    }
+    const assessmentString = JSON.stringify(newAssessment).replace(/,/g, ", ");
     return assessmentString.substring(1, assessmentString.length - 1);
   };
 
@@ -50,9 +54,9 @@ export const AssessmentListResults = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {events.map((assessment: Assessment) => {
+              {assessments.map((assessment: Assessment, i: number) => {
                 return (
-                  <TableRow hover key={assessment.assessmentGeneratedAt}>
+                  <TableRow hover key={i}>
                     <TableCell>
                       <Box
                         sx={{
@@ -83,7 +87,7 @@ export const AssessmentListResults = ({
       </PerfectScrollbar>
       <TablePagination
         component="div"
-        count={eventsCount}
+        count={assessmentsCount}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         page={page}
@@ -95,6 +99,6 @@ export const AssessmentListResults = ({
 };
 
 AssessmentListResults.propTypes = {
-  events: PropTypes.array.isRequired,
+  assessments: PropTypes.array.isRequired,
   onSelectedItemsChanged: PropTypes.func,
 };

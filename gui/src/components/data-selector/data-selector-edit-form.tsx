@@ -79,7 +79,7 @@ export const DataSelectorEditForm = (props: {
   const formik = useFormik({
     initialValues: {
       ...dataSelectorForm,
-      intersectionId: dbIntersectionId,
+      intersectionId: dataSelectorForm.intersectionId ?? dbIntersectionId,
     },
     validationSchema: Yup.object({
       //   type: Yup.string().required("Type is required"),

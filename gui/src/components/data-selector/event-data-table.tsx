@@ -36,6 +36,10 @@ export const EventDataTable = (props: {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentDescription, setCurrentDescription] = useState("");
 
+  useEffect(() => {
+    setPage(0);
+  }, events);
+
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
   };

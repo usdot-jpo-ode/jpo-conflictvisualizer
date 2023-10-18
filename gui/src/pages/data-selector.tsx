@@ -119,6 +119,7 @@ const DataSelectorPage = () => {
           const event = await promise;
           events.push(...event);
         }
+        events.sort((a, b) => a.eventGeneratedAt - b.eventGeneratedAt);
         setEvents(events);
         // setAssessments([]);
         return events;
@@ -143,6 +144,7 @@ const DataSelectorPage = () => {
           const event = await promise;
           if (event) assessments.push({ ...event });
         }
+        assessments.sort((a, b) => a.assessmentGeneratedAt - b.assessmentGeneratedAt);
         setAssessments(assessments);
         // setEvents([]);
         return assessments;
@@ -301,7 +303,7 @@ const DataSelectorPage = () => {
           )}
           {type == "assessments" && (
             <AssessmentDataTable
-              events={assessments}
+              assessments={assessments}
               onDownload={() => downloadAssessmentCsvFiles(assessments)}
               onDownloadJson={() =>
                 downloadFile(assessments.map((e) => JSON.stringify(e)).join("\n"), "cimms_assessments_export")

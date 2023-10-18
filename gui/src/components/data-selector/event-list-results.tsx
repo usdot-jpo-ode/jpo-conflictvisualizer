@@ -30,7 +30,7 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
     } catch (e) {
       console.log("Key not found:", e);
     }
-    const eventString = JSON.stringify(newEvent);
+    const eventString = JSON.stringify(newEvent).replace(/,/g, ", ");
     return eventString.substring(1, eventString.length - 1);
   };
 
@@ -48,10 +48,10 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
               </TableRow>
             </TableHead>
             <TableBody>
-              {events.map((event: MessageMonitor.Event) => {
+              {events.map((event: MessageMonitor.Event, i: number) => {
                 console.log("Rendering Event", event.eventGeneratedAt, event);
                 return (
-                  <TableRow hover key={event.eventGeneratedAt}>
+                  <TableRow hover key={i}>
                     <TableCell>
                       <Box
                         sx={{
@@ -66,7 +66,7 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
                     </TableCell>
                     <TableCell>{format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell align="right">
-                      <NextLink href={`/map/${event.eventGeneratedAt}`} passHref>
+                      <NextLink href={`/map/${event.intersectionID}/${event.eventGeneratedAt}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
