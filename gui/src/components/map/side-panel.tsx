@@ -20,6 +20,7 @@ import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { Marker } from "mapbox-gl";
+import { ExpandableTable } from "./expandable-table";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -56,6 +57,8 @@ export const SidePanel = (props) => {
     laneInfo,
     signalGroups,
     bsms,
+    events,
+    notifications,
     sourceData,
     sourceDataType,
     selectedFeature,
@@ -63,6 +66,8 @@ export const SidePanel = (props) => {
     laneInfo: ConnectingLanesFeatureCollection | undefined;
     signalGroups: SpatSignalGroup[];
     bsms: BsmFeatureCollection;
+    events: MessageMonitor.Event[];
+    notifications: MessageMonitor.Notification[];
     sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
     sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
     selectedFeature: any;
@@ -189,7 +194,7 @@ export const SidePanel = (props) => {
                   <AccordionDetails>
                     <Box sx={{ mt: 1 }}>
                       <CustomTable
-                        headers={["time", "Vehicle ID", "speed", "heading"]}
+                        headers={["Time", "Vehicle ID", "Speed", "Heading"]}
                         data={
                           bsms?.features.map((bsm) => [
                             bsm.properties.secMark / 1000,
@@ -198,6 +203,44 @@ export const SidePanel = (props) => {
                             bsm.properties.heading,
                           ]) ?? []
                         }
+                      />
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters>
+                  <AccordionSummary>
+                    <Typography variant="h5">Events</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ mt: 1 }}>
+                      <ExpandableTable
+                        headers={["Time", "Event Type"]}
+                        data={
+                          events?.map((event) => [
+                            format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss"),
+                            event.eventType,
+                          ]) ?? []
+                        }
+                        details={events?.map((event) => JSON.stringify(event, null, 2)) ?? []}
+                      />
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters>
+                  <AccordionSummary>
+                    <Typography variant="h5">Notifications</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ mt: 1 }}>
+                      <ExpandableTable
+                        headers={["Time", "Type"]}
+                        data={
+                          notifications?.map((notification) => [
+                            format(notification.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss"),
+                            notification.notificationType,
+                          ]) ?? []
+                        }
+                        details={notifications?.map((notification) => JSON.stringify(notification, null, 2)) ?? []}
                       />
                     </Box>
                   </AccordionDetails>

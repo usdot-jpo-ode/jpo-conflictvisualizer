@@ -58,6 +58,8 @@ class AuthApiHelper {
       mode: "cors",
     };
 
+    console.debug("MAKING REQUEST TO " + url + " WITH OPTIONS", options)
+
     return await fetch(url, options)
       .then((response) => {
         if (response.ok) {

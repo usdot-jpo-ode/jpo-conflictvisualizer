@@ -8,13 +8,13 @@ const { publicRuntimeConfig } = getConfig();
 
 type Props = {
   intersections: IntersectionReferenceData[];
-  selectedIntersection: IntersectionReferenceData | undefined;
+  selectedIntersection: IntersectionReferenceData;
   onSelectIntersection: (id: number, roadRegulatorId?: number) => void;
 };
 
 const IntersectionMap = (props: Props) => {
   const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
-  const [selectedIntersection, setSelectedIntersection] = useState<IntersectionReferenceData | undefined>(
+  const [selectedIntersection, setSelectedIntersection] = useState<IntersectionReferenceData>(
     props.selectedIntersection
   );
   const [viewState, setViewState] = useState({

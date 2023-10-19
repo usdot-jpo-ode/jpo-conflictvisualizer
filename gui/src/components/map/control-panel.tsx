@@ -112,6 +112,7 @@ function ControlPanel(props) {
     <div
       style={{
         padding: "20px 20px 20px 20px",
+        width: "calc(100% - 500px)",
       }}
     >
       <Accordion disableGutters>
@@ -188,31 +189,27 @@ function ControlPanel(props) {
           padding: "20px 50px 0px 50px",
         }}
       >
-        <h3>
+        <h4>
           Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
           {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
-        </h3>
-        <h3>
+        </h4>
+        <h4>
           MAP Message Time:{" "}
           {props.mapSpatTimes.mapTime == 0
             ? "No Data"
             : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
-        </h3>
+        </h4>
 
-        <h3>
+        <h4>
           SPAT Message Time:{" "}
           {props.mapSpatTimes.spatTime == 0
             ? "No Data"
             : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
-        </h3>
+        </h4>
 
         <Slider
-          aria-label="Volume"
-          //   value={[20, 37]}
-          //   onChange={() => {}}
           value={props.sliderValue}
           onChange={props.setSlider}
-          //   marks={props.marks}
           min={0}
           max={props.max}
           valueLabelDisplay="auto"

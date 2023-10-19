@@ -9,6 +9,8 @@ import { Paper, Box, Typography } from "@mui/material";
 import type { CircleLayer, LayerProps, LineLayer } from "react-map-gl";
 import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
+import EventsApi from "../../apis/events-api";
+import NotificationApi from "../../apis/notification-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { Marker } from "mapbox-gl";
 import { SidePanel } from "./side-panel";
@@ -312,6 +314,7 @@ type timestamp = {
 type MyProps = {
   sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
   sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+  intersectionId: number | undefined;
 };
 
 const MapTab = (props: MyProps) => {
@@ -370,6 +373,12 @@ const MapTab = (props: MyProps) => {
     type: "FeatureCollection" as "FeatureCollection",
     features: [],
   });
+  const [surroundingEvents, setSurroundingEvents] = useState<MessageMonitor.Event[]>([]);
+  const [filteredSurroundingEvents, setFilteredSurroundingEvents] = useState<MessageMonitor.Event[]>([]);
+  const [surroundingNotifications, setSurroundingNotifications] = useState<MessageMonitor.Notification[]>([]);
+  const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
+    MessageMonitor.Notification[]
+  >([]);
   //   const mapRef = useRef<mapboxgl.Map>();
   const [viewState, setViewState] = useState({
     latitude: 39.587905,
@@ -380,7 +389,7 @@ const MapTab = (props: MyProps) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
   const mapRef = React.useRef<any>(null);
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  //   const { intersectionId: dbIntersectionId } = useDashboardContext();
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
@@ -679,18 +688,18 @@ const MapTab = (props: MyProps) => {
   //   }, []);
 
   const pullInitialData = async () => {
-    if (!session?.accessToken || !dbIntersectionId) {
+    if (!session?.accessToken || !props.intersectionId) {
       console.error(
         "Did not attempt to pull initial map data. Access token:",
         session?.accessToken,
         "Intersection ID:",
-        dbIntersectionId
+        props.intersectionId
       );
       return;
     }
     const rawMap: ProcessedMap[] = await MessageMonitorApi.getMapMessages({
       token: session?.accessToken,
-      intersection_id: dbIntersectionId?.toString(),
+      intersection_id: props.intersectionId?.toString(),
       //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
       endTime: queryParams.endDate,
       latest: true,
@@ -721,7 +730,7 @@ const MapTab = (props: MyProps) => {
 
     const rawSpat = await MessageMonitorApi.getSpatMessages({
       token: session?.accessToken,
-      intersection_id: dbIntersectionId?.toString(),
+      intersection_id: props.intersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
@@ -766,6 +775,24 @@ const MapTab = (props: MyProps) => {
     }
     setRawData(rawData);
 
+    const localSurroundingEvents = await EventsApi.getAllEvents(
+      session?.accessToken,
+      props.intersectionId,
+      queryParams.startDate,
+      queryParams.endDate
+    );
+    setSurroundingEvents(localSurroundingEvents);
+    console.log("Surrounding Events", localSurroundingEvents.length);
+
+    const localSurroundingNotifications = await NotificationApi.getAllNotifications({
+      token: session?.accessToken,
+      intersection_id: props.intersectionId?.toString(),
+      startTime: queryParams.startDate,
+      endTime: queryParams.endDate,
+    });
+    setSurroundingNotifications(localSurroundingNotifications);
+    console.log("Surrounding Notifications", localSurroundingNotifications.length);
+
     setSliderValue(
       Math.min(
         getTimeRange(queryParams.startDate, queryParams.eventDate ?? new Date()),
@@ -782,7 +809,7 @@ const MapTab = (props: MyProps) => {
 
   useEffect(() => {
     pullInitialData();
-  }, [queryParams, dbIntersectionId]);
+  }, [queryParams, props.intersectionId]);
 
   useEffect(() => {
     if (!mapSignalGroups || !spatSignalGroups) {
@@ -828,6 +855,27 @@ const MapTab = (props: MyProps) => {
     console.error("Filtered BSMs", renderTimeInterval, (bsmData?.features ?? []).length, filteredBsms.length);
 
     setCurrentBsms({ ...bsmData, features: filteredBsms });
+
+    const filteredEvents: MessageMonitor.Event[] = [];
+    surroundingEvents.forEach((event) => {
+      if (event.eventGeneratedAt / 1000 >= renderTimeInterval[0] && event.eventGeneratedAt / 1000 <= renderTimeInterval[1]) {
+        filteredEvents.push(event);
+      }
+    });
+    setFilteredSurroundingEvents(filteredEvents);
+    console.log("Filtered Surrounding Events", filteredEvents);
+
+    const filteredNotifications: MessageMonitor.Notification[] = [];
+    surroundingNotifications.forEach((notification) => {
+      if (
+        notification.notificationGeneratedAt / 1000 >= renderTimeInterval[0] &&
+        notification.notificationGeneratedAt / 1000 <= renderTimeInterval[1]
+      ) {
+        filteredNotifications.push(notification);
+      }
+    });
+    setFilteredSurroundingNotifications(filteredNotifications);
+    console.log("Filtered Surrounding Notifications", filteredNotifications);
   }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
@@ -861,10 +909,10 @@ const MapTab = (props: MyProps) => {
   };
 
   const downloadAllData = () => {
-    downloadJsonFile(rawData["map"], `intersection_${dbIntersectionId}_MAP_data.json`);
-    downloadJsonFile(rawData["spat"], `intersection_${dbIntersectionId}_SPAT_data.json`);
-    downloadJsonFile(rawData["bsm"], `intersection_${dbIntersectionId}_BSM_data.json`);
-    downloadJsonFile(rawData["notification"], `intersection_${dbIntersectionId}_Notification_data.json`);
+    downloadJsonFile(rawData["map"], `intersection_${props.intersectionId}_MAP_data.json`);
+    downloadJsonFile(rawData["spat"], `intersection_${props.intersectionId}_SPAT_data.json`);
+    downloadJsonFile(rawData["bsm"], `intersection_${props.intersectionId}_BSM_data.json`);
+    downloadJsonFile(rawData["notification"], `intersection_${props.intersectionId}_Notification_data.json`);
   };
 
   const onTimeQueryChanged = (
@@ -1084,6 +1132,8 @@ const MapTab = (props: MyProps) => {
           laneInfo={connectingLanes}
           signalGroups={currentSignalGroups}
           bsms={currentBsms}
+          events={filteredSurroundingEvents}
+          notifications={filteredSurroundingNotifications}
           sourceData={props.sourceData}
           sourceDataType={props.sourceDataType}
         />

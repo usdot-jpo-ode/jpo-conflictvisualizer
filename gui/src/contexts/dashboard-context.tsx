@@ -5,8 +5,8 @@ import React from "react";
 import { QueryProvider } from "./query-context";
 
 interface DashboardContextType {
-  intersectionId?: number;
-  roadRegulatorId?: number;
+  intersectionId: number;
+  roadRegulatorId: number;
   user?: User;
   setIntersection: (intersectionId?: number, roadRegulatorId?: number) => void;
   setUser: (user: User) => void;
@@ -20,8 +20,8 @@ const HANDLERS = {
 };
 
 const initialState = {
-  intersectionId: undefined,
-  roadRegulatorId: undefined,
+  intersectionId: -1,
+  roadRegulatorId: -1,
   user: undefined,
   setIntersection: () => {},
   setUser: () => {},
@@ -66,7 +66,7 @@ export const DashboardProvider = (props) => {
   const { children } = props;
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const setIntersection = (intersectionId?: number, roadRegulatorId?: number) => {
+  const setIntersection = (intersectionId: number, roadRegulatorId: number) => {
     dispatch({
       type: HANDLERS.SET_INTERSECTION,
       payload: { intersectionId: intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },

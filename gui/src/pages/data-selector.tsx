@@ -108,41 +108,63 @@ const DataSelectorPage = () => {
       case "events":
         const events: MessageMonitor.Event[] = [];
         // iterate through each event type in a for loop and add the events to events array
+        const eventPromises: Promise<MessageMonitor.Event[]>[] = [];
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const promise = EventsApi.getEvent(session?.accessToken, eventType, intersectionId, startDate, endTime);
-          toast.promise(promise, {
-            loading: `Loading event data For ${eventType}`,
-            success: `Successfully got event data for ${eventType}`,
-            error: `Failed to get event data for ${eventType}`,
-          });
-          const event = await promise;
-          events.push(...event);
+          const promise = EventsApi.getEvents(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          eventPromises.push(promise);
         }
+        const allEventsPromise = Promise.all(eventPromises);
+        toast.promise(allEventsPromise, {
+          loading: `Loading event data`,
+          success: `Successfully got event data`,
+          error: `Failed to get event data. Please see console`,
+        });
+
+        try {
+          const allEvents = await allEventsPromise;
+          allEvents.forEach((event) => {
+            events.push(...event);
+          });
+        } catch (e) {
+          console.error(`Failed to load event data because ${e}`);
+        }
+
         events.sort((a, b) => a.eventGeneratedAt - b.eventGeneratedAt);
         setEvents(events);
         // setAssessments([]);
         return events;
       case "assessments":
         const assessments: Assessment[] = [];
+        const assessmentPromises: Promise<Assessment[]>[] = [];
         // iterate through each event type in a for loop and add the events to events array
         for (let i = 0; i < assessmentTypes.length; i++) {
-          const eventType = assessmentTypes[i];
-          const promise = AssessmentsApi.getAssessment(
+          const assessmentType = assessmentTypes[i];
+          const promise = AssessmentsApi.getAssessments(
             session?.accessToken,
-            eventType,
+            assessmentType,
             intersectionId,
             undefined,
             startDate,
             endTime
           );
-          toast.promise(promise, {
-            loading: `Loading assessment data For ${eventType}`,
-            success: `Successfully got assessment data for ${eventType}`,
-            error: `Failed to get assessment data for ${eventType}`,
+          assessmentPromises.push(promise);
+        }
+
+        const allAssessmentsPromise = Promise.all(assessmentPromises);
+        toast.promise(allAssessmentsPromise, {
+          loading: `Loading assessment data`,
+          success: `Successfully got assessment data`,
+          error: `Failed to get assessment data`,
+        });
+
+        try {
+          const allAssessments = await allAssessmentsPromise;
+          allAssessments.forEach((assessment) => {
+            assessments.push(...assessment);
           });
-          const event = await promise;
-          if (event) assessments.push({ ...event });
+        } catch (e) {
+          console.error(`Failed to load assessment data because ${e}`);
         }
         assessments.sort((a, b) => a.assessmentGeneratedAt - b.assessmentGeneratedAt);
         setAssessments(assessments);

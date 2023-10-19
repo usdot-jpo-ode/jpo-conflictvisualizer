@@ -20,8 +20,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import AddIcon from "@mui/icons-material/Add";
 
 export const ConfigParamListTable = (props) => {
-  const { parameters, parametersCount, onPageChange, onRowsPerPageChange, page, rowsPerPage } =
-    props;
+  const { intersectionId, parameters, parametersCount, onPageChange, onRowsPerPageChange, page, rowsPerPage } = props;
 
   const readOnlyRow = (param) => {
     return (
@@ -39,7 +38,7 @@ export const ConfigParamListTable = (props) => {
     return (
       <TableRow hover key={param.id}>
         <TableCell>{param.key}</TableCell>
-        <TableCell>{param.value.toString()}</TableCell>
+        <TableCell>{param.value?.toString()}</TableCell>
         <TableCell>{param.units?.toString()}</TableCell>
         <TableCell>{param.description}</TableCell>
         <TableCell align="right">
@@ -61,11 +60,13 @@ export const ConfigParamListTable = (props) => {
         <TableCell>{param.units?.toString()}</TableCell>
         <TableCell>{param.description}</TableCell>
         <TableCell align="right">
-          <NextLink href={`/configuration/${param.key}/create`} passHref>
-            <IconButton component="a">
-              <AddIcon fontSize="small" />
-            </IconButton>
-          </NextLink>
+          {intersectionId != -1 ? (
+            <NextLink href={`/configuration/${param.key}/create`} passHref>
+              <IconButton component="a">
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </NextLink>
+          ) : null}
           <NextLink href={`/configuration/${param.key}/edit`} passHref>
             <IconButton component="a">
               <PencilAltIcon fontSize="small" />
@@ -108,11 +109,13 @@ export const ConfigParamListTable = (props) => {
               <PencilAltIcon fontSize="small" />
             </IconButton>
           </NextLink>
-          <NextLink href={`/configuration/${param.key}/remove`} passHref>
-            <IconButton component="a">
-              <CancelIcon fontSize="small" />
-            </IconButton>
-          </NextLink>
+          {intersectionId != -1 ? (
+            <NextLink href={`/configuration/${param.key}/remove`} passHref>
+              <IconButton component="a">
+                <CancelIcon fontSize="small" />
+              </IconButton>
+            </NextLink>
+          ) : null}
         </TableCell>
       </TableRow>
     );
@@ -140,9 +143,7 @@ export const ConfigParamListTable = (props) => {
                   case "DEFAULT":
                     return generalDefaultRow(param);
                   case "INTERSECTION":
-                    return "intersectionID" in param
-                      ? intersectionRow(param)
-                      : generalIntersectionRow(param);
+                    return "intersectionID" in param ? intersectionRow(param) : generalIntersectionRow(param);
                   default:
                     return readOnlyRow(param);
                 }
@@ -165,6 +166,7 @@ export const ConfigParamListTable = (props) => {
 };
 
 ConfigParamListTable.propTypes = {
+  intersectionId: PropTypes.number.isRequired,
   parameters: PropTypes.array.isRequired,
   parametersCount: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,

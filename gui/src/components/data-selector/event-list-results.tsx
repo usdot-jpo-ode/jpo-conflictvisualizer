@@ -20,18 +20,7 @@ import MapRoundedIcon from "@mui/icons-material/MapRounded";
 export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
   console.log("EventListResults Events", events.length);
   const getEventDescription = (event: MessageMonitor.Event) => {
-    // convert event to JSON string
-    const newEvent: any = { ...event };
-    try {
-      delete newEvent["eventType"];
-      delete newEvent["eventGeneratedAt"];
-      delete newEvent["intersectionID"];
-      delete newEvent["roadRegulatorID"];
-    } catch (e) {
-      console.log("Key not found:", e);
-    }
-    const eventString = JSON.stringify(newEvent).replace(/,/g, ", ");
-    return eventString.substring(1, eventString.length - 1);
+    return JSON.stringify(event).replace(/,/g, ", ");
   };
 
   return (

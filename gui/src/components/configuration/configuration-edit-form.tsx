@@ -9,7 +9,7 @@ import { configParamApi } from "../../apis/configuration-param-api";
 import { useSession } from "next-auth/react";
 
 export const ConfigParamEditForm = (props) => {
-  const { parameter }: { parameter: IntersectionConfig } = props;
+  const { parameter }: { parameter: DefaultConfig | IntersectionConfig } = props;
   const router = useRouter();
   const { data: session } = useSession();
   const formik = useFormik({
@@ -30,13 +30,68 @@ export const ConfigParamEditForm = (props) => {
         return;
       }
       try {
-        const updatedConfig = {
-          ...parameter,
-          value: values.value,
-        };
-        if (parameter.intersectionID) {
+        const valueType = parameter.type;
+        let typedValue: number | string | boolean | null = values.value;
+        switch (valueType) {
+          case "java.lang.Integer":
+            console.log("Integer");
+            try {
+              parseInt(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid integer value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.Boolean":
+            console.log("Boolean");
+            typedValue = values.value == "true";
+            break;
+          case "java.lang.Long":
+            console.log("Long");
+            try {
+              parseInt(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid long value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.Double":
+            console.log("Double");
+            try {
+              Number(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid double value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.String":
+            console.log("String");
+            break;
+          default:
+            console.log("Default:", valueType);
+            break;
+        }
+        console.log("Updating Config Param", parameter, valueType, typedValue, typeof typedValue);
+        if ("intersectionID" in parameter) {
+          const updatedConfig: IntersectionConfig = {
+            ...(parameter as IntersectionConfig),
+            value: typedValue,
+          };
           await configParamApi.updateIntersectionParameter(session?.accessToken, values.name, updatedConfig);
         } else {
+          const updatedConfig = {
+            ...parameter,
+            value: typedValue,
+          };
           await configParamApi.updateDefaultParameter(session?.accessToken, values.name, updatedConfig);
         }
         helpers.setStatus({ success: true });

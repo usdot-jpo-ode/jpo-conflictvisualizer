@@ -1,22 +1,29 @@
 import Head from "next/head";
-import { Box, Container } from "@mui/material";
-import { DashboardLayout } from "../../../components/dashboard-layout";
+import { Box, Container, Typography } from "@mui/material";
+import { DashboardLayout } from "../../../../components/dashboard-layout";
 import React, { useEffect, useState } from "react";
-import MapTab from "../../../components/map/map-component";
+import MapTab from "../../../../components/map/map-component";
 import { useRouter } from "next/router";
-import NotificationApi from "../../../apis/notification-api";
-import { useDashboardContext } from "../../../contexts/dashboard-context";
+import NotificationApi from "../../../../apis/notification-api";
+import { useDashboardContext } from "../../../../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
 
 const Map = () => {
   const router = useRouter();
-  const { timestamp } = router.query;
+  const { intersectionId, timestamp } = router.query;
 
   let timestampInt: number | undefined = undefined;
   try {
     timestampInt = parseInt(timestamp as string);
   } catch (e) {
     timestampInt = undefined;
+  }
+
+  let intersectionIdInt: number | undefined = undefined;
+  try {
+    intersectionIdInt = parseInt(intersectionId as string);
+  } catch (e) {
+    intersectionIdInt = undefined;
   }
 
   return (
@@ -35,6 +42,7 @@ const Map = () => {
           <MapTab
             sourceData={timestampInt !== undefined ? { timestamp: timestampInt } : undefined}
             sourceDataType={timestampInt !== undefined ? "timestamp" : undefined}
+            intersectionId={intersectionIdInt}
           />
         </Container>
       </Box>

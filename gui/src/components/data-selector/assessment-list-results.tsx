@@ -26,18 +26,7 @@ export const AssessmentListResults = ({
   rowsPerPage,
 }) => {
   const getAssessmentDescription = (assessment: Assessment) => {
-    // convert event to JSON string
-    const newAssessment: any = { ...assessment };
-    try {
-      delete newAssessment["assessmentType"];
-      delete newAssessment["assessmentGeneratedAt"];
-      delete newAssessment["intersectionId"];
-      delete newAssessment["roadRegulatorId"];
-    } catch (e) {
-      console.log("Key not found:", e);
-    }
-    const assessmentString = JSON.stringify(newAssessment).replace(/,/g, ", ");
-    return assessmentString.substring(1, assessmentString.length - 1);
+    return JSON.stringify(assessment).replace(/,/g, ", ");
   };
 
   return (
@@ -71,7 +60,7 @@ export const AssessmentListResults = ({
                     </TableCell>
                     <TableCell>{format(assessment.assessmentGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell align="right">
-                      <NextLink href={`/map/${assessment.assessmentGeneratedAt}`} passHref>
+                      <NextLink href={`/map/${assessment.intersectionID}/${assessment.assessmentGeneratedAt}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>

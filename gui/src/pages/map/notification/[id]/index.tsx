@@ -53,7 +53,11 @@ const Map = () => {
         }}
       >
         <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
-          <MapTab sourceData={notification} sourceDataType={notification !== undefined ? "notification" : undefined} />
+          <MapTab
+            sourceData={notification}
+            sourceDataType={notification !== undefined ? "notification" : undefined}
+            intersectionId={intersectionId}
+          />
         </Container>
       </Box>
     </>
