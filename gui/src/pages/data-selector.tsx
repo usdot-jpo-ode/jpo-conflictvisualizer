@@ -43,14 +43,6 @@ const DataSelectorPage = () => {
     setRoadRegulatorIntersectionIds,
   } = useQueryContext();
 
-  useEffect(() => {
-    console.log("TYPE CHANGED:", type);
-  }, [type]);
-
-  useEffect(() => {
-    console.log("EVENTS CHANGED:", events.length);
-  }, [events]);
-
   const getPaddedTimestamp = () => {
     const date = new Date();
     // create padded timestamp like YYMMdd_HHMMSS

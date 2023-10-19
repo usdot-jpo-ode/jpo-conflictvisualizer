@@ -98,7 +98,6 @@ export const MapLegend = (props: MapLegendPropsType) => {
         <p>|</p>
       </>
     );
-    console.log(key, value);
   }
 
   const laneColorsList: JSX.Element[] = [];
@@ -121,11 +120,10 @@ export const MapLegend = (props: MapLegendPropsType) => {
         <p>|</p>
       </>
     );
-    console.log(key, value);
   }
 
   return (
-    <Accordion disableGutters defaultExpanded={true}>
+    <Accordion disableGutters defaultExpanded={false}>
       <AccordionSummary>
         <Typography variant="h5">Legend</Typography>
       </AccordionSummary>

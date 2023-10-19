@@ -4,7 +4,7 @@ import { authApiHelper } from "./api-helper";
 const NOTIFICATION_TYPES: string[] = [
   "connection_of_travel",
   "intersection_reference_alignment",
-  "lane_direction_of_travel_notification",
+  "lane_direction_of_travel",
   "signal_state_conflict_notification",
   "signal_group_alignment_notification",
   "map_broadcast_rate_notification",

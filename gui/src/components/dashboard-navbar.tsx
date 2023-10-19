@@ -120,7 +120,6 @@ export const DashboardNavbar = (props: Props) => {
                 value={intersectionId}
                 label="IntersectionId"
                 onChange={(e) => {
-                  console.log("Setting Intersection", e.target.value);
                   setIntersection(
                     e.target.value as number | undefined,
                     intersections.find((v) => v?.intersectionID == e.target.value)?.roadRegulatorID

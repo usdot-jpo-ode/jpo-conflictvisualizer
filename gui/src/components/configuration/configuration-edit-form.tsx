@@ -34,7 +34,6 @@ export const ConfigParamEditForm = (props) => {
         let typedValue: number | string | boolean | null = values.value;
         switch (valueType) {
           case "java.lang.Integer":
-            console.log("Integer");
             try {
               parseInt(values.value);
               typedValue = values.value.toString();
@@ -46,11 +45,9 @@ export const ConfigParamEditForm = (props) => {
               return;
             }
           case "java.lang.Boolean":
-            console.log("Boolean");
             typedValue = values.value == "true";
             break;
           case "java.lang.Long":
-            console.log("Long");
             try {
               parseInt(values.value);
               typedValue = values.value.toString();
@@ -62,7 +59,6 @@ export const ConfigParamEditForm = (props) => {
               return;
             }
           case "java.lang.Double":
-            console.log("Double");
             try {
               Number(values.value);
               typedValue = values.value.toString();
@@ -74,13 +70,10 @@ export const ConfigParamEditForm = (props) => {
               return;
             }
           case "java.lang.String":
-            console.log("String");
             break;
           default:
-            console.log("Default:", valueType);
             break;
         }
-        console.log("Updating Config Param", parameter, valueType, typedValue, typeof typedValue);
         if ("intersectionID" in parameter) {
           const updatedConfig: IntersectionConfig = {
             ...(parameter as IntersectionConfig),

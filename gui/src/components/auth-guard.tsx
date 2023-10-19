@@ -28,11 +28,11 @@ export const AuthGuard = (props) => {
     }
 
     if (!validateSession(session)) {
-      console.info("Forcing Sign In", session);
+      console.debug("Forcing Sign In", session);
       signIn();
       setChecked(true);
     } else {
-      console.info("SESSION", session);
+      console.debug("SESSION", session);
       setChecked(true);
     }
   }, [status]);

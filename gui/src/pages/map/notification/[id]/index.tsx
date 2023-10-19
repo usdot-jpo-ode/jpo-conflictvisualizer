@@ -23,7 +23,6 @@ const Map = () => {
         key: id as string,
       }).then((notifications) => {
         const notif = notifications?.pop();
-        console.log("NOTIFICATION", notif);
         setNotification(notif);
       });
     } else {

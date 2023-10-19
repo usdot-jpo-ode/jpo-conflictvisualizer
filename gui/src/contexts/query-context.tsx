@@ -153,7 +153,6 @@ export const QueryProvider = (props) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const setType = (typeVal: string) => {
-    console.log("SETTING TYPE: ", typeVal);
     dispatch({
       type: HANDLERS.SET_TYPE,
       payload: { type: typeVal },
@@ -161,7 +160,6 @@ export const QueryProvider = (props) => {
   };
 
   const setEvents = (events: MessageMonitor.Event[]) => {
-    console.log("SETTING EVENTS: ", events.length);
     dispatch({
       type: HANDLERS.SET_EVENTS,
       payload: { events },
@@ -177,7 +175,6 @@ export const QueryProvider = (props) => {
   };
 
   const setAssessments = (assessments: Assessment[]) => {
-    console.log("SETTING ASSESSMENTS: ", assessments.length);
     dispatch({
       type: HANDLERS.SET_ASSESSMENTS,
       payload: { assessments },

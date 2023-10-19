@@ -73,7 +73,7 @@ export const SidePanel = (props) => {
     selectedFeature: any;
   } = props;
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const getDataTable = (
     sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined,

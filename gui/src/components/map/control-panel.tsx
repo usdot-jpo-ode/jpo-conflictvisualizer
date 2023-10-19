@@ -111,8 +111,7 @@ function ControlPanel(props) {
   return (
     <div
       style={{
-        padding: "20px 20px 20px 20px",
-        width: "calc(100% - 500px)",
+        padding: "10px 10px 10px 10px",
       }}
     >
       <Accordion disableGutters>
@@ -126,6 +125,7 @@ function ControlPanel(props) {
                 label="Time Before Event"
                 name="timeRangeBefore"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeBefore: getNumber(e.target.value) };
@@ -136,7 +136,7 @@ function ControlPanel(props) {
                 }}
                 value={dateParams.timeBefore}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 2 }}>
                 <DateTimePicker
                   label="Event Date"
                   value={dayjs(dateParams.eventTime ?? new Date())}
@@ -153,6 +153,7 @@ function ControlPanel(props) {
                 label="Time After Event"
                 name="timeRangeAfter"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeAfter: getNumber(e.target.value) };
@@ -168,6 +169,7 @@ function ControlPanel(props) {
                 label="Time Render Window"
                 name="timeRangeAfter"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeWindowSeconds: getNumber(e.target.value) };
@@ -183,42 +185,50 @@ function ControlPanel(props) {
         </AccordionDetails>
       </Accordion>
 
-      <div
-        className="control-panel"
-        style={{
-          padding: "20px 50px 0px 50px",
-        }}
-      >
-        <h4>
-          Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
-          {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
-        </h4>
-        <h4>
-          MAP Message Time:{" "}
-          {props.mapSpatTimes.mapTime == 0
-            ? "No Data"
-            : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
-        </h4>
+      <Accordion disableGutters defaultExpanded={true}>
+        <AccordionSummary>
+          <Typography variant="h5">Message Times & Download</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div
+            className="control-panel"
+            style={{
+              padding: "10px 30px 0px 20px",
+            }}
+          >
+            <h4>
+              Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
+              {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
+            <h4>
+              MAP Message Time:{" "}
+              {props.mapSpatTimes.mapTime == 0
+                ? "No Data"
+                : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
 
-        <h4>
-          SPAT Message Time:{" "}
-          {props.mapSpatTimes.spatTime == 0
-            ? "No Data"
-            : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
-        </h4>
+            <h4>
+              SPAT Message Time:{" "}
+              {props.mapSpatTimes.spatTime == 0
+                ? "No Data"
+                : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
+            <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
+              Download All Message Data
+            </Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
 
-        <Slider
-          value={props.sliderValue}
-          onChange={props.setSlider}
-          min={0}
-          max={props.max}
-          valueLabelDisplay="auto"
-          disableSwap
-        />
-        <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
-          Download All Message Data
-        </Button>
-      </div>
+      <Slider
+        sx={{ ml: 2 }}
+        value={props.sliderValue}
+        onChange={props.setSlider}
+        min={0}
+        max={props.max}
+        valueLabelDisplay="auto"
+        disableSwap
+      />
     </div>
   );
 }

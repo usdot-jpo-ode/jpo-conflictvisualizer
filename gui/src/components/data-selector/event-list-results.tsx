@@ -18,7 +18,6 @@ import React from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
-  console.log("EventListResults Events", events.length);
   const getEventDescription = (event: MessageMonitor.Event) => {
     return JSON.stringify(event).replace(/,/g, ", ");
   };
@@ -38,7 +37,6 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
             </TableHead>
             <TableBody>
               {events.map((event: MessageMonitor.Event, i: number) => {
-                console.log("Rendering Event", event.eventGeneratedAt, event);
                 return (
                   <TableRow hover key={i}>
                     <TableCell>

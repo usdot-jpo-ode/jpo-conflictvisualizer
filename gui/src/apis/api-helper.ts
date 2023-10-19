@@ -39,7 +39,6 @@ class AuthApiHelper {
     failureMessage?: string;
   }): Promise<any> {
     const url = (basePath ?? publicRuntimeConfig.API_SERVER_URL!) + path + this.formatQueryParams(queryParams);
-    console.info("MAKING REQUEST TO", url);
 
     const localHeaders: HeadersInit = { ...headers };
     if (token) localHeaders["Authorization"] = `Bearer ${token}`;
@@ -58,7 +57,7 @@ class AuthApiHelper {
       mode: "cors",
     };
 
-    console.debug("MAKING REQUEST TO " + url + " WITH OPTIONS", options)
+    console.debug("MAKING REQUEST TO " + url + " WITH OPTIONS", options);
 
     return await fetch(url, options)
       .then((response) => {

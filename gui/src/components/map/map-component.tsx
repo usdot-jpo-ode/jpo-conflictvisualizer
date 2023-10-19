@@ -736,7 +736,6 @@ const MapTab = (props: MyProps) => {
     });
 
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
-    console.log("SPAT SIGNAL GROUPS", spatSignalGroupsLocal);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
@@ -782,7 +781,6 @@ const MapTab = (props: MyProps) => {
       queryParams.endDate
     );
     setSurroundingEvents(localSurroundingEvents);
-    console.log("Surrounding Events", localSurroundingEvents.length);
 
     const localSurroundingNotifications = await NotificationApi.getAllNotifications({
       token: session?.accessToken,
@@ -791,7 +789,6 @@ const MapTab = (props: MyProps) => {
       endTime: queryParams.endDate,
     });
     setSurroundingNotifications(localSurroundingNotifications);
-    console.log("Surrounding Notifications", localSurroundingNotifications.length);
 
     setSliderValue(
       Math.min(
@@ -831,7 +828,6 @@ const MapTab = (props: MyProps) => {
       }
     }
     if (closestSignalGroup !== null) {
-      console.log("SPAT Query Time", closestSignalGroup!.datetime);
       setCurrentSignalGroups(closestSignalGroup.spat);
       setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
       setMapSpatTimes((prevValue) => ({ ...prevValue, spatTime: closestSignalGroup!.datetime }));
@@ -852,18 +848,18 @@ const MapTab = (props: MyProps) => {
       }
     });
 
-    console.error("Filtered BSMs", renderTimeInterval, (bsmData?.features ?? []).length, filteredBsms.length);
-
     setCurrentBsms({ ...bsmData, features: filteredBsms });
 
     const filteredEvents: MessageMonitor.Event[] = [];
     surroundingEvents.forEach((event) => {
-      if (event.eventGeneratedAt / 1000 >= renderTimeInterval[0] && event.eventGeneratedAt / 1000 <= renderTimeInterval[1]) {
+      if (
+        event.eventGeneratedAt / 1000 >= renderTimeInterval[0] &&
+        event.eventGeneratedAt / 1000 <= renderTimeInterval[1]
+      ) {
         filteredEvents.push(event);
       }
     });
     setFilteredSurroundingEvents(filteredEvents);
-    console.log("Filtered Surrounding Events", filteredEvents);
 
     const filteredNotifications: MessageMonitor.Notification[] = [];
     surroundingNotifications.forEach((notification) => {
@@ -875,11 +871,9 @@ const MapTab = (props: MyProps) => {
       }
     });
     setFilteredSurroundingNotifications(filteredNotifications);
-    console.log("Filtered Surrounding Notifications", filteredNotifications);
   }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
-    console.log("SETTING RENDER TIME INTERVAL", sliderValue, queryParams, timeWindowSeconds);
     const startTime = queryParams.startDate.getTime() / 1000;
     const timeRange = getTimeRange(queryParams.startDate, queryParams.endDate);
 
@@ -943,7 +937,6 @@ const MapTab = (props: MyProps) => {
     const features = mapRef.current.queryRenderedFeatures(e.point, {
       //   layers: allInteractiveLayerIds,
     });
-    console.debug("CLICKED", features, e);
 
     const feature = features?.[0];
     if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
@@ -974,7 +967,7 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}>
+            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85, width: "calc(100% - 500px)" }}>
               <ControlPanel
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}
