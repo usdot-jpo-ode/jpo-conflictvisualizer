@@ -958,7 +958,8 @@ const MapTab = (props: MyProps) => {
             zIndex: 10,
             top: 0,
             left: 0,
-            width: 1200,
+            // width: 1200,
+            width: "calc(100% - 500px)",
             borderRadius: "4px",
             fontSize: "16px",
             maxHeight: "calc(100vh - 120px)",
@@ -967,7 +968,7 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85, width: "calc(100% - 500px)" }}>
+            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}>
               <ControlPanel
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}

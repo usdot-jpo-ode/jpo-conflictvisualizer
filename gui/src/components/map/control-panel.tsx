@@ -221,7 +221,7 @@ function ControlPanel(props) {
       </Accordion>
 
       <Slider
-        sx={{ ml: 2 }}
+        sx={{ ml: 2, width: "calc(100% - 60px)" }}
         value={props.sliderValue}
         onChange={props.setSlider}
         min={0}
