@@ -48,7 +48,7 @@ const Map = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          py: 8,
+          py: 0,
         }}
       >
         <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
