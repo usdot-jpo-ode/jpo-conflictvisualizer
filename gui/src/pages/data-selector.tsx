@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { Box, Container, Typography } from "@mui/material";
 import EventsApi from "../apis/events-api";
 import AssessmentsApi from "../apis/assessments-api";
+import MessageMonitorApi from "../apis/mm-api";
 import GraphsApi from "../apis/graphs-api";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { DataSelectorEditForm } from "../components/data-selector/data-selector-edit-form";
@@ -12,14 +13,35 @@ import { AssessmentDataTable } from "../components/data-selector/assessment-data
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
 import { DataVisualizer } from "../components/data-selector/data-visualizer";
+import toast from "react-hot-toast";
+import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
+import { useQueryContext } from "../contexts/query-context";
 
 const DataSelectorPage = () => {
-  const [type, setType] = useState("");
-  const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
+  //   const [type, setType] = useState("");
+  //   const [events, setEvents] = useState<MessageMonitor.Event[]>([]);
+  //   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  //   const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
   const { intersectionId } = useDashboardContext();
+  //   const [openMapDialog, setOpenMapDialog] = useState(false);
+  //   const [roadRegulatorIntersectionIds, setRoadRegulatorIntersectionIds] = useState<{
+  //     [roadRegulatorId: number]: number[];
+  //   }>({});
   const { data: session } = useSession();
+  const {
+    type,
+    events,
+    assessments,
+    graphData,
+    openMapDialog,
+    roadRegulatorIntersectionIds,
+    setType,
+    setEvents,
+    setAssessments,
+    setGraphData,
+    setOpenMapDialog,
+    setRoadRegulatorIntersectionIds,
+  } = useQueryContext();
 
   const getPaddedTimestamp = () => {
     const date = new Date();
@@ -42,6 +64,23 @@ const DataSelectorPage = () => {
     element.click();
   };
 
+  useEffect(() => {
+    if (session?.accessToken) {
+      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
+        const roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] } = {};
+        for (const intersection of intersections) {
+          if (!roadRegulatorIntersectionIds[intersection.roadRegulatorID]) {
+            roadRegulatorIntersectionIds[intersection.roadRegulatorID] = [];
+          }
+          roadRegulatorIntersectionIds[intersection.roadRegulatorID].push(intersection.intersectionID);
+        }
+        setRoadRegulatorIntersectionIds(roadRegulatorIntersectionIds);
+      });
+    } else {
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
+    }
+  }, [session?.accessToken]);
+
   const query = async ({
     type,
     intersectionId,
@@ -61,31 +100,67 @@ const DataSelectorPage = () => {
       case "events":
         const events: MessageMonitor.Event[] = [];
         // iterate through each event type in a for loop and add the events to events array
+        const eventPromises: Promise<MessageMonitor.Event[]>[] = [];
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const event = await EventsApi.getEvent(session?.accessToken, eventType, intersectionId, startDate, endTime);
-          events.push(...event);
+          const promise = EventsApi.getEvents(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          eventPromises.push(promise);
         }
+        const allEventsPromise = Promise.all(eventPromises);
+        toast.promise(allEventsPromise, {
+          loading: `Loading event data`,
+          success: `Successfully got event data`,
+          error: `Failed to get event data. Please see console`,
+        });
+
+        try {
+          const allEvents = await allEventsPromise;
+          allEvents.forEach((event) => {
+            events.push(...event);
+          });
+        } catch (e) {
+          console.error(`Failed to load event data because ${e}`);
+        }
+
+        events.sort((a, b) => a.eventGeneratedAt - b.eventGeneratedAt);
         setEvents(events);
-        setAssessments([]);
+        // setAssessments([]);
         return events;
       case "assessments":
         const assessments: Assessment[] = [];
+        const assessmentPromises: Promise<Assessment[]>[] = [];
         // iterate through each event type in a for loop and add the events to events array
         for (let i = 0; i < assessmentTypes.length; i++) {
-          const eventType = assessmentTypes[i];
-          const event = await AssessmentsApi.getAssessment(
+          const assessmentType = assessmentTypes[i];
+          const promise = AssessmentsApi.getAssessments(
             session?.accessToken,
-            eventType,
+            assessmentType,
             intersectionId,
             undefined,
             startDate,
             endTime
           );
-          if (event) assessments.push({ ...event });
+          assessmentPromises.push(promise);
         }
+
+        const allAssessmentsPromise = Promise.all(assessmentPromises);
+        toast.promise(allAssessmentsPromise, {
+          loading: `Loading assessment data`,
+          success: `Successfully got assessment data`,
+          error: `Failed to get assessment data`,
+        });
+
+        try {
+          const allAssessments = await allAssessmentsPromise;
+          allAssessments.forEach((assessment) => {
+            assessments.push(...assessment);
+          });
+        } catch (e) {
+          console.error(`Failed to load assessment data because ${e}`);
+        }
+        assessments.sort((a, b) => a.assessmentGeneratedAt - b.assessmentGeneratedAt);
         setAssessments(assessments);
-        setEvents([]);
+        // setEvents([]);
         return assessments;
     }
     return;
@@ -129,12 +204,17 @@ const DataSelectorPage = () => {
   };
 
   function sanitizeCsvString(term) {
-    if (term instanceof Object || term instanceof Array) {
-      return `"${JSON.stringify(term).replaceAll('"', '""')}"`;
-    }
-    if (term.match && term.match(/,|"/)) {
-      return `"${term.replaceAll('"', '""')}"`;
-    } else {
+    try {
+      if (term instanceof Object || term instanceof Array) {
+        return `"${JSON.stringify(term).replaceAll('"', '""')}"`;
+      }
+      if (term.match && term.match(/,|"/)) {
+        return `"${term.replaceAll('"', '""')}"`;
+      } else {
+        return term;
+      }
+    } catch (e) {
+      console.error(e);
       return term;
     }
   }
@@ -217,13 +297,32 @@ const DataSelectorPage = () => {
             </div>
           </Box>
           <Box mt={3}>
-            <DataSelectorEditForm onQuery={query} onVisualize={onVisualize} dbIntersectionId={intersectionId} />
+            <DataSelectorEditForm
+              onQuery={query}
+              onVisualize={onVisualize}
+              roadRegulatorIntersectionIds={roadRegulatorIntersectionIds}
+              dbIntersectionId={intersectionId}
+            />
           </Box>
         </Container>
         <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
-          {type == "events" && <EventDataTable events={events} onDownload={() => downloadEventCsvFiles(events)} />}
+          {type == "events" && (
+            <EventDataTable
+              events={events}
+              onDownload={() => downloadEventCsvFiles(events)}
+              onDownloadJson={() =>
+                downloadFile(events.map((e) => JSON.stringify(e)).join("\n"), "cimms_events_export")
+              }
+            />
+          )}
           {type == "assessments" && (
-            <AssessmentDataTable events={assessments} onDownload={() => downloadAssessmentCsvFiles(assessments)} />
+            <AssessmentDataTable
+              assessments={assessments}
+              onDownload={() => downloadAssessmentCsvFiles(assessments)}
+              onDownloadJson={() =>
+                downloadFile(assessments.map((e) => JSON.stringify(e)).join("\n"), "cimms_assessments_export")
+              }
+            />
           )}
           {graphData.length > 0 && (
             <DataVisualizer
@@ -235,6 +334,13 @@ const DataSelectorPage = () => {
           )}
         </Container>
       </Box>
+      <MapDialog
+        open={openMapDialog}
+        onClose={() => {
+          setOpenMapDialog(false);
+        }}
+        intersections={[]}
+      />
     </>
   );
 };

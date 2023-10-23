@@ -70,15 +70,15 @@ class MessageMonitorApi {
     endTime,
     long,
     lat,
-    distance
+    distance,
   }: {
     token: string;
     vehicleId?: string;
     startTime?: Date;
     endTime?: Date;
-    long?: number,
-    lat?: number,
-    distance?: number
+    long?: number;
+    lat?: number;
+    distance?: number;
   }): Promise<OdeBsmData[]> {
     const queryParams: Record<string, string> = {};
     if (vehicleId) queryParams["origin_ip"] = vehicleId;
@@ -88,8 +88,6 @@ class MessageMonitorApi {
     if (lat) queryParams["latitude"] = lat.toString();
     if (distance) queryParams["distance"] = distance.toString();
 
-    console.log("Query BSM Messages testing");
-    console.log(queryParams);
     var response = await authApiHelper.invokeApi({
       path: "/bsm/json",
       token: token,

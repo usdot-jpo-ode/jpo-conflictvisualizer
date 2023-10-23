@@ -9,7 +9,7 @@ import { configParamApi } from "../../apis/configuration-param-api";
 import { useSession } from "next-auth/react";
 
 export const ConfigParamEditForm = (props) => {
-  const { parameter }: { parameter: IntersectionConfig } = props;
+  const { parameter }: { parameter: DefaultConfig | IntersectionConfig } = props;
   const router = useRouter();
   const { data: session } = useSession();
   const formik = useFormik({
@@ -30,13 +30,61 @@ export const ConfigParamEditForm = (props) => {
         return;
       }
       try {
-        const updatedConfig = {
-          ...parameter,
-          value: values.value,
-        };
-        if (parameter.intersectionID) {
+        const valueType = parameter.type;
+        let typedValue: number | string | boolean | null = values.value;
+        switch (valueType) {
+          case "java.lang.Integer":
+            try {
+              parseInt(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid integer value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.Boolean":
+            typedValue = values.value == "true";
+            break;
+          case "java.lang.Long":
+            try {
+              parseInt(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid long value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.Double":
+            try {
+              Number(values.value);
+              typedValue = values.value.toString();
+              break;
+            } catch (e) {
+              toast.error("Invalid double value");
+              helpers.setStatus({ success: false });
+              helpers.setSubmitting(false);
+              return;
+            }
+          case "java.lang.String":
+            break;
+          default:
+            break;
+        }
+        if ("intersectionID" in parameter) {
+          const updatedConfig: IntersectionConfig = {
+            ...(parameter as IntersectionConfig),
+            value: typedValue,
+          };
           await configParamApi.updateIntersectionParameter(session?.accessToken, values.name, updatedConfig);
         } else {
+          const updatedConfig = {
+            ...parameter,
+            value: typedValue,
+          };
           await configParamApi.updateDefaultParameter(session?.accessToken, values.name, updatedConfig);
         }
         helpers.setStatus({ success: true });

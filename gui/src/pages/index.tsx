@@ -32,7 +32,7 @@ const Page = () => {
   const getAssessments = async () => {
     if (intersectionId && session?.accessToken) {
       setSignalStateAssessment(
-        (await AssessmentsApi.getAssessment(
+        (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_assessment",
           intersectionId.toString(),
@@ -40,7 +40,7 @@ const Page = () => {
         )) as SignalStateAssessment
       );
       setSignalStateEventAssessment(
-        (await AssessmentsApi.getAssessment(
+        (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_event_assessment",
           intersectionId.toString(),
@@ -48,7 +48,7 @@ const Page = () => {
         )) as SignalStateEventAssessment
       );
       setConnectionOfTravelAssessment(
-        (await AssessmentsApi.getAssessment(
+        (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "connection_of_travel",
           intersectionId.toString(),
@@ -56,7 +56,7 @@ const Page = () => {
         )) as ConnectionOfTravelAssessment
       );
       setLaneDirectionOfTravelAssessment(
-        (await AssessmentsApi.getAssessment(
+        (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "lane_direction_of_travel",
           intersectionId.toString(),

@@ -163,6 +163,8 @@ const Page = () => {
   const filteredParameters = applyFilters(parameters, filter);
   const paginatedParameters = applyPagination(filteredParameters, page, rowsPerPage);
 
+  console.log("Parameters", paginatedParameters);
+
   return (
     <>
       <Head>
@@ -268,6 +270,7 @@ const Page = () => {
             </Box>
 
             <ConfigParamListTable
+              intersectionId={intersectionId}
               parameters={paginatedParameters}
               parametersCount={filteredParameters.length}
               onPageChange={handlePageChange}

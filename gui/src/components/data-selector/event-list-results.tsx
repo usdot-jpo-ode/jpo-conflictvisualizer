@@ -19,33 +19,26 @@ import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage }) => {
   const getEventDescription = (event: MessageMonitor.Event) => {
-    // convert event to JSON string
-    const newEvent: any = { ...event };
-    delete newEvent["eventType"];
-    delete newEvent["eventGeneratedAt"];
-    delete newEvent["intersectionId"];
-    delete newEvent["roadRegulatorId"];
-    const eventString = JSON.stringify(newEvent);
-    return eventString.substring(1, eventString.length - 1);
+    return JSON.stringify(event).replace(/,/g, ", ");
   };
 
   return (
     <Card>
       <PerfectScrollbar>
-        <Box sx={{ minWidth: 1050 }}>
+        <Box sx={{ minWidth: 1050, overflowX: "scroll" }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Event Type</TableCell>
                 <TableCell>Date</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Open Map</TableCell>
                 <TableCell>Message</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {events.map((event: MessageMonitor.Event) => {
+              {events.map((event: MessageMonitor.Event, i: number) => {
                 return (
-                  <TableRow hover key={event.eventGeneratedAt}>
+                  <TableRow hover key={i}>
                     <TableCell>
                       <Box
                         sx={{
@@ -60,7 +53,7 @@ export const EventListResults = ({ events, eventsCount, onPageChange, onRowsPerP
                     </TableCell>
                     <TableCell>{format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell align="right">
-                      <NextLink href={`/map/${event.eventGeneratedAt}`} passHref>
+                      <NextLink href={`/map/${event.intersectionID}/${event.eventGeneratedAt}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
