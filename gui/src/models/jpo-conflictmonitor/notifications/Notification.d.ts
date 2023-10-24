@@ -1,6 +1,6 @@
 declare namespace MessageMonitor {
 type Notification = {
-  Logger: any
+  logger: Logger
   id: str
   key: str
   notificationGeneratedAt: number
@@ -10,6 +10,6 @@ type Notification = {
   intersectionID: number
   roadRegulatorID: number
   notificationExpiresAt: Date
-  String: abstract
+  getUniqueId: str
 }
 }

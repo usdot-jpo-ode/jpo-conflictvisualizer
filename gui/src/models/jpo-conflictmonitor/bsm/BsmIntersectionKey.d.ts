@@ -1,6 +1,6 @@
 
 type BsmIntersectionKey = {
-  Logger: any
+  logger: Logger
   rsuId: str
   bsmId: str
 }

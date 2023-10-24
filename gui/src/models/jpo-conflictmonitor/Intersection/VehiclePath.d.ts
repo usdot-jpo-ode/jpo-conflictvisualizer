@@ -1,6 +1,6 @@
 
 type VehiclePath = {
-  Logger: any
+  logger: Logger
   pathPoints: number[][]
   bsms: BsmAggregator
   intersection: Intersection

@@ -1,6 +1,6 @@
 
 type MapIntersection = {
-  Logger: any
+  logger: Logger
   intersectionGeometry: J2735IntersectionGeometry
   laneConnections: LaneConnection[]
 }

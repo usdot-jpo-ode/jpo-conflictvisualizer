@@ -1,4 +1,4 @@
 
 type BsmTimestampExtractor = {
-  Logger: any
+  logger: Logger
 }
