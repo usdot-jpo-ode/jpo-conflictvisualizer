@@ -19,6 +19,7 @@ import { useSession } from "next-auth/react";
 import getConfig from "next/config";
 import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 import { MapLegend } from "./map-legend";
+import toast from "react-hot-toast";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
@@ -697,13 +698,19 @@ const MapTab = (props: MyProps) => {
       );
       return;
     }
-    const rawMap: ProcessedMap[] = await MessageMonitorApi.getMapMessages({
+    const rawMapPromise = MessageMonitorApi.getMapMessages({
       token: session?.accessToken,
       intersection_id: props.intersectionId?.toString(),
       //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
       endTime: queryParams.endDate,
       latest: true,
     });
+    toast.promise(rawMapPromise, {
+      loading: `Loading MAP Data`,
+      success: `Successfully got MAP Data`,
+      error: `Failed to get MAP data. Please see console`,
+    });
+    const rawMap: ProcessedMap[] = await rawMapPromise;
     if (!rawMap || rawMap.length == 0) {
       console.info("NO MAP MESSAGES WITHIN TIME");
       return;
@@ -728,19 +735,27 @@ const MapTab = (props: MyProps) => {
 
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
 
-    const rawSpat = await MessageMonitorApi.getSpatMessages({
+    const rawSpatPromise = MessageMonitorApi.getSpatMessages({
       token: session?.accessToken,
       intersection_id: props.intersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
+    toast.promise(rawSpatPromise, {
+      loading: `Loading SPAT Data`,
+      success: `Successfully got SPAT Data`,
+      error: `Failed to get SPAT data. Please see console`,
+    });
+
+    const rawSpat = await rawSpatPromise;
 
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
-    const rawBsm = await MessageMonitorApi.getBsmMessages({
+
+    const rawBsmPromise = MessageMonitorApi.getBsmMessages({
       token: session?.accessToken,
       vehicleId: queryParams.vehicleId,
       startTime: queryParams.startDate,
@@ -749,6 +764,12 @@ const MapTab = (props: MyProps) => {
       lat: mapCoordinates.latitude,
       distance: 500,
     });
+    toast.promise(rawBsmPromise, {
+      loading: `Loading BSM Data`,
+      success: `Successfully got BSM Data`,
+      error: `Failed to get BSM data. Please see console`,
+    });
+    const rawBsm = await rawBsmPromise;
     const bsmGeojson = parseBsmToGeojson(rawBsm);
     const uniqueIds = new Set(bsmGeojson.features.map((bsm) => bsm.properties?.id));
     // generate equally spaced unique colors for each uniqueId
