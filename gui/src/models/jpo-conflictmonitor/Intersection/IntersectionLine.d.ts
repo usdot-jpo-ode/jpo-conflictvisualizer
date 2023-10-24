@@ -1,6 +1,6 @@
 
 type IntersectionLine = {
   heading: number
-  centerPoint: Point
+  stopLinePoint: Point
   lane: Lane
 }

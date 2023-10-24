@@ -1,5 +1,6 @@
 
 type VehiclePath = {
+  Logger: any
   pathPoints: number[][]
   bsms: BsmAggregator
   intersection: Intersection
@@ -8,4 +9,6 @@ type VehiclePath = {
   egressLane: Lane
   ingressBsm: OdeBsmData
   egressBsm: OdeBsmData
+  minDistanceFeet: number
+  headingToleranceDegrees: number
 }
