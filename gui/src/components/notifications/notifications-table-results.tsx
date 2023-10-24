@@ -86,12 +86,20 @@ export const NotificationsTableResults = ({
           <Typography>
             {`Source ID: ${intersectionReferenceAlignmentEvent.sourceID}`}
             <br />
-            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapIntersectionIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatIntersectionIds}`}
+            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds?.map(
+              (v) => v.intersectionId
+            )}, SPAT: ${intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds?.map(
+              (v) => v.intersectionId
+            )}`}
             <br />
-            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRoadRegulatorIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatRoadRegulatorIds}`}
+            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds?.map(
+              (v) => v.roadRegulatorId
+            )}, SPAT: ${intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds?.map(
+              (v) => v.roadRegulatorId
+            )}`}
           </Typography>
         );
-      case "LaneDirectionOfTravelNotification":
+      case "LaneDirectionOfTravelAssessmentNotification":
         const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
         const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
         return (
