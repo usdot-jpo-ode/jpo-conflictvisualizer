@@ -11,6 +11,13 @@ import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
 import keycloakApi from "../apis/keycloak-api";
 import userManagementApi from "../apis/user-management-api";
+import { useSelector, useDispatch } from "react-redux";
+import { ReactKeycloakProvider } from "@react-keycloak/web";
+import keycloak from "./keycloak-config";
+import {
+  // Actions
+  setToken,
+} from "../slices/userSlice";
 
 const DashboardLayoutRoot = styled("div")(({ theme }) => ({
   display: "flex",
@@ -31,11 +38,14 @@ const parseJwt = (token) => {
 };
 
 export const DashboardLayout = (props) => {
+  const dispatch = useDispatch();
+
   const { children } = props;
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [intersections, setIntersections] = useState<IntersectionReferenceData[]>([]);
   const { setIntersection, setUser } = useDashboardContext();
   const { data: session } = useSession();
+  let loginDispatched = false;
 
   const updateUser = async () => {
     if (session?.accessToken && session?.role) {
@@ -82,8 +92,36 @@ export const DashboardLayout = (props) => {
     }
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    keycloak
+      .updateToken(300)
+      .then(function (refreshed) {
+        if (refreshed) {
+          console.debug("Token was successfully refreshed");
+        } else {
+          console.debug("Token is still valid");
+        }
+      })
+      .catch(function () {
+        // dispatch(setKcFailure(true))
+        console.error("Failed to refresh the token, or the session has expired");
+      });
+  }, []);
+
   return (
-    <AuthGuard>
+    <ReactKeycloakProvider
+      initOptions={{ onLoad: "login-required" }}
+      authClient={keycloak}
+      onTokens={({ token }) => {
+        // Logic to prevent multiple login triggers
+        if (!loginDispatched && token) {
+          console.debug("onTokens loginDispatched:");
+          dispatch(setToken(token));
+          loginDispatched = true;
+        }
+        setTimeout(() => (loginDispatched = false), 5000);
+      }}
+    >
       <DashboardProvider>
         <DashboardLayoutRoot>
           <Box
@@ -100,6 +138,6 @@ export const DashboardLayout = (props) => {
         <DashboardNavbar onSidebarOpen={() => setSidebarOpen(true)} intersections={intersections} />
         <DashboardSidebar onClose={() => setSidebarOpen(false)} open={isSidebarOpen} />
       </DashboardProvider>
-    </AuthGuard>
+    </ReactKeycloakProvider>
   );
 };

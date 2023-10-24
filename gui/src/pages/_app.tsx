@@ -12,6 +12,8 @@ import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
+import { Provider } from "react-redux";
+import { setupStore } from "../store";
 
 registerChartJs();
 
@@ -27,19 +29,21 @@ const App = (props) => {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <CacheProvider value={emotionCache}>
-      <Head>
-        <title>Material Kit Pro</title>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
-        </ThemeProvider>
-      </LocalizationProvider>
-      <Toaster />
-    </CacheProvider>
+    <Provider store={setupStore({})}>
+      <CacheProvider value={emotionCache}>
+        <Head>
+          <title>Material Kit Pro</title>
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
+        </Head>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
+          </ThemeProvider>
+        </LocalizationProvider>
+        <Toaster />
+      </CacheProvider>
+    </Provider>
   );
 };
 
