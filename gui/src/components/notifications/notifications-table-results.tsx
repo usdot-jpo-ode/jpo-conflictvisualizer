@@ -82,19 +82,15 @@ export const NotificationsTableResults = ({
       case "IntersectionReferenceAlignmentNotification":
         const intersectionReferenceAlignmentNotification = notification as IntersectionReferenceAlignmentNotification;
         const intersectionReferenceAlignmentEvent = intersectionReferenceAlignmentNotification.event;
+        const mapArr = Array.from(intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds) ?? [];
+        const spatArr = Array.from(intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds) ?? [];
         return (
           <Typography>
-            {`Source ID: ${intersectionReferenceAlignmentEvent.sourceID}`}
-            <br />
-            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds?.map(
-              (v) => v.intersectionId
-            )}, SPAT: ${intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds?.map(
+            {`- Intersection IDs, MAP: ${mapArr.map((v) => v.intersectionId)}, SPAT: ${spatArr.map(
               (v) => v.intersectionId
             )}`}
             <br />
-            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds?.map(
-              (v) => v.roadRegulatorId
-            )}, SPAT: ${intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds?.map(
+            {`- Road Regulator IDs, MAP: ${mapArr.map((v) => v.roadRegulatorId)}, SPAT: ${spatArr.map(
               (v) => v.roadRegulatorId
             )}`}
           </Typography>
