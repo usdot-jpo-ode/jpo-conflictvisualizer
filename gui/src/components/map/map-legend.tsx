@@ -11,6 +11,41 @@ import {
   TableCell,
   Divider,
 } from "@mui/material";
+import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
+import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
+import MuiAccordionDetails from "@mui/material/AccordionDetails";
+import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
+import { styled } from "@mui/material/styles";
+
+const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
+  ({ theme }) => ({
+    //border: `1px solid ${theme.palette.divider}`,
+    // '&:not(:last-child)': {
+    //   borderBottom: 0,
+    // },
+    // '&:before': {
+    //   display: 'none',
+    // },
+  })
+);
+
+const AccordionSummary = styled((props: AccordionSummaryProps) => (
+  <MuiAccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />} {...props} />
+))(({ theme }) => ({
+  minHeight: 0,
+  paddingLeft: 10,
+  flexDirection: "row-reverse",
+  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+    transform: "rotate(90deg)",
+  },
+  "& .MuiAccordionSummary-content": {
+    marginLeft: theme.spacing(1),
+    marginTop: 0,
+    marginBottom: 0,
+  },
+}));
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
 interface MapLegendPropsType {
   bsmColors: { [key: string]: string };
@@ -63,7 +98,6 @@ export const MapLegend = (props: MapLegendPropsType) => {
         <p>|</p>
       </>
     );
-    console.log(key, value);
   }
 
   const laneColorsList: JSX.Element[] = [];
@@ -86,39 +120,50 @@ export const MapLegend = (props: MapLegendPropsType) => {
         <p>|</p>
       </>
     );
-    console.log(key, value);
   }
 
   return (
-    <Paper className="legend" style={{ userSelect: "none" }}>
-      {/* <Tooltip title="Latest data timestamp received">
+    <Accordion disableGutters defaultExpanded={false}>
+      <AccordionSummary>
+        <Typography variant="h5">Legend</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Paper className="legend" style={{ userSelect: "none" }}>
+          {/* <Tooltip title="Latest data timestamp received">
             <div style={{ fontFamily: "Arial Narrow" }}>{this.state.timestampFormat}</div>
           </Tooltip> */}
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div
+              style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}
+            >
+              <div>Lane Colors: </div>
+            </div>
+            {laneColorsList}
+          </div>
 
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}>
-          <div>Lane Colors: </div>
-        </div>
-        {laneColorsList}
-      </div>
+          <Divider sx={{ borderRadius: 1 }} />
 
-      <Divider sx={{ borderRadius: 1 }} />
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div
+              style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}
+            >
+              <div>Travel Connections: </div>
+            </div>
+            {travelConnectionColorsList}
+          </div>
 
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}>
-          <div>Travel Connections: </div>
-        </div>
-        {travelConnectionColorsList}
-      </div>
+          <Divider sx={{ borderRadius: 1 }} />
 
-      <Divider sx={{ borderRadius: 1 }} />
-
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}>
-          <div>BSM Colors: </div>
-        </div>
-        {bsmColorsList}
-      </div>
-    </Paper>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div
+              style={{ display: "flex", flexDirection: "row", alignItems: "center", marginRight: 10, minWidth: 140 }}
+            >
+              <div>BSM Colors: </div>
+            </div>
+            {bsmColorsList}
+          </div>
+        </Paper>
+      </AccordionDetails>
+    </Accordion>
   );
 };

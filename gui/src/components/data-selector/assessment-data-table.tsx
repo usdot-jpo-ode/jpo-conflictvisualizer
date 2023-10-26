@@ -25,12 +25,20 @@ import React, { useEffect, useState, useRef } from "react";
 const applyPagination = (parameters, page, rowsPerPage) =>
   parameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: () => void }) => {
-  const { events, onDownload } = props;
+export const AssessmentDataTable = (props: {
+  assessments: Assessment[];
+  onDownload: () => void;
+  onDownloadJson: () => void;
+}) => {
+  const { assessments, onDownload, onDownloadJson } = props;
   const queryRef = useRef<TextFieldProps>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentDescription, setCurrentDescription] = useState("");
+
+  useEffect(() => {
+    setPage(0);
+  }, [assessments]);
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -41,7 +49,7 @@ export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: (
   };
 
   // Usually query is done on backend with indexing solutions
-  const paginatedNotifications = applyPagination(events, page, rowsPerPage);
+  const paginatedNotifications = applyPagination(assessments, page, rowsPerPage);
 
   return (
     <>
@@ -53,8 +61,8 @@ export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: (
           </>
 
           <AssessmentListResults
-            events={paginatedNotifications}
-            eventsCount={events.length}
+            assessments={paginatedNotifications}
+            assessmentsCount={assessments.length}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPage={rowsPerPage}
@@ -74,9 +82,17 @@ export const AssessmentDataTable = (props: { events: Assessment[]; onDownload: (
                   sx={{ m: 1 }}
                   variant="contained"
                   onClick={onDownload}
-                  disabled={events.length <= 0 ? true : false}
+                  disabled={assessments.length <= 0 ? true : false}
                 >
                   Download
+                </Button>
+                <Button
+                  sx={{ m: 1 }}
+                  variant="contained"
+                  onClick={onDownloadJson}
+                  disabled={assessments.length <= 0 ? true : false}
+                >
+                  Download JSON
                 </Button>
               </Grid>
             </Grid>

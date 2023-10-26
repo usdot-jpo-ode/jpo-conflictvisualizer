@@ -18,41 +18,34 @@ import React from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const AssessmentListResults = ({
-  events,
-  eventsCount,
+  assessments,
+  assessmentsCount,
   onPageChange,
   onRowsPerPageChange,
   page,
   rowsPerPage,
 }) => {
   const getAssessmentDescription = (assessment: Assessment) => {
-    // convert event to JSON string
-    const newAssessment: any = { ...assessment };
-    delete newAssessment["assessmentType"];
-    delete newAssessment["assessmentGeneratedAt"];
-    delete newAssessment["intersectionId"];
-    delete newAssessment["roadRegulatorId"];
-    const assessmentString = JSON.stringify(newAssessment);
-    return assessmentString.substring(1, assessmentString.length - 1);
+    return JSON.stringify(assessment).replace(/,/g, ", ");
   };
 
   return (
     <Card>
       <PerfectScrollbar>
-        <Box sx={{ minWidth: 1050 }}>
+        <Box sx={{ minWidth: 1050, overflowX: "scroll" }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Assessment Type</TableCell>
                 <TableCell>Date</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Open Map</TableCell>
                 <TableCell>Message</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {events.map((assessment: Assessment) => {
+              {assessments.map((assessment: Assessment, i: number) => {
                 return (
-                  <TableRow hover key={assessment.assessmentGeneratedAt}>
+                  <TableRow hover key={i}>
                     <TableCell>
                       <Box
                         sx={{
@@ -67,7 +60,7 @@ export const AssessmentListResults = ({
                     </TableCell>
                     <TableCell>{format(assessment.assessmentGeneratedAt, "MM/dd/yyyy HH:mm:ss")}</TableCell>
                     <TableCell align="right">
-                      <NextLink href={`/map/${assessment.assessmentGeneratedAt}`} passHref>
+                      <NextLink href={`/map/${assessment.intersectionID}/${assessment.assessmentGeneratedAt}`} passHref>
                         <IconButton component="a">
                           <MapRoundedIcon fontSize="medium" />
                         </IconButton>
@@ -83,7 +76,7 @@ export const AssessmentListResults = ({
       </PerfectScrollbar>
       <TablePagination
         component="div"
-        count={eventsCount}
+        count={assessmentsCount}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         page={page}
@@ -95,6 +88,6 @@ export const AssessmentListResults = ({
 };
 
 AssessmentListResults.propTypes = {
-  events: PropTypes.array.isRequired,
+  assessments: PropTypes.array.isRequired,
   onSelectedItemsChanged: PropTypes.func,
 };

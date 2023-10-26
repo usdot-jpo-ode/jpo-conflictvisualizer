@@ -122,8 +122,6 @@ class GraphsApi {
       }
     }
 
-    console.log("results", Object.values(results));
-
     return Object.values(results);
   }
 }

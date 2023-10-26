@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useReducer, useRef } from "react"
 import PropTypes from "prop-types";
 import { auth, ENABLE_AUTH } from "../lib/auth";
 import React from "react";
+import { QueryProvider } from "./query-context";
 
 interface DashboardContextType {
-  intersectionId?: number;
-  roadRegulatorId?: number;
+  intersectionId: number;
+  roadRegulatorId: number;
   user?: User;
   setIntersection: (intersectionId?: number, roadRegulatorId?: number) => void;
   setUser: (user: User) => void;
@@ -15,11 +16,12 @@ const HANDLERS = {
   SET_INTERSECTION: "SET_INTERSECTION",
   SET_ROAD_REGULATOR: "SET_ROAD_REGULATOR",
   SET_USER: "SET_USER",
+  SET_QUERY_RESULTS: "SET_QUERY_RESULTS",
 };
 
 const initialState = {
-  intersectionId: undefined,
-  roadRegulatorId: undefined,
+  intersectionId: -1,
+  roadRegulatorId: -1,
   user: undefined,
   setIntersection: () => {},
   setUser: () => {},
@@ -64,10 +66,10 @@ export const DashboardProvider = (props) => {
   const { children } = props;
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const setIntersection = (intersectionId?: number, roadRegulatorId?: number) => {
+  const setIntersection = (intersectionId: number, roadRegulatorId: number) => {
     dispatch({
       type: HANDLERS.SET_INTERSECTION,
-      payload: { intersectionId:intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },
+      payload: { intersectionId: intersectionId, roadRegulatorId: roadRegulatorId ?? -1 },
     });
   };
 
@@ -86,7 +88,7 @@ export const DashboardProvider = (props) => {
         setUser,
       }}
     >
-      {children}
+      <QueryProvider>{children}</QueryProvider>
     </DashboardContext.Provider>
   );
 };
