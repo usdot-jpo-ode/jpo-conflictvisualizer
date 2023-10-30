@@ -1,5 +1,5 @@
 
-type SignalStateAssessment = Assessment & {
+type StopLineStopAssessment = Assessment & {
   timestamp: number
-  signalStateAssessmentGroup: SignalStateAssessmentGroup[]
+  stopLineStopAssessmentGroup: StopLineStopAssessmentGroup[]
 }

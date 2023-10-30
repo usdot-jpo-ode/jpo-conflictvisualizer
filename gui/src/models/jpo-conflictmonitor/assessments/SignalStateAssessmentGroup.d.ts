@@ -1,7 +1,9 @@
 
-type SignalStateAssessmentGroup = {
+type StopLineStopAssessmentGroup = {
   signalGroup: number
-  redEvents: number
-  yellowEvents: number
-  greenEvents: number
+  numberOfEvents: number
+  timeStoppedOnRed: number
+  timeStoppedOnYellow: number
+  timeStoppedOnGreen: number
+  timeStoppedOnDark: number
 }
