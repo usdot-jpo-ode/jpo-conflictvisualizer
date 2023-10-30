@@ -9,9 +9,9 @@ export const SignalStateAssessmentCard = (props: { assessment: StopLineStopAsses
         <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
           <Grid item>
             <Typography color="textSecondary" gutterBottom variant="overline">
-              Signal State Assessment
+              Signal State Stop Assessment
             </Typography>
-            {assessment === undefined ? (
+            {(assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined) ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
