@@ -5,7 +5,7 @@ type MessageMonitorNotification =
   | MapMinimumDataNotification //
   | SpatBroadcastRateNotification
   | MapBroadcastRateNotification
-  | SignalStateAssessmentNotification //
+  | StopLineStopNotification //
   | LaneDirectionOfTravelAssessmentNotification
   | ConnectionOfTravelNotification //
   | SignalStateConflictNotification

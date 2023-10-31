@@ -1,7 +1,7 @@
 import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
 
-export const SignalStateAssessmentCard = (props: { assessment: SignalStateAssessment | undefined }) => {
+export const SignalStateAssessmentCard = (props: { assessment: StopLineStopAssessment | undefined }) => {
   const { assessment } = props;
   return (
     <Card sx={{ height: "100%" }}>
@@ -9,16 +9,16 @@ export const SignalStateAssessmentCard = (props: { assessment: SignalStateAssess
         <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
           <Grid item>
             <Typography color="textSecondary" gutterBottom variant="overline">
-              Signal State Assessment
+              Signal State Stop Assessment
             </Typography>
-            {assessment === undefined ? (
+            {(assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined) ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
             ) : (
-              assessment.signalStateAssessmentGroup.map((group) => {
+              assessment.stopLineStopAssessmentGroup.map((group) => {
                 const percentRed =
-                  (100 * group.redEvents) / Math.min(group.greenEvents + group.yellowEvents + group.redEvents, 1);
+                  (100 * group.timeStoppedOnRed) / Math.min(group.timeStoppedOnRed + group.timeStoppedOnYellow + group.timeStoppedOnGreen + group.timeStoppedOnDark, 1);
                 return (
                   <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
                     {`signal group: ${group.signalGroup},  ${percentRed.toFixed(0)}% Red Events`}
