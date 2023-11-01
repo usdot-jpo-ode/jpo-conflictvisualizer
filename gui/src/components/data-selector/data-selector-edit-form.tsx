@@ -59,7 +59,7 @@ const EVENT_TYPES: Item[] = [
 const ASSESSMENT_TYPES: Item[] = [
   { label: "All", value: "All" },
   { label: "SignalStateEventAssessment", value: "signal_state_event_assessment" },
-  { label: "SignalStateAssessment", value: "signal_state_assessment" },
+  { label: "StopLineStopAssessment", value: "signal_state_assessment" },
   { label: "LaneDirectionOfTravelAssessment", value: "lane_direction_of_travel" },
   { label: "ConnectionOfTravelAssessment", value: "connection_of_travel" },
 ];

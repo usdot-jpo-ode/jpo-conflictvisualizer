@@ -19,7 +19,7 @@ const tabs = [
     description: "All Assessments",
   },
   {
-    label: "Signal State Assessment",
+    label: "Stop Line Stop Assessment",
     value: "SignalStateAssessment",
     description: "Signal State Assessment",
   },
@@ -79,7 +79,7 @@ const Page = () => {
   });
   const { intersectionId, roadRegulatorId } = useDashboardContext();
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<SignalStateAssessment | undefined>(undefined);
+  const [signalStateAssessment, setSignalStateAssessment] = useState<StopLineStopAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
   const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
     undefined
@@ -100,7 +100,7 @@ const Page = () => {
           "signal_state_assessment",
           intersectionId.toString(),
           roadRegulatorId?.toString()
-        )) as SignalStateAssessment
+        )) as StopLineStopAssessment
       );
       setSignalStateEventAssessment(
         (await AssessmentsApi.getLatestAssessment(
