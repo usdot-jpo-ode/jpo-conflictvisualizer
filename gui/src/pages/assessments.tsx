@@ -195,10 +195,10 @@ const Page = () => {
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
             </Grid>
             <Grid item>
-              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
+              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
             </Grid>
             <Grid item>
-              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
+              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
             </Grid>
             <Grid item>
               <NotificationsTable simple={true} />

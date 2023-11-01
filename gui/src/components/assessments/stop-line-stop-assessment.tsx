@@ -1,6 +1,6 @@
 import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar } from "recharts";
+import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "recharts";
 
 export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAssessment | undefined }) => {
   const { assessment } = props;
@@ -53,7 +53,7 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
             <Typography color="textSecondary" gutterBottom variant="overline">
               Signal State Stop Assessment
             </Typography>
-            {assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined ? (
+            {mockAssessment === undefined || mockAssessment.stopLineStopAssessmentGroup === undefined ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
@@ -88,7 +88,7 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                {/* <Tooltip /> */}
+                <Tooltip />
                 <Legend />
                 <Bar dataKey="red" stackId="a" fill="#ff0000" />
                 <Bar dataKey="yellow" stackId="a" fill="#d3df00" />

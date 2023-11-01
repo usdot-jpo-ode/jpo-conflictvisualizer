@@ -4,7 +4,7 @@ import { DashboardLayout } from "../components/dashboard-layout";
 import { NotificationsTable } from "../components/notifications/notifications-table";
 import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
 import { LaneDirectionOfTravelAssessmentCard } from "../components/assessments/lane-direction-of-travel-assessment";
-import { SignalStateAssessmentCard } from "../components/assessments/stop-line-stop-assessment";
+import { StopLineStopAssessmentCard } from "../components/assessments/stop-line-stop-assessment";
 import { SignalStateEventAssessmentCard } from "../components/assessments/signal-state-event-assessment";
 import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
@@ -16,7 +16,7 @@ const Page = () => {
   const { intersectionId, roadRegulatorId } = useDashboardContext();
 
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<StopLineStopAssessment | undefined>(undefined);
+  const [stopLineStopAssessment, setStopLineStopAssessment] = useState<StopLineStopAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
   const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
     undefined
@@ -31,7 +31,7 @@ const Page = () => {
 
   const getAssessments = async () => {
     if (intersectionId && session?.accessToken) {
-      setSignalStateAssessment(
+      setStopLineStopAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_assessment",
@@ -91,16 +91,16 @@ const Page = () => {
       >
         <Container maxWidth={false}>
           <Grid container spacing={3}>
-            <Grid item xs={6}>
+            <Grid item>
               <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={true} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
             </Grid>
-            <Grid item xs={6}>
-              <SignalStateAssessmentCard assessment={signalStateAssessment} />
+            <Grid item xs>
+              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item md>
               <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
             </Grid>
             <Grid item xs={12}>

@@ -1,6 +1,6 @@
-import { Card, CardContent, Grid, Tooltip, Typography } from "@mui/material";
+import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar } from "recharts";
+import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "recharts";
 
 export const LaneDirectionOfTravelAssessmentCard = (props: {
   assessment: LaneDirectionOfTravelAssessment | undefined;
@@ -50,7 +50,7 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
             <Typography color="textSecondary" gutterBottom variant="overline">
               Lane Direction of Travel Assessment
             </Typography>
-            {assessment === undefined ? (
+            {mockAssessment === undefined ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
@@ -75,7 +75,7 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                {/* <Tooltip /> */}
+                <Tooltip />
                 <Legend />
                 <Bar dataKey="pv" stackId="a" fill="#8884d8" />
                 <Bar dataKey="uv" stackId="a" fill="#82ca9d" />

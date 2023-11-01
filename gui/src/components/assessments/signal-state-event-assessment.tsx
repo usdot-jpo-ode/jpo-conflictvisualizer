@@ -1,6 +1,6 @@
 import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar } from "recharts";
+import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "recharts";
 
 export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateEventAssessment | undefined }) => {
   const { assessment } = props;
@@ -42,6 +42,48 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
         greenEvents: 16,
         darkEvents: 10,
       },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
+      {
+        signalGroup: 5,
+        redEvents: 12,
+        yellowEvents: 14,
+        greenEvents: 16,
+        darkEvents: 10,
+      },
     ],
   };
 
@@ -56,7 +98,7 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
             <Typography color="textSecondary" gutterBottom variant="overline">
               % of Vehicles Passage Events on Red
             </Typography>
-            {assessment === undefined ? (
+            {mockAssessment === undefined ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
@@ -85,7 +127,7 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                {/* <Tooltip /> */}
+                <Tooltip />
                 <Legend />
                 <Bar dataKey="red" stackId="a" fill="#ff0000" />
                 <Bar dataKey="yellow" stackId="a" fill="#d3df00" />
