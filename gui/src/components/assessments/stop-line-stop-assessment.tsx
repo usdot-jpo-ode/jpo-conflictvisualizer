@@ -2,45 +2,45 @@ import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
 import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar } from "recharts";
 
-export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateEventAssessment | undefined }) => {
+export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAssessment | undefined }) => {
   const { assessment } = props;
 
   const mockAssessment = {
-    signalStateEventAssessmentGroup: [
+    stopLineStopAssessmentGroup: [
       {
         signalGroup: 1,
-        redEvents: 10,
-        yellowEvents: 10,
-        greenEvents: 10,
-        darkEvents: 10,
+        timeStoppedOnRed: 10,
+        timeStoppedOnYellow: 10,
+        timeStoppedOnGreen: 10,
+        timeStoppedOnDark: 10,
       },
       {
         signalGroup: 2,
-        redEvents: 5,
-        yellowEvents: 15,
-        greenEvents: 0,
-        darkEvents: 20,
+        timeStoppedOnRed: 5,
+        timeStoppedOnYellow: 15,
+        timeStoppedOnGreen: 0,
+        timeStoppedOnDark: 20,
       },
       {
         signalGroup: 3,
-        redEvents: 15,
-        yellowEvents: 15,
-        greenEvents: 0,
-        darkEvents: 0,
+        timeStoppedOnRed: 15,
+        timeStoppedOnYellow: 15,
+        timeStoppedOnGreen: 0,
+        timeStoppedOnDark: 0,
       },
       {
         signalGroup: 4,
-        redEvents: 1,
-        yellowEvents: 1,
-        greenEvents: 23,
-        darkEvents: 2,
+        timeStoppedOnRed: 1,
+        timeStoppedOnYellow: 1,
+        timeStoppedOnGreen: 23,
+        timeStoppedOnDark: 2,
       },
       {
         signalGroup: 5,
-        redEvents: 12,
-        yellowEvents: 14,
-        greenEvents: 16,
-        darkEvents: 10,
+        timeStoppedOnRed: 12,
+        timeStoppedOnYellow: 14,
+        timeStoppedOnGreen: 16,
+        timeStoppedOnDark: 10,
       },
     ],
   };
@@ -51,12 +51,9 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
         <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
           <Grid item>
             <Typography color="textSecondary" gutterBottom variant="overline">
-              Signal State Passage Assessment
+              Signal State Stop Assessment
             </Typography>
-            <Typography color="textSecondary" gutterBottom variant="overline">
-              % of Vehicles Passage Events on Red
-            </Typography>
-            {assessment === undefined ? (
+            {assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined ? (
               <Typography color="textPrimary" variant="h5" key={""}>
                 No Data
               </Typography>
@@ -64,15 +61,21 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
               <BarChart
                 width={500}
                 height={300}
-                data={mockAssessment.signalStateEventAssessmentGroup.map((group) => {
+                data={mockAssessment.stopLineStopAssessmentGroup.map((group) => {
                   const total =
-                    Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
+                    Math.max(
+                      group.timeStoppedOnRed +
+                        group.timeStoppedOnYellow +
+                        group.timeStoppedOnGreen +
+                        group.timeStoppedOnDark,
+                      1
+                    ) / 100;
                   return {
                     name: `${group.signalGroup}`,
-                    red: group.redEvents / total,
-                    yellow: group.yellowEvents / total,
-                    green: group.greenEvents / total,
-                    dark: group.darkEvents / total,
+                    red: group.timeStoppedOnRed / total,
+                    yellow: group.timeStoppedOnYellow / total,
+                    green: group.timeStoppedOnGreen / total,
+                    dark: group.timeStoppedOnDark / total,
                   };
                 })}
                 margin={{

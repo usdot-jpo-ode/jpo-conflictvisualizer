@@ -20,6 +20,7 @@ import {
   MenuItem,
   TextField,
   Button,
+  Checkbox,
   InputAdornment,
 } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
@@ -216,6 +217,37 @@ function ControlPanel(props) {
             <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
               Download All Message Data
             </Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion disableGutters defaultExpanded={true}>
+        <AccordionSummary>
+          <Typography variant="h5">Settings</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div
+            className="control-panel"
+            style={{
+              padding: "10px 30px 0px 20px",
+            }}
+          >
+            <div>
+              <h4>Rotate Signal Head Icons With Map </h4>
+              <Checkbox
+                checked={props.signalStateLayer.layout["icon-rotation-alignment"] == "map"}
+                onChange={(event) =>
+                  props.setSignalStateLayer({
+                    ...props.signalStateLayer,
+                    layout: {
+                      ...props.signalStateLayer.layout,
+                      "icon-rotation-alignment": event.target.checked ? "map" : "viewport",
+                      "icon-rotate": event.target.checked ? ["get", "orientation"] : 0,
+                    },
+                  })
+                }
+              />
+            </div>
           </div>
         </AccordionDetails>
       </Accordion>

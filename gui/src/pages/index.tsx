@@ -4,7 +4,7 @@ import { DashboardLayout } from "../components/dashboard-layout";
 import { NotificationsTable } from "../components/notifications/notifications-table";
 import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
 import { LaneDirectionOfTravelAssessmentCard } from "../components/assessments/lane-direction-of-travel-assessment";
-import { SignalStateAssessmentCard } from "../components/assessments/signal-state-assessment";
+import { SignalStateAssessmentCard } from "../components/assessments/stop-line-stop-assessment";
 import { SignalStateEventAssessmentCard } from "../components/assessments/signal-state-event-assessment";
 import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
@@ -91,19 +91,19 @@ const Page = () => {
       >
         <Container maxWidth={false}>
           <Grid container spacing={3}>
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
+            <Grid item xs={6}>
               <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={true} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
+            <Grid item xs={6}>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
+            <Grid item xs={6}>
               <SignalStateAssessmentCard assessment={signalStateAssessment} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
+            <Grid item xs={6}>
               <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
             </Grid>
-            <Grid item lg={12} md={12} xl={12} xs={12}>
+            <Grid item xs={12}>
               <NotificationsTable simple={true} />
             </Grid>
           </Grid>

@@ -44,24 +44,6 @@ const mapMessageLayer: LineLayer = {
   },
 };
 
-const mapMessageHighlightLayer: LineLayer = {
-  id: "mapMessageHighlight",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": "#fffc50",
-  },
-};
-
-const preMovementBaseLayer: LineLayer = {
-  id: "connectingLanes",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": "#e6b000",
-  },
-};
-
 const connectingLanesPreMovementLayer: LineLayer = {
   id: "connectingLanesPreMovement",
   type: "line",
@@ -160,75 +142,6 @@ const YELLOW_RED_LIGHT = "YELLOW_RED_LIGHT";
 const RED_FLASHING_LIGHT = "RED_FLASHING_LIGHT";
 const UNKNOWN_LIGHT = "UNKNOWN_LIGHT";
 
-const signalStateLayerGreen: LayerProps = {
-  id: "signalStatesGreen",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-green-1",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const signalStateLayerYellowRed: LayerProps = {
-  id: "signalStateYellowRed",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-yellow-red-1",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const signalStateLayerRedFlashing: LayerProps = {
-  id: "signalStateRedFlashing",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-red-flashing",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const signalStateLayerRed: LayerProps = {
-  id: "signalStatesRed",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-red-1",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const signalStateLayerYellow: LayerProps = {
-  id: "signalStatesYellow",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-yellow-1",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const signalStateLayerUnknown: LayerProps = {
-  id: "signalStatesUnknown",
-  type: "symbol",
-  layout: {
-    "icon-image": "traffic-light-icon-unknown",
-    "icon-allow-overlap": true,
-    "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
-  },
-};
-
-const bsmHighlightLayer: LayerProps = {
-  id: "bsmHighlight",
-  type: "circle",
-  paint: {
-    "circle-color": "#0000FF",
-    "circle-radius": 8,
-  },
-};
-
 const markerLayer: LayerProps = {
   id: "invalidLaneCollection",
   type: "line",
@@ -236,25 +149,6 @@ const markerLayer: LayerProps = {
     "line-width": 20,
     "line-color": "#d40000",
     // "line-dasharray": [2, 1],
-  },
-};
-
-const markerHighlightLayer: LayerProps = {
-  id: "invalidLaneCollectionHighlight",
-  type: "line",
-  paint: {
-    "line-width": 20,
-    "line-color": "#fffc50",
-    // "line-dasharray": [2, 1],
-  },
-};
-
-const pulsingDotLayer: LayerProps = {
-  id: "layer-with-pulsing-dot",
-  type: "symbol",
-  source: "dot-point",
-  layout: {
-    "icon-image": "pulsing-dot",
   },
 };
 
@@ -326,12 +220,8 @@ const MapTab = (props: MyProps) => {
     endDate: Date;
     eventDate: Date;
     vehicleId?: string;
-  }>({
-    startDate: new Date(Date.now() - 1000 * 60),
-    endDate: new Date(Date.now() + 1000 * 60),
-    eventDate: new Date(Date.now()),
-    vehicleId: undefined,
-  });
+    intersectionId?: number;
+  }>({ ...generateQueryParams(props.sourceData, props.sourceDataType), intersectionId: props.intersectionId });
 
   const [mapLegendColors, setMapLegendColors] = useState<{
     bsmColors: { [key: string]: string };
@@ -360,9 +250,45 @@ const MapTab = (props: MyProps) => {
     },
   });
 
+  const [signalStateLayer, setSignalStateLayer] = useState<LayerProps>({
+    id: "signalStates",
+    type: "symbol",
+    layout: {
+      "icon-image": [
+        "match",
+        ["get", "signalState"],
+        "UNAVAILABLE",
+        "traffic-light-icon-unknown",
+        "DARK",
+        "traffic-light-icon-unknown",
+        "STOP_THEN_PROCEED",
+        "traffic-light-icon-red-flashing",
+        "STOP_AND_REMAIN",
+        "traffic-light-icon-red-1",
+        "PRE_MOVEMENT",
+        "traffic-light-icon-yellow-red-1",
+        "PERMISSIVE_MOVEMENT_ALLOWED",
+        "traffic-light-icon-yellow-1",
+        "PROTECTED_MOVEMENT_ALLOWED",
+        "traffic-light-icon-green-1",
+        "PERMISSIVE_CLEARANCE",
+        "traffic-light-icon-yellow-1",
+        "PROTECTED_CLEARANCE",
+        "traffic-light-icon-yellow-1",
+        "CAUTION_CONFLICTING_TRAFFIC",
+        "traffic-light-icon-yellow-1",
+        "traffic-light-icon-unknown",
+      ],
+      "icon-rotate": ["get", "orientation"],
+      "icon-allow-overlap": true,
+      "icon-rotation-alignment": "map",
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
+    },
+  });
+
   const [mapData, setMapData] = useState<ProcessedMap>();
   const [mapSignalGroups, setMapSignalGroups] = useState<SignalStateFeatureCollection>();
-  const [signalStateData, setSignalStateData] = useState<SignalStateFeatureCollection[]>();
+  const [signalStateData, setSignalStateData] = useState<SignalStateFeatureCollection>();
   const [spatSignalGroups, setSpatSignalGroups] = useState<SpatSignalGroups>();
   const [currentSignalGroups, setCurrentSignalGroups] = useState<SpatSignalGroup[]>();
   const [currentBsms, setCurrentBsms] = useState<BsmFeatureCollection>({
@@ -390,92 +316,56 @@ const MapTab = (props: MyProps) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
   const mapRef = React.useRef<any>(null);
-  //   const { intersectionId: dbIntersectionId } = useDashboardContext();
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const { data: session } = useSession();
 
-  //   const size = 200;
-  //   const context: CanvasRenderingContext2D | null = null;
-
-  //   const pulsingDot: {
-  //     width: number;
-  //     height: number;
-  //     data: Uint8Array | Uint8ClampedArray;
-  //     context: CanvasRenderingContext2D | null;
-  //     onAdd: () => void;
-  //     render: () => boolean;
-  //   } = {
-  //     width: size,
-  //     height: size,
-  //     data: new Uint8Array(size * size * 4),
-  //     context: context,
-
-  //     // When the layer is added to the map,
-  //     // get the rendering context for the map canvas.
-  //     onAdd: function () {
-  //       const canvas = document.createElement("canvas");
-  //       canvas.width = this.width;
-  //       canvas.height = this.height;
-  //       this.context = canvas.getContext("2d");
-  //     },
-
-  //     // Call once before every frame where the icon will be used.
-  //     render: function () {
-  //       const duration = 1000;
-  //       const t = (performance.now() % duration) / duration;
-
-  //       const radius = (size / 2) * 0.3;
-  //       const outerRadius = (size / 2) * 0.7 * t + radius;
-  //       const context = this.context;
-  //       if (context != null) {
-  //         // Draw the outer circle.
-  //         context.clearRect(0, 0, this.width, this.height);
-  //         context.beginPath();
-  //         context.arc(this.width / 2, this.height / 2, outerRadius, 0, Math.PI * 2);
-  //         context.fillStyle = `rgba(255, 200, 200, ${1 - t})`;
-  //         context.fill();
-
-  //         // Draw the inner circle.
-  //         context.beginPath();
-  //         context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2);
-  //         context.fillStyle = "rgba(255, 100, 100, 1)";
-  //         context.strokeStyle = "white";
-  //         context.lineWidth = 2 + 4 * (1 - t);
-  //         context.fill();
-  //         context.stroke();
-
-  //         // Update this image's data with data from the canvas.
-  //         this.data = context.getImageData(0, 0, this.width, this.height).data;
-
-  //         // Continuously repaint the map, resulting
-  //         // in the smooth animation of the dot.
-  //         mapRef.current.triggerRepaint();
-  //       }
-
-  //       // Return `true` to let the map know that the image was updated.
-  //       return true;
-  //     },
-  //   };
-
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
-  const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
+  function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+  }
+
+  function rad2deg(rad) {
+    return rad * (180 / Math.PI);
+  }
+
+  // get bearing between two lat/long points
+  function getBearingBetweenPoints(start, end) {
+    if (!start || !end) return 0;
+    const lat1 = deg2rad(start[1]!);
+    const lon1 = deg2rad(start[0]!);
+    const lat2 = deg2rad(end[1]!);
+    const lon2 = deg2rad(end[0]!);
+    const dLon = lon2 - lon1;
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    const brng = Math.atan2(y, x);
+    return rad2deg(brng);
+  }
+
+  const parseMapSignalGroups = (
+    mapMessage: ProcessedMap,
+    connectingLanes: ConnectingLanesFeatureCollection
+  ): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
     mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
       if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
       }
+      const coords = mapFeature.geometry.coordinates.slice(0, 2);
+      console.log(mapFeature.geometry.coordinates, getBearingBetweenPoints(coords[1], coords[0]));
       features.push({
         type: "Feature",
         properties: {
           signalGroup: mapFeature.properties.connectsTo[0].signalGroup,
           intersectionId: mapMessage.properties.intersectionId,
-          color: "#FFFFFF",
+          orientation: getBearingBetweenPoints(coords[1], coords[0]),
+          signalState: "UNAVAILABLE",
         },
         geometry: {
           type: "Point",
@@ -663,25 +553,13 @@ const MapTab = (props: MyProps) => {
   const generateSignalStateFeatureCollection = (
     prevSignalStates: SignalStateFeatureCollection,
     signalGroups: SpatSignalGroup[]
-  ): SignalStateFeatureCollection[] => {
-    const red: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    const yellow: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    const green: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    const yellowRed: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    const redFlashing: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
-    const unknown: SignalStateFeatureCollection = { ...prevSignalStates, features: [] };
+  ): SignalStateFeatureCollection => {
     (prevSignalStates?.features ?? []).forEach((feature) => {
-      feature.properties.color = parseSignalStateToColor(
-        signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state
-      );
-      if (feature.properties.color == RED_LIGHT) red.features.push(feature);
-      else if (feature.properties.color == YELLOW_LIGHT) yellow.features.push(feature);
-      else if (feature.properties.color == GREEN_LIGHT) green.features.push(feature);
-      else if (feature.properties.color == YELLOW_RED_LIGHT) yellowRed.features.push(feature);
-      else if (feature.properties.color == GREEN_LIGHT) redFlashing.features.push(feature);
-      else unknown.features.push(feature);
+      feature.properties.signalState =
+        signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
+        "UNAVAILABLE";
     });
-    return [red, yellow, green, yellowRed, redFlashing, unknown];
+    return prevSignalStates;
   };
 
   //   useEffect(() => {
@@ -689,18 +567,18 @@ const MapTab = (props: MyProps) => {
   //   }, []);
 
   const pullInitialData = async () => {
-    if (!session?.accessToken || !props.intersectionId) {
+    if (!session?.accessToken || !queryParams.intersectionId) {
       console.error(
         "Did not attempt to pull initial map data. Access token:",
         session?.accessToken,
         "Intersection ID:",
-        props.intersectionId
+        queryParams.intersectionId
       );
       return;
     }
     const rawMapPromise = MessageMonitorApi.getMapMessages({
       token: session?.accessToken,
-      intersection_id: props.intersectionId?.toString(),
+      intersection_id: queryParams.intersectionId?.toString(),
       //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
       endTime: queryParams.endDate,
       latest: true,
@@ -716,7 +594,8 @@ const MapTab = (props: MyProps) => {
       return;
     }
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, connectingLanes!);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -733,11 +612,9 @@ const MapTab = (props: MyProps) => {
       console.log("Cannot Zoom to Map Location");
     }
 
-    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-
     const rawSpatPromise = MessageMonitorApi.getSpatMessages({
       token: session?.accessToken,
-      intersection_id: props.intersectionId?.toString(),
+      intersection_id: queryParams.intersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
@@ -797,7 +674,7 @@ const MapTab = (props: MyProps) => {
 
     const localSurroundingEvents = await EventsApi.getAllEvents(
       session?.accessToken,
-      props.intersectionId,
+      queryParams.intersectionId,
       queryParams.startDate,
       queryParams.endDate
     );
@@ -805,7 +682,7 @@ const MapTab = (props: MyProps) => {
 
     const localSurroundingNotifications = await NotificationApi.getAllNotifications({
       token: session?.accessToken,
-      intersection_id: props.intersectionId?.toString(),
+      intersection_id: queryParams.intersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
@@ -820,14 +697,26 @@ const MapTab = (props: MyProps) => {
   };
 
   useEffect(() => {
+    if (props.intersectionId != queryParams.intersectionId) {
+      const query_params = {
+        ...queryParams,
+        intersectionId: props.intersectionId,
+      };
+      setQueryParams(query_params);
+      setTimeWindowSeconds(60);
+    }
+  }, [queryParams.intersectionId]);
+
+  useEffect(() => {
     const query_params = generateQueryParams(props.sourceData, props.sourceDataType);
     setQueryParams(query_params);
     setTimeWindowSeconds(60);
   }, [props.sourceData]);
 
   useEffect(() => {
+    console.log("PULLING INITIAL DATA BECAUSE QUERY PARAMS CHANGED", queryParams);
     pullInitialData();
-  }, [queryParams, props.intersectionId]);
+  }, [queryParams]);
 
   useEffect(() => {
     if (!mapSignalGroups || !spatSignalGroups) {
@@ -924,10 +813,10 @@ const MapTab = (props: MyProps) => {
   };
 
   const downloadAllData = () => {
-    downloadJsonFile(rawData["map"], `intersection_${props.intersectionId}_MAP_data.json`);
-    downloadJsonFile(rawData["spat"], `intersection_${props.intersectionId}_SPAT_data.json`);
-    downloadJsonFile(rawData["bsm"], `intersection_${props.intersectionId}_BSM_data.json`);
-    downloadJsonFile(rawData["notification"], `intersection_${props.intersectionId}_Notification_data.json`);
+    downloadJsonFile(rawData["map"], `intersection_${queryParams.intersectionId}_MAP_data.json`);
+    downloadJsonFile(rawData["spat"], `intersection_${queryParams.intersectionId}_SPAT_data.json`);
+    downloadJsonFile(rawData["bsm"], `intersection_${queryParams.intersectionId}_BSM_data.json`);
+    downloadJsonFile(rawData["notification"], `intersection_${queryParams.intersectionId}_Notification_data.json`);
   };
 
   const onTimeQueryChanged = (
@@ -940,6 +829,7 @@ const MapTab = (props: MyProps) => {
       startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
       endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
       eventDate: eventTime,
+      intersectionId: queryParams.intersectionId,
     };
     if (
       queryParams.startDate.getTime() != updatedQueryParams.startDate.getTime() ||
@@ -1003,6 +893,8 @@ const MapTab = (props: MyProps) => {
                 onTimeQueryChanged={onTimeQueryChanged}
                 mapSpatTimes={mapSpatTimes}
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
+                signalStateLayer={signalStateLayer}
+                setSignalStateLayer={setSignalStateLayer}
               />
             </Paper>
           </Box>
@@ -1098,33 +990,8 @@ const MapTab = (props: MyProps) => {
             </Source>
           )}
           {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[0]}>
-              <Layer {...signalStateLayerRed} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[1]}>
-              <Layer {...signalStateLayerYellow} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[2]}>
-              <Layer {...signalStateLayerGreen} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[3]}>
-              <Layer {...signalStateLayerYellowRed} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[4]}>
-              <Layer {...signalStateLayerRedFlashing} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData[5]}>
-              <Layer {...signalStateLayerUnknown} />
+            <Source type="geojson" data={signalStateData}>
+              <Layer {...signalStateLayer} />
             </Source>
           )}
           {mapData && props.sourceData && props.sourceDataType == "notification" && (
