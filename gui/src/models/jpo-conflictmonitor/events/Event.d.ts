@@ -4,5 +4,6 @@ type Event = {
   eventType: str
   intersectionID: number
   roadRegulatorID: number
+  source: str
 }
 }

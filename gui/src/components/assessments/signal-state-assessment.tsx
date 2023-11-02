@@ -18,7 +18,7 @@ export const SignalStateAssessmentCard = (props: { assessment: StopLineStopAsses
             ) : (
               assessment.stopLineStopAssessmentGroup.map((group) => {
                 const percentRed =
-                  (100 * group.timeStoppedOnRed) / Math.min(group.timeStoppedOnRed + group.timeStoppedOnYellow + group.timeStoppedOnGreen + group.timeStoppedOnDark, 1);
+                  (100 * group.timeStoppedOnRed) / Math.max(group.timeStoppedOnRed + group.timeStoppedOnYellow + group.timeStoppedOnGreen + group.timeStoppedOnDark, 1);
                 return (
                   <Typography color="textPrimary" variant="h5" key={group.signalGroup}>
                     {`signal group: ${group.signalGroup},  ${percentRed.toFixed(0)}% Red Events`}
