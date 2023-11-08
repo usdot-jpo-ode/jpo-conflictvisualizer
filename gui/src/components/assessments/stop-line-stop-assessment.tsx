@@ -2,17 +2,17 @@ import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
 import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "recharts";
 
-export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateEventAssessment | undefined }) => {
+export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAssessment | undefined }) => {
   const { assessment } = props;
 
-  function getWidthFactorFromData(data: any[] | undefined): number {
+  function getWidthFactorFromData(data?: any[] | undefined): number {
     if (!data) return 0.1;
     const maxFactor = 0.9;
     const numRowsForMax = 40;
     return 0.1 + Math.min(maxFactor, data.length / numRowsForMax);
   }
   0;
-  const widthFactor = getWidthFactorFromData(assessment?.signalStateEventAssessmentGroup);
+  const widthFactor = getWidthFactorFromData(assessment?.stopLineStopAssessmentGroup);
 
   return (
     <Grid item width={100 + widthFactor * 1200}>
@@ -21,9 +21,9 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
           <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
             <Grid item>
               <Typography color="textSecondary" gutterBottom variant="overline">
-                Signal State Passage Assessment
+                Signal State Stop Assessment
               </Typography>
-              {assessment === undefined ? (
+              {assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined ? (
                 <Typography color="textPrimary" variant="h5" key={""}>
                   No Data
                 </Typography>
@@ -31,15 +31,21 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                 <BarChart
                   width={widthFactor * 1200}
                   height={350}
-                  data={assessment.signalStateEventAssessmentGroup.map((group) => {
+                  data={assessment.stopLineStopAssessmentGroup.map((group) => {
                     const total =
-                      Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
+                      Math.max(
+                        group.timeStoppedOnRed +
+                          group.timeStoppedOnYellow +
+                          group.timeStoppedOnGreen +
+                          group.timeStoppedOnDark,
+                        1
+                      ) / 100;
                     return {
                       name: `${group.signalGroup}`,
-                      red: Math.round((group.redEvents / total) * 100) / 100,
-                      yellow: Math.round((group.yellowEvents / total) * 100) / 100,
-                      green: Math.round((group.greenEvents / total) * 100) / 100,
-                      dark: Math.round((group.darkEvents / total) * 100) / 100,
+                      red: Math.round((group.timeStoppedOnRed / total) * 100) / 100,
+                      yellow: Math.round((group.timeStoppedOnYellow / total) * 100) / 100,
+                      green: Math.round((group.timeStoppedOnGreen / total) * 100) / 100,
+                      dark: Math.round((group.timeStoppedOnDark / total) * 100) / 100,
                     };
                   })}
                   margin={{

@@ -8,4 +8,6 @@ type Intersection = {
   intersectionId: number
   roadRegulatorId: number
   laneConnections: LaneConnection[]
+  ingressLaneId: number
+  egressLaneId: number
 }

@@ -39,7 +39,6 @@ class AssessmentsApi {
     const queryParams: Record<string, string> = {};
     // queryParams["road_regulator_id"] = road_regulator_id;
     queryParams["intersection_id"] = intersection_id;
-    queryParams["latest"] = "true";
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;

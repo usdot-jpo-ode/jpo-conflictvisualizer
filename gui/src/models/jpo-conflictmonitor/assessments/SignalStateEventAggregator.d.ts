@@ -1,6 +1,6 @@
 
 type SignalStateEventAggregator = {
-  events: SignalStateEvent[]
+  events: StopLinePassageEvent[]
   aggregatorCreationTime: number
   tolerance: number
   messageDurationDays: number
