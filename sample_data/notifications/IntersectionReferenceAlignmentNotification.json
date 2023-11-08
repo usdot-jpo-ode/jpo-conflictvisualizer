@@ -1,0 +1,21 @@
+{
+  "id": "{\"key\": \"IntersectionReferenceAlignmentNotification_0_44383\"}",
+  "key": "IntersectionReferenceAlignmentNotification_0_44383",
+  "notificationGeneratedAt": 1698166754725,
+  "notificationType": "IntersectionReferenceAlignmentNotification",
+  "notificationText": "Intersection Reference Alignment Notification, generated because corresponding intersection reference alignment event was generated.",
+  "notificationHeading": "Intersection Reference Alignment",
+  "intersectionID": 44383,
+  "roadRegulatorID": 0,
+  "notificationExpiresAt": null,
+  "event": {
+    "eventGeneratedAt": 1698166754725,
+    "eventType": "IntersectionReferenceAlignment",
+    "intersectionID": 44383,
+    "roadRegulatorID": 0,
+    "source": "{\"rsuId\":\"10.12.6.4\",\"intersectionId\":44383}",
+    "timestamp": 1698166754689,
+    "spatRegulatorIntersectionIds": [{ "roadRegulatorId": 0, "intersectionId": 44383 }],
+    "mapRegulatorIntersectionIds": [{ "roadRegulatorId": -1, "intersectionId": 44383 }]
+  }
+}

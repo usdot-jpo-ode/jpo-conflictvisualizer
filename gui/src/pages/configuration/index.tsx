@@ -163,8 +163,6 @@ const Page = () => {
   const filteredParameters = applyFilters(parameters, filter);
   const paginatedParameters = applyPagination(filteredParameters, page, rowsPerPage);
 
-  console.log("Parameters", paginatedParameters);
-
   return (
     <>
       <Head>

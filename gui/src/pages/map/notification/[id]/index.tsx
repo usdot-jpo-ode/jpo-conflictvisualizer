@@ -56,6 +56,7 @@ const Map = () => {
             sourceData={notification}
             sourceDataType={notification !== undefined ? "notification" : undefined}
             intersectionId={intersectionId}
+            loadOnNull={false}
           />
         </Container>
       </Box>
