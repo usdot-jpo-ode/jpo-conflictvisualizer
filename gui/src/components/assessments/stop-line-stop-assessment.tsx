@@ -5,54 +5,14 @@ import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "rec
 export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAssessment | undefined }) => {
   const { assessment } = props;
 
-  const mockAssessment = {
-    stopLineStopAssessmentGroup: [
-      {
-        signalGroup: 1,
-        timeStoppedOnRed: 10,
-        timeStoppedOnYellow: 10,
-        timeStoppedOnGreen: 10,
-        timeStoppedOnDark: 10,
-      },
-      {
-        signalGroup: 2,
-        timeStoppedOnRed: 5,
-        timeStoppedOnYellow: 15,
-        timeStoppedOnGreen: 0,
-        timeStoppedOnDark: 20,
-      },
-      {
-        signalGroup: 3,
-        timeStoppedOnRed: 15,
-        timeStoppedOnYellow: 15,
-        timeStoppedOnGreen: 0,
-        timeStoppedOnDark: 0,
-      },
-      {
-        signalGroup: 4,
-        timeStoppedOnRed: 1,
-        timeStoppedOnYellow: 1,
-        timeStoppedOnGreen: 23,
-        timeStoppedOnDark: 2,
-      },
-      {
-        signalGroup: 5,
-        timeStoppedOnRed: 12,
-        timeStoppedOnYellow: 14,
-        timeStoppedOnGreen: 16,
-        timeStoppedOnDark: 10,
-      },
-    ],
-  };
-
-  function getWidthFactorFromData(data?: any[]): number {
+  function getWidthFactorFromData(data?: any[] | undefined): number {
     if (!data) return 0.1;
     const maxFactor = 0.9;
     const numRowsForMax = 40;
     return 0.1 + Math.min(maxFactor, data.length / numRowsForMax);
   }
   0;
-  const widthFactor = getWidthFactorFromData(mockAssessment?.stopLineStopAssessmentGroup);
+  const widthFactor = getWidthFactorFromData(assessment?.stopLineStopAssessmentGroup);
 
   return (
     <Grid item width={100 + widthFactor * 1200}>
@@ -63,7 +23,7 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
               <Typography color="textSecondary" gutterBottom variant="overline">
                 Signal State Stop Assessment
               </Typography>
-              {mockAssessment === undefined || mockAssessment.stopLineStopAssessmentGroup === undefined ? (
+              {assessment === undefined || assessment.stopLineStopAssessmentGroup === undefined ? (
                 <Typography color="textPrimary" variant="h5" key={""}>
                   No Data
                 </Typography>
@@ -71,7 +31,7 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
                 <BarChart
                   width={widthFactor * 1200}
                   height={350}
-                  data={mockAssessment.stopLineStopAssessmentGroup.map((group) => {
+                  data={assessment.stopLineStopAssessmentGroup.map((group) => {
                     const total =
                       Math.max(
                         group.timeStoppedOnRed +

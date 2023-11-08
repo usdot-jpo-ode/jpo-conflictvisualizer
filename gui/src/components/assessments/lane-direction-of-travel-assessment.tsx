@@ -7,115 +7,14 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
 }) => {
   const { assessment } = props;
 
-  const mockAssessment = {
-    laneDirectionOfTravelAssessmentGroup: [
-      {
-        laneID: 1,
-        segmentID: 1,
-        inToleranceEvents: 10,
-        outOfToleranceEvents: 10,
-      },
-      {
-        laneID: 1,
-        segmentID: 2,
-        inToleranceEvents: 5,
-        outOfToleranceEvents: 25,
-      },
-      {
-        laneID: 1,
-        segmentID: 3,
-        inToleranceEvents: 55,
-        outOfToleranceEvents: 12,
-      },
-      {
-        laneID: 1,
-        segmentID: 4,
-        inToleranceEvents: 23,
-        outOfToleranceEvents: 32,
-      },
-      {
-        laneID: 1,
-        segmentID: 5,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 34,
-      },
-      {
-        laneID: 2,
-        segmentID: 1,
-        inToleranceEvents: 11,
-        outOfToleranceEvents: 9,
-      },
-      {
-        laneID: 2,
-        segmentID: 2,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 25,
-      },
-      {
-        laneID: 2,
-        segmentID: 3,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 52,
-      },
-      {
-        laneID: 2,
-        segmentID: 4,
-        inToleranceEvents: 22,
-        outOfToleranceEvents: 12,
-      },
-      {
-        laneID: 3,
-        segmentID: 1,
-        inToleranceEvents: 1,
-        outOfToleranceEvents: 9,
-      },
-      {
-        laneID: 3,
-        segmentID: 2,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 25,
-      },
-      {
-        laneID: 4,
-        segmentID: 1,
-        inToleranceEvents: 1,
-        outOfToleranceEvents: 9,
-      },
-      {
-        laneID: 4,
-        segmentID: 3,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 52,
-      },
-      {
-        laneID: 4,
-        segmentID: 4,
-        inToleranceEvents: 22,
-        outOfToleranceEvents: 12,
-      },
-      {
-        laneID: 5,
-        segmentID: 1,
-        inToleranceEvents: 1,
-        outOfToleranceEvents: 9,
-      },
-      {
-        laneID: 5,
-        segmentID: 2,
-        inToleranceEvents: 12,
-        outOfToleranceEvents: 25,
-      },
-    ],
-  };
-
-  function getWidthFactorFromData(data: any[]): number {
+  function getWidthFactorFromData(data: any[] | undefined): number {
     if (!data) return 0.1;
     const maxFactor = 0.9;
     const numRowsForMax = 40;
     return 0.1 + Math.min(maxFactor, data.length / numRowsForMax);
   }
 
-  const widthFactor = getWidthFactorFromData(mockAssessment?.laneDirectionOfTravelAssessmentGroup);
+  const widthFactor = getWidthFactorFromData(assessment?.laneDirectionOfTravelAssessmentGroup);
   const SegColors = [
     ["#bde671", "#ff9582"],
     ["#8fdf4d", "#fd7f69"],
@@ -135,11 +34,12 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
     return array.indexOf(value) === index;
   }
 
-  const segmentIds = mockAssessment?.laneDirectionOfTravelAssessmentGroup
-    .map((group) => group.segmentID)
-    .sort((a, b) => a - b)
-    .reverse()
-    .filter(onlyUnique);
+  const segmentIds =
+    assessment?.laneDirectionOfTravelAssessmentGroup
+      .map((group) => group.segmentID)
+      .sort((a, b) => a - b)
+      .reverse()
+      .filter(onlyUnique) ?? [];
   const maxSegmentId = Math.max(...segmentIds);
 
   const compressedGroups: {
@@ -148,8 +48,8 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
       [key: string]: number;
     };
   } = {};
-  for (let i = 0; i < mockAssessment?.laneDirectionOfTravelAssessmentGroup.length; i++) {
-    const group = mockAssessment?.laneDirectionOfTravelAssessmentGroup[i];
+  for (let i = 0; i < (assessment?.laneDirectionOfTravelAssessmentGroup ?? []).length; i++) {
+    const group = assessment?.laneDirectionOfTravelAssessmentGroup[i]!;
     const keyGood = `inToleranceEventsSeg${group.segmentID}`;
     const keyBad = `outOfToleranceEventsSeg${group.segmentID}`;
     if (!compressedGroups[group.laneID]) {
@@ -170,7 +70,7 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
               <Typography color="textSecondary" gutterBottom variant="overline">
                 Lane Direction of Travel Assessment
               </Typography>
-              {mockAssessment === undefined ? (
+              {assessment === undefined ? (
                 <Typography color="textPrimary" variant="h5" key={""}>
                   No Data
                 </Typography>
@@ -221,12 +121,6 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
                       />
                     );
                   })}
-                  {/* <Bar dataKey="inToleranceEventsSeg1" stackId="a" name="seg1Good" fill="#96be4a" />
-                  <Bar dataKey="outOfToleranceEventsSeg1" stackId="b" name="seg1Bad" fill="#da5139" />
-                  <Bar dataKey="inToleranceEventsSeg2" stackId="a" name="seg2Good" fill="#41cc00" />
-                  <Bar dataKey="outOfToleranceEventsSeg2" stackId="b" name="seg2Bad" fill="#d32000" />
-                  <Bar dataKey="inToleranceEventsSeg3" stackId="a" name="seg3Good" fill="#0d6901" />
-                  <Bar dataKey="outOfToleranceEventsSeg3" stackId="b" name="seg3Bad" fill="#7a001f" /> */}
                 </BarChart>
               )}
             </Grid>
