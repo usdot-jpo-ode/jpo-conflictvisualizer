@@ -715,20 +715,32 @@ const MapTab = (props: MyProps) => {
     }
     setRawData(rawData);
 
-    const localSurroundingEvents = await EventsApi.getAllEvents(
+    const surroundingEventsPromise = EventsApi.getAllEvents(
       session?.accessToken,
       queryParams.intersectionId,
       queryParams.startDate,
       queryParams.endDate
     );
+    toast.promise(surroundingEventsPromise, {
+      loading: `Loading Event Data`,
+      success: `Successfully got Event Data`,
+      error: `Failed to get Event data. Please see console`,
+    });
+    const localSurroundingEvents = await surroundingEventsPromise;
     setSurroundingEvents(localSurroundingEvents);
 
-    const localSurroundingNotifications = await NotificationApi.getAllNotifications({
+    const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
       token: session?.accessToken,
       intersection_id: queryParams.intersectionId?.toString(),
       startTime: queryParams.startDate,
       endTime: queryParams.endDate,
     });
+    toast.promise(surroundingNotificationsPromise, {
+      loading: `Loading Notification Data`,
+      success: `Successfully got Notification Data`,
+      error: `Failed to get Notification data. Please see console`,
+    });
+    const localSurroundingNotifications = await surroundingNotificationsPromise;
     setSurroundingNotifications(localSurroundingNotifications);
 
     setSliderValue(

@@ -16,6 +16,8 @@ import { DataVisualizer } from "../components/data-selector/data-visualizer";
 import toast from "react-hot-toast";
 import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
 import { useQueryContext } from "../contexts/query-context";
+import JSZip from "jszip";
+import FileSaver from "file-saver";
 
 const DataSelectorPage = () => {
   //   const [type, setType] = useState("");
@@ -239,9 +241,14 @@ const DataSelectorPage = () => {
       }
       csvRows[event.eventType].push(Object.values(event).map(sanitizeCsvString).join(","));
     }
+
+    var zip = new JSZip();
     for (const eventType in csvRows) {
-      downloadFile(csvRows[eventType].join("\n"), `cimms_events_${eventType}_export`, "csv");
+      zip.file(`cimms_events_${eventType}_export.csv`, csvRows[eventType].join("\n"));
     }
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, `cimms_events_export.zip`);
+    });
   };
 
   const downloadAssessmentCsvFiles = (data: Assessment[]) => {
@@ -264,9 +271,14 @@ const DataSelectorPage = () => {
       //   }
       csvRows[event.assessmentType].push(Object.values(event).map(sanitizeCsvString).join(","));
     }
+
+    var zip = new JSZip();
     for (const assessmentType in csvRows) {
-      downloadFile(csvRows[assessmentType].join("\n"), `cimms_assessments_${assessmentType}_export`, "csv");
+      zip.file(`cimms_assessments_${assessmentType}_export.csv`, csvRows[assessmentType].join("\n"));
     }
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, `cimms_assessments_export.zip`);
+    });
   };
 
   return (
