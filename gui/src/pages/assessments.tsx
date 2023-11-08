@@ -189,7 +189,7 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3}>
             <Grid item>
-              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={false} />
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             </Grid>
             <Grid item>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />

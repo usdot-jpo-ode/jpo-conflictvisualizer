@@ -91,17 +91,11 @@ const Page = () => {
       >
         <Container maxWidth={false}>
           <Grid container spacing={3}>
-              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} grid={true} />
-            <Grid item>
-              <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
-            </Grid>
-            <Grid item>
-              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
-            </Grid>
-            <Grid item>
-              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
-            </Grid>
-            <Grid item>
+            <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
+            <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
+            <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
+            <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
+            <Grid item xs={12}>
               <NotificationsTable simple={true} />
             </Grid>
           </Grid>
