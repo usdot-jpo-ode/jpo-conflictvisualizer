@@ -6,7 +6,7 @@ import { Container, Col } from "reactstrap";
 import { Paper, Box, Typography } from "@mui/material";
 
 // import mapMessageData from "./processed_map_v4.json";
-import type { CircleLayer, LayerProps, LineLayer } from "react-map-gl";
+import type { CircleLayer, LayerProps, LineLayer, SymbolLayer } from "react-map-gl";
 import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
 import EventsApi from "../../apis/events-api";
@@ -20,6 +20,8 @@ import getConfig from "next/config";
 import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 import { MapLegend } from "./map-legend";
 import toast from "react-hot-toast";
+import JSZip from "jszip";
+import FileSaver from "file-saver";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
@@ -41,6 +43,24 @@ const mapMessageLayer: LineLayer = {
   paint: {
     "line-width": 5,
     "line-color": ["case", ["==", ["get", "ingressPath"], true], "#eb34e8", "#0004ff"],
+  },
+};
+
+const mapMessageLabelsLayer: SymbolLayer = {
+  id: "mapMessageLabels",
+  type: "symbol",
+  layout: {
+    "text-field": ["concat", "lane: ", ["to-string", ["get", "laneId"]]],
+    "text-size": 20,
+    // "text-offset": [0, 1],
+    "text-variable-anchor": ["top", "left", "right", "bottom"],
+    "text-allow-overlap": true,
+    "icon-allow-overlap": true,
+  },
+  paint: {
+    "text-color": "#000000",
+    "text-halo-color": "#ffffff",
+    "text-halo-width": 5,
   },
 };
 
@@ -135,6 +155,24 @@ const connectingLanesLayer: LineLayer = {
   },
 };
 
+const connectingLanesLabelsLayer: SymbolLayer = {
+  id: "connectingLanesLabels",
+  type: "symbol",
+  layout: {
+    "text-field": ["concat", "sig-group: ", ["to-string", ["get", "signalGroupId"]]],
+    "text-size": 20,
+    "text-offset": [0, 1],
+    "text-variable-anchor": ["top", "left", "right", "bottom"],
+    "text-allow-overlap": true,
+    "icon-allow-overlap": true,
+  },
+  paint: {
+    "text-color": "#000000",
+    "text-halo-color": "#ffffff",
+    "text-halo-width": 5,
+  },
+};
+
 const RED_LIGHT = "RED_LIGHT";
 const YELLOW_LIGHT = "YELLOW_LIGHT";
 const GREEN_LIGHT = "GREEN_LIGHT";
@@ -210,6 +248,7 @@ type MyProps = {
   sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
   sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
   intersectionId: number | undefined;
+  loadOnNull?: boolean;
 };
 
 const MapTab = (props: MyProps) => {
@@ -282,7 +321,7 @@ const MapTab = (props: MyProps) => {
       "icon-rotate": ["get", "orientation"],
       "icon-allow-overlap": true,
       "icon-rotation-alignment": "map",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 6, 0.5, 9, 0.4, 22, 0.08],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 9, 0.01, 19, 0.15, 22, 0.4],
     },
   });
 
@@ -319,6 +358,8 @@ const MapTab = (props: MyProps) => {
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
+  const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
+  const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -358,7 +399,6 @@ const MapTab = (props: MyProps) => {
         return;
       }
       const coords = mapFeature.geometry.coordinates.slice(0, 2);
-      console.log(mapFeature.geometry.coordinates, getBearingBetweenPoints(coords[1], coords[0]));
       features.push({
         type: "Feature",
         properties: {
@@ -392,33 +432,34 @@ const MapTab = (props: MyProps) => {
     };
     switch (notification.notificationType) {
       case "ConnectionOfTravelNotification":
-        const connTravelNotification = notification as ConnectionOfTravelNotification;
-        const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessmentGroups;
-        connTravelAssessmentGroups?.forEach((assessmentGroup) => {
-          const ingressLocation: number[] | undefined = connectingLanes.features.find(
-            (connectingLaneFeature: MapFeature) => {
-              return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
-            }
-          )?.geometry.coordinates[0];
-          const egressLocation: number[] | undefined = connectingLanes.features.find(
-            (connectingLaneFeature: MapFeature) => {
-              return connectingLaneFeature.properties.laneId === assessmentGroup.egressLaneID;
-            }
-          )?.geometry.coordinates[0];
-          if (!ingressLocation || !egressLocation) return;
-          const marker = {
-            type: "Feature",
-            properties: {
-              description: `${connTravelNotification.notificationText}, egress lane ${assessmentGroup.egressLaneID}, incress lane ${assessmentGroup.ingressLaneID}, connection ID ${assessmentGroup.connectionID}, event count ${assessmentGroup.eventCount}`,
-              title: connTravelNotification.notificationType,
-            },
-            geometry: {
-              type: "LineString",
-              coordinates: [ingressLocation, egressLocation],
-            },
-          };
-          markerCollection.features.push(marker);
-        });
+        // TODO: Re-add once more notification data is available
+        // const connTravelNotification = notification as ConnectionOfTravelNotification;
+        // const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessmentGroups;
+        // connTravelAssessmentGroups?.forEach((assessmentGroup) => {
+        //   const ingressLocation: number[] | undefined = connectingLanes.features.find(
+        //     (connectingLaneFeature: MapFeature) => {
+        //       return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
+        //     }
+        //   )?.geometry.coordinates[0];
+        //   const egressLocation: number[] | undefined = connectingLanes.features.find(
+        //     (connectingLaneFeature: MapFeature) => {
+        //       return connectingLaneFeature.properties.laneId === assessmentGroup.egressLaneID;
+        //     }
+        //   )?.geometry.coordinates[0];
+        //   if (!ingressLocation || !egressLocation) return;
+        //   const marker = {
+        //     type: "Feature",
+        //     properties: {
+        //       description: `${connTravelNotification.notificationText}, egress lane ${assessmentGroup.egressLaneID}, ingress lane ${assessmentGroup.ingressLaneID}, connection ID ${assessmentGroup.connectionID}, event count ${assessmentGroup.eventCount}`,
+        //       title: connTravelNotification.notificationType,
+        //     },
+        //     geometry: {
+        //       type: "LineString",
+        //       coordinates: [ingressLocation, egressLocation],
+        //     },
+        //   };
+        //   markerCollection.features.push(marker);
+        // });
         break;
       case "IntersectionReferenceAlignmentNotification":
         // No markers for this notification
@@ -567,7 +608,11 @@ const MapTab = (props: MyProps) => {
   //   }, []);
 
   const pullInitialData = async () => {
-    if (!session?.accessToken || !queryParams.intersectionId) {
+    if (
+      !session?.accessToken ||
+      !queryParams.intersectionId ||
+      (props.sourceData == undefined && props.loadOnNull == false)
+    ) {
       console.error(
         "Did not attempt to pull initial map data. Access token:",
         session?.accessToken,
@@ -608,8 +653,6 @@ const MapTab = (props: MyProps) => {
         longitude: latestMapMessage?.properties.refPoint.longitude,
         zoom: 19,
       });
-    } else {
-      console.log("Cannot Zoom to Map Location");
     }
 
     const rawSpatPromise = MessageMonitorApi.getSpatMessages({
@@ -708,13 +751,23 @@ const MapTab = (props: MyProps) => {
   }, [queryParams.intersectionId]);
 
   useEffect(() => {
-    const query_params = generateQueryParams(props.sourceData, props.sourceDataType);
-    setQueryParams(query_params);
-    setTimeWindowSeconds(60);
+    const query_params = {
+      ...generateQueryParams(props.sourceData, props.sourceDataType),
+      intersectionId: props.intersectionId,
+    };
+    if (
+      queryParams.startDate.getTime() != query_params.startDate.getTime() ||
+      queryParams.endDate.getTime() != query_params.endDate.getTime() ||
+      queryParams.eventDate.getTime() != query_params.eventDate.getTime() ||
+      queryParams.vehicleId != query_params.vehicleId ||
+      queryParams.intersectionId != query_params.intersectionId
+    ) {
+      setQueryParams(query_params);
+      setTimeWindowSeconds(60);
+    }
   }, [props.sourceData]);
 
   useEffect(() => {
-    console.log("PULLING INITIAL DATA BECAUSE QUERY PARAMS CHANGED", queryParams);
     pullInitialData();
   }, [queryParams]);
 
@@ -813,10 +866,17 @@ const MapTab = (props: MyProps) => {
   };
 
   const downloadAllData = () => {
-    downloadJsonFile(rawData["map"], `intersection_${queryParams.intersectionId}_MAP_data.json`);
-    downloadJsonFile(rawData["spat"], `intersection_${queryParams.intersectionId}_SPAT_data.json`);
-    downloadJsonFile(rawData["bsm"], `intersection_${queryParams.intersectionId}_BSM_data.json`);
-    downloadJsonFile(rawData["notification"], `intersection_${queryParams.intersectionId}_Notification_data.json`);
+    var zip = new JSZip();
+    zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData["map"]));
+    zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData["spat"]));
+    zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData["bsm"]));
+    zip.file(
+      `intersection_${queryParams.intersectionId}_Notification_data.json`,
+      JSON.stringify(rawData["notification"])
+    );
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
+    });
   };
 
   const onTimeQueryChanged = (
@@ -895,6 +955,10 @@ const MapTab = (props: MyProps) => {
                 max={getTimeRange(queryParams.startDate, queryParams.endDate)}
                 signalStateLayer={signalStateLayer}
                 setSignalStateLayer={setSignalStateLayer}
+                laneLabelsVisible={laneLabelsVisible}
+                setLaneLabelsVisible={setLaneLabelsVisible}
+                sigGroupLabelsVisible={sigGroupLabelsVisible}
+                setSigGroupLabelsVisible={setSigGroupLabelsVisible}
               />
             </Paper>
           </Box>
@@ -979,6 +1043,11 @@ const MapTab = (props: MyProps) => {
               <Layer {...connectingLanesLayer} />
             </Source>
           )}
+          {connectingLanes && currentSignalGroups && sigGroupLabelsVisible && (
+            <Source type="geojson" data={addConnections(connectingLanes, currentSignalGroups)}>
+              <Layer {...connectingLanesLabelsLayer} />
+            </Source>
+          )}
           {currentBsms && (
             <Source type="geojson" data={currentBsms}>
               <Layer {...bsmLayerStyle} />
@@ -987,6 +1056,11 @@ const MapTab = (props: MyProps) => {
           {mapData && (
             <Source type="geojson" data={mapData?.mapFeatureCollection}>
               <Layer {...mapMessageLayer} />
+            </Source>
+          )}
+          {mapData && laneLabelsVisible && (
+            <Source type="geojson" data={mapData?.mapFeatureCollection}>
+              <Layer {...mapMessageLabelsLayer} />
             </Source>
           )}
           {connectingLanes && currentSignalGroups && signalStateData && (

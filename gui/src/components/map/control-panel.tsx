@@ -221,9 +221,9 @@ function ControlPanel(props) {
         </AccordionDetails>
       </Accordion>
 
-      <Accordion disableGutters defaultExpanded={true}>
+      <Accordion disableGutters defaultExpanded={false}>
         <AccordionSummary>
-          <Typography variant="h5">Settings</Typography>
+          <Typography variant="h5">Visual Settings</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <div
@@ -233,7 +233,7 @@ function ControlPanel(props) {
             }}
           >
             <div>
-              <h4>Rotate Signal Head Icons With Map </h4>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Rotate Signal Head Icons With Map </h4>
               <Checkbox
                 checked={props.signalStateLayer.layout["icon-rotation-alignment"] == "map"}
                 onChange={(event) =>
@@ -246,6 +246,20 @@ function ControlPanel(props) {
                     },
                   })
                 }
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Show Lane IDs </h4>
+              <Checkbox
+                checked={props.laneLabelsVisible}
+                onChange={(event) => props.setLaneLabelsVisible(event.target.checked)}
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Show Signal Group IDs </h4>
+              <Checkbox
+                checked={props.sigGroupLabelsVisible}
+                onChange={(event) => props.setSigGroupLabelsVisible(event.target.checked)}
               />
             </div>
           </div>
