@@ -22,6 +22,9 @@ import { MapLegend } from "./map-legend";
 import toast from "react-hot-toast";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
+// import { connect, disconnect, subscribeToWebSocket, unsubscribeFromWebSocket, sendMessage } from '../../apis/socket-api';
+import { socketApiHelper } from '../../apis/socket-api';
+
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = [
@@ -865,6 +868,53 @@ const MapTab = (props: MyProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number);
   };
+
+  useEffect(() => {
+    // Connect to WebSocket when component mounts
+
+    console.log("Attempting Web Socket Connection");
+    const token = session?.accessToken;
+    const endpoint = "ws://172.250.250.181:8081/live";
+    // const endpoint = "ws://rubberDucky/test";
+    const socket = socketApiHelper.createConnection({endpoint:endpoint, token:token});
+    socket.addEventListener('open', (event)=>{
+      console.log('Received message:', event);
+      console.log("Web Socket Connection Opened");
+      socket.send(JSON.stringify({"user": "react"}));
+    });
+
+    socket.addEventListener('message', (event) => {
+      console.log('Received message:', event.data);
+    });
+
+    socket.addEventListener('close', (event) => {
+      console.log('WebSocket connection closed:', event);
+    });
+
+    socket.addEventListener('error', (event) => {
+      // You can access the detailed error message
+      console.log('Error message:', event);
+    })
+
+    socket.addEventListener('close', (event) => {
+      console.log('WebSocket connection closed:', event);
+
+      // You can check the close code and reason for more information
+      console.log('Close code:', event.code);
+      console.log('Close reason:', event.reason);
+    });
+
+    
+
+    
+
+
+
+    // Disconnect and clean up when component unmounts
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   const downloadJsonFile = (contents: any, name: string) => {
     const element = document.createElement("a");
