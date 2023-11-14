@@ -880,7 +880,7 @@ const MapTab = (props: MyProps) => {
     socket.addEventListener('open', (event)=>{
       console.log('Received message:', event);
       console.log("Web Socket Connection Opened");
-      socket.send(JSON.stringify({"user": "react"}));
+      socket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
     });
 
     socket.addEventListener('message', (event) => {
@@ -903,6 +903,7 @@ const MapTab = (props: MyProps) => {
       console.log('Close code:', event.code);
       console.log('Close reason:', event.reason);
     });
+
 
     
 
