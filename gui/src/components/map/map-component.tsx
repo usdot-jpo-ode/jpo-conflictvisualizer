@@ -874,7 +874,7 @@ const MapTab = (props: MyProps) => {
 
     console.log("Attempting Web Socket Connection");
     const token = session?.accessToken;
-    const endpoint = "ws://172.250.250.181:8081/live";
+    const endpoint = "ws://172.250.250.181:8081/live/spat";
     // const endpoint = "ws://rubberDucky/test";
     const socket = socketApiHelper.createConnection({endpoint:endpoint, token:token});
     socket.addEventListener('open', (event)=>{
