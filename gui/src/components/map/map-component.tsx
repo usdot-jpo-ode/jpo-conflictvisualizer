@@ -726,8 +726,7 @@ const MapTab = (props: MyProps) => {
       success: `Successfully got Event Data`,
       error: `Failed to get Event data. Please see console`,
     });
-    const localSurroundingEvents = await surroundingEventsPromise;
-    setSurroundingEvents(localSurroundingEvents);
+    surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
     const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
       token: session?.accessToken,
@@ -740,8 +739,8 @@ const MapTab = (props: MyProps) => {
       success: `Successfully got Notification Data`,
       error: `Failed to get Notification data. Please see console`,
     });
-    const localSurroundingNotifications = await surroundingNotificationsPromise;
-    setSurroundingNotifications(localSurroundingNotifications);
+    surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
+    
 
     setSliderValue(
       Math.min(
