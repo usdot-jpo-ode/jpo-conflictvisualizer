@@ -19,19 +19,19 @@ import org.bson.Document;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import us.dot.its.jpo.conflictmonitor.monitor.models.notifications.SignalStateConflictNotification;
-import us.dot.its.jpo.ode.api.accessors.notifications.SignalStateConflictNotification.SignalStateConflictNotificationRepositoryImpl;
+import us.dot.its.jpo.conflictmonitor.monitor.models.notifications.TimeChangeDetailsNotification;
+import us.dot.its.jpo.ode.api.accessors.notifications.TimeChangeDetailsNotification.TimeChangeDetailsNotificationRepositoryImpl;
 
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class SignalStateConflictNotificationRepositoryImplTest {
+public class TimeChangeDetailsNotificationRepositoryImplTest {
 
     @Mock
     private MongoTemplate mongoTemplate;
 
     @InjectMocks
-    private SignalStateConflictNotificationRepositoryImpl repository;
+    private TimeChangeDetailsNotificationRepositoryImpl repository;
 
     Integer intersectionID = 123;
     Long startTime = 1624640400000L; // June 26, 2021 00:00:00 GMT
@@ -79,13 +79,13 @@ public class SignalStateConflictNotificationRepositoryImplTest {
     }
 
     @Test
-    public void testFindSignalStateConflictNotifications() {
+    public void testFindStopLineStopNotifications() {
         Query query = new Query();
-        List<SignalStateConflictNotification> expected = new ArrayList<>();
+        List<TimeChangeDetailsNotification> expected = new ArrayList<>();
 
-        Mockito.doReturn(expected).when(mongoTemplate).find(query, SignalStateConflictNotification.class, "CmSignalStateConflictNotification");
+        Mockito.doReturn(expected).when(mongoTemplate).find(query, TimeChangeDetailsNotification.class, "CmTimeChangeDetailsNotifications");
 
-        List<SignalStateConflictNotification> results = repository.find(query);
+        List<TimeChangeDetailsNotification> results = repository.find(query);
 
         assertThat(results).isEqualTo(expected);
     }

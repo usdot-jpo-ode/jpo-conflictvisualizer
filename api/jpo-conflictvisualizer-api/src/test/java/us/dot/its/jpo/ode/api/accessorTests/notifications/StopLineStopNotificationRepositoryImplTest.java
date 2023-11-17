@@ -19,19 +19,19 @@ import org.bson.Document;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import us.dot.its.jpo.conflictmonitor.monitor.models.notifications.SignalStateConflictNotification;
-import us.dot.its.jpo.ode.api.accessors.notifications.SignalStateConflictNotification.SignalStateConflictNotificationRepositoryImpl;
+import us.dot.its.jpo.conflictmonitor.monitor.models.notifications.StopLineStopNotification;
+import us.dot.its.jpo.ode.api.accessors.notifications.StopLineStopNotification.StopLineStopNotificationRepositoryImpl;
 
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class SignalStateConflictNotificationRepositoryImplTest {
+public class StopLineStopNotificationRepositoryImplTest {
 
     @Mock
     private MongoTemplate mongoTemplate;
 
     @InjectMocks
-    private SignalStateConflictNotificationRepositoryImpl repository;
+    private StopLineStopNotificationRepositoryImpl repository;
 
     Integer intersectionID = 123;
     Long startTime = 1624640400000L; // June 26, 2021 00:00:00 GMT
@@ -79,13 +79,13 @@ public class SignalStateConflictNotificationRepositoryImplTest {
     }
 
     @Test
-    public void testFindSignalStateConflictNotifications() {
+    public void testFindStopLineStopNotifications() {
         Query query = new Query();
-        List<SignalStateConflictNotification> expected = new ArrayList<>();
+        List<StopLineStopNotification> expected = new ArrayList<>();
 
-        Mockito.doReturn(expected).when(mongoTemplate).find(query, SignalStateConflictNotification.class, "CmSignalStateConflictNotification");
+        Mockito.doReturn(expected).when(mongoTemplate).find(query, StopLineStopNotification.class, "CmStopLineStopNotifications");
 
-        List<SignalStateConflictNotification> results = repository.find(query);
+        List<StopLineStopNotification> results = repository.find(query);
 
         assertThat(results).isEqualTo(expected);
     }
