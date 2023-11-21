@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Slider from "@mui/material/Slider";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -22,6 +22,7 @@ import {
   Button,
   Checkbox,
   InputAdornment,
+  Container,
 } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
@@ -29,6 +30,7 @@ import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
+import JSZip from "jszip";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -108,6 +110,53 @@ function ControlPanel(props) {
     }
     return num;
   };
+
+  const openMessageData = (files: FileList | null) => {
+    if (files == null) return;
+    const file = files[0];
+    var jsZip = new JSZip();
+    const messageData: {
+      mapData: ProcessedMap[];
+      bsmData: OdeBsmData[];
+      spatData: ProcessedSpat[];
+      notificationData: any;
+    } = {
+      mapData: [],
+      bsmData: [],
+      spatData: [],
+      notificationData: undefined
+    };
+    jsZip.loadAsync(file).then(async (zip) => {
+      const zipObjects: {relativePath: string; zipEntry: JSZip.JSZipObject}[] = []
+      zip.forEach((relativePath, zipEntry) => zipObjects.push({relativePath, zipEntry}))
+      for (let i = 0; i < zipObjects.length; i++) {
+        const {relativePath, zipEntry} = zipObjects[i];
+        console.log(relativePath)
+        if (relativePath.endsWith("_MAP_data.json")) {
+          const data = await zipEntry.async("string")
+          messageData.mapData = JSON.parse(data);
+          console.log("AddedMAPData", messageData.mapData.length)
+        }
+        else if (relativePath.endsWith("_BSM_data.json")) {
+          const data = await zipEntry.async("string")
+          messageData.bsmData = JSON.parse(data);
+          console.log("AddedBSMData", messageData.bsmData.length)
+        }
+        else if (relativePath.endsWith("_Notification_data.json")) {
+          const data = await zipEntry.async("string")
+          messageData.notificationData = JSON.parse(data);
+          console.log("AddedNotificationData", messageData.notificationData.length)
+        }
+        else if (relativePath.endsWith("_SPAT_data.json")) {
+          const data = await zipEntry.async("string")
+          messageData.spatData = JSON.parse(data);
+          console.log("AddedSPATData", messageData.spatData.length)
+        }
+      }
+      console.log("Sending Message Data", messageData);
+      props.handleImportedMessageData(messageData);
+    })
+  }
 
   return (
     <div
@@ -217,6 +266,23 @@ function ControlPanel(props) {
             <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
               Download All Message Data
             </Button>
+            <h4>
+            Upload Message Data:{" "}
+            <label htmlFor="upload">
+              <input
+                accept=".zip"
+                id="upload"
+                name="upload"
+                type="file"
+                multiple={false}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  console.log("Input Changed", e.target.files);
+                  openMessageData(e.target.files)
+                }}
+              />
+            </label>
+            </h4>
+
           </div>
         </AccordionDetails>
       </Accordion>
