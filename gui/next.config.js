@@ -17,6 +17,7 @@ const nextConfig = {
     KEYCLOAK_CLIENT_SECRET: process.env.KEYCLOAK_CLIENT_SECRET,
     KEYCLOAK_REALM: process.env.KEYCLOAK_REALM,
     MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
+    MAPBOX_STYLE_URL: process.env.MAPBOX_STYLE_URL,
     GUI_SERVER_URL: process.env.GUI_SERVER_URL,
     AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
     API_SERVER_URL: process.env.API_SERVER_URL,

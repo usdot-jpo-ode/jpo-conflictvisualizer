@@ -106,18 +106,20 @@ const Page = () => {
   }, [currentTab]);
 
   const getParameters = async () => {
-    if (session?.accessToken && intersectionId && roadRegulatorId) {
+    if (session?.accessToken) {
       try {
         const data = await configParamApi.getAllParameters(
           session?.accessToken,
-          intersectionId.toString(),
-          roadRegulatorId.toString()
+          (intersectionId ?? -1).toString(),
+          (roadRegulatorId ?? -1).toString()
         );
 
         setParameters(data);
       } catch (err) {
         console.error(err);
       }
+    } else {
+      console.error("Did not attempt to get configuration parameters. Access token:", Boolean(session?.accessToken));
     }
   };
 
@@ -160,6 +162,8 @@ const Page = () => {
   // Usually query is done on backend with indexing solutions
   const filteredParameters = applyFilters(parameters, filter);
   const paginatedParameters = applyPagination(filteredParameters, page, rowsPerPage);
+
+  console.log("Parameters", paginatedParameters);
 
   return (
     <>
@@ -266,6 +270,7 @@ const Page = () => {
             </Box>
 
             <ConfigParamListTable
+              intersectionId={intersectionId}
               parameters={paginatedParameters}
               parametersCount={filteredParameters.length}
               onPageChange={handlePageChange}

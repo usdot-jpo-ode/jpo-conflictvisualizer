@@ -20,24 +20,22 @@ import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { Marker } from "mapbox-gl";
+import { ExpandableTable } from "./expandable-table";
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  //border: `1px solid ${theme.palette.divider}`,
-  // '&:not(:last-child)': {
-  //   borderBottom: 0,
-  // },
-  // '&:before': {
-  //   display: 'none',
-  // },
-}));
+const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
+  ({ theme }) => ({
+    //border: `1px solid ${theme.palette.divider}`,
+    // '&:not(:last-child)': {
+    //   borderBottom: 0,
+    // },
+    // '&:before': {
+    //   display: 'none',
+    // },
+  })
+);
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />}
-    {...props}
-  />
+  <MuiAccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />} {...props} />
 ))(({ theme }) => ({
   minHeight: 0,
   paddingLeft: 10,
@@ -59,23 +57,46 @@ export const SidePanel = (props) => {
     laneInfo,
     signalGroups,
     bsms,
-    notification,
+    events,
+    notifications,
+    sourceData,
+    sourceDataType,
     selectedFeature,
   }: {
     laneInfo: ConnectingLanesFeatureCollection | undefined;
     signalGroups: SpatSignalGroup[];
     bsms: BsmFeatureCollection;
-    notification: MessageMonitor.Notification;
+    events: MessageMonitor.Event[];
+    notifications: MessageMonitor.Notification[];
+    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
     selectedFeature: any;
   } = props;
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  const getDataTable = (
+    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined,
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+  ) => {
+    switch (sourceDataType) {
+      case "notification":
+        return getNotificationTable(sourceData as MessageMonitor.Notification);
+      case "event":
+        return <Typography>No Data</Typography>; //getNotificationTableFromEvent(sourceData as MessageMonitor.Event);
+      case "assessment":
+        return <Typography>No Data</Typography>; //getNotificationTableFromAssessment(sourceData as Assessment);
+      case "timestamp":
+        return (
+          <Typography>{format((sourceData as { timestamp: number }).timestamp, "MM/dd/yyyy HH:mm:ss")}</Typography>
+        ); //getNotificationTableFromAssessment(sourceData as Assessment);
+      default:
+        return <Typography>No Data</Typography>;
+    }
+  };
 
   const getNotificationTable = (notification: MessageMonitor.Notification) => {
-    if (!notification) return <Typography>No Data</Typography>;
-    const fields = [
-      ["time", format(new Date(notification.notificationGeneratedAt), "yyyy-MM-dd HH:mm:ss")],
-    ];
+    const fields = [["time", format(new Date(notification.notificationGeneratedAt), "yyyy-MM-dd HH:mm:ss")]];
     switch (notification.notificationType) {
       case "SpatBroadcastRateNotification":
         break;
@@ -93,20 +114,25 @@ export const SidePanel = (props) => {
         const connectionOfTravelNotification = notification as ConnectionOfTravelNotification;
         fields.push([
           "ingress Lane ID",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.ingressLaneID.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.ingressLaneID.toString(),
         ]);
         fields.push([
           "egress Lane ID",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.egressLaneID.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.egressLaneID.toString(),
         ]);
         fields.push([
           "event count",
-          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessment?.[0]?.eventCount.toString(),
+          connectionOfTravelNotification?.assessment?.connectionOfTravelAssessmentGroups?.[0]?.eventCount.toString(),
         ]);
         break;
     }
     return (
-      <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />
+      <>
+        <Typography variant="h6">{notification?.notificationText}</Typography>
+        <Box sx={{ mt: 1 }}>
+          <CustomTable headers={["Field", "Value"]} data={notification == undefined ? [] : fields} />
+        </Box>
+      </>
     );
   };
 
@@ -153,9 +179,8 @@ export const SidePanel = (props) => {
                           laneInfo?.features?.map((lane) => [
                             lane.properties.ingressLaneId,
                             lane.properties.egressLaneId,
-                            signalGroups?.find(
-                              (grp) => grp.signalGroup == lane.properties.signalGroupId
-                            )?.state ?? "no data",
+                            signalGroups?.find((grp) => grp.signalGroup == lane.properties.signalGroupId)?.state ??
+                              "no data",
                           ]) ?? []
                         }
                       />
@@ -169,10 +194,11 @@ export const SidePanel = (props) => {
                   <AccordionDetails>
                     <Box sx={{ mt: 1 }}>
                       <CustomTable
-                        headers={["time", "speed", "heading"]}
+                        headers={["Time", "Vehicle ID", "Speed", "Heading"]}
                         data={
                           bsms?.features.map((bsm) => [
                             bsm.properties.secMark / 1000,
+                            bsm.properties.id,
                             bsm.properties.speed,
                             bsm.properties.heading,
                           ]) ?? []
@@ -183,12 +209,47 @@ export const SidePanel = (props) => {
                 </Accordion>
                 <Accordion disableGutters>
                   <AccordionSummary>
-                    <Typography variant="h5">Notification</Typography>
+                    <Typography variant="h5">Events</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography variant="h6">{notification?.notificationText}</Typography>
-                    <Box sx={{ mt: 1 }}>{getNotificationTable(notification)}</Box>
+                    <Box sx={{ mt: 1 }}>
+                      <ExpandableTable
+                        headers={["Time", "Event Type"]}
+                        data={
+                          events?.map((event) => [
+                            format(event.eventGeneratedAt, "MM/dd/yyyy HH:mm:ss"),
+                            event.eventType,
+                          ]) ?? []
+                        }
+                        details={events?.map((event) => JSON.stringify(event, null, 2)) ?? []}
+                      />
+                    </Box>
                   </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters>
+                  <AccordionSummary>
+                    <Typography variant="h5">Notifications</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ mt: 1 }}>
+                      <ExpandableTable
+                        headers={["Time", "Type"]}
+                        data={
+                          notifications?.map((notification) => [
+                            format(notification.notificationGeneratedAt, "MM/dd/yyyy HH:mm:ss"),
+                            notification.notificationType,
+                          ]) ?? []
+                        }
+                        details={notifications?.map((notification) => JSON.stringify(notification, null, 2)) ?? []}
+                      />
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters>
+                  <AccordionSummary>
+                    <Typography variant="h5">{sourceDataType}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>{getDataTable(sourceData, sourceDataType)}</AccordionDetails>
                 </Accordion>
               </>
             )}

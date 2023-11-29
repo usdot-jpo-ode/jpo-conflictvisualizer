@@ -17,19 +17,24 @@ const ConfigParamRemove = () => {
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    if (session?.accessToken && intersectionId && roadRegulatorId) {
+    if (session?.accessToken) {
       try {
         const data = await configParamApi.getParameter(
           session?.accessToken,
           key,
-          roadRegulatorId.toString(),
-          intersectionId.toString()
+          (roadRegulatorId ?? -1).toString(),
+          (intersectionId ?? -1).toString()
         );
 
         setParameter(data);
       } catch (err) {
         console.error(err);
       }
+    } else {
+      console.error(
+        "Did not attempt to get configuration parameter in remove form. Access token:",
+        session?.accessToken
+      );
     }
   };
 
@@ -38,43 +43,73 @@ const ConfigParamRemove = () => {
   }, [intersectionId]);
 
   if (!parameter) {
-    return null;
+    return (
+      <>
+        <Head>
+          <title>Parameter Edit</title>
+        </Head>
+        <Box
+          component="main"
+          sx={{
+            backgroundColor: "background.default",
+            flexGrow: 1,
+            py: 8,
+          }}
+        >
+          <Container maxWidth="md">
+            <Box
+              sx={{
+                alignItems: "center",
+                display: "flex",
+                overflow: "hidden",
+              }}
+            >
+              <div>
+                <Typography noWrap variant="h4">
+                  Unable to find parameter {key}
+                </Typography>
+              </div>
+            </Box>
+          </Container>
+        </Box>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <Head>
+          <title>Parameter Edit</title>
+        </Head>
+        <Box
+          component="main"
+          sx={{
+            backgroundColor: "background.default",
+            flexGrow: 1,
+            py: 8,
+          }}
+        >
+          <Container maxWidth="md">
+            <Box
+              sx={{
+                alignItems: "center",
+                display: "flex",
+                overflow: "hidden",
+              }}
+            >
+              <div>
+                <Typography noWrap variant="h4">
+                  {parameter.category}/{parameter.key}
+                </Typography>
+              </div>
+            </Box>
+            <Box mt={3}>
+              <ConfigParamRemoveForm parameter={parameter} defaultParameter={parameter} />
+            </Box>
+          </Container>
+        </Box>
+      </>
+    );
   }
-
-  return (
-    <>
-      <Head>
-        <title>Parameter Edit</title>
-      </Head>
-      <Box
-        component="main"
-        sx={{
-          backgroundColor: "background.default",
-          flexGrow: 1,
-          py: 8,
-        }}
-      >
-        <Container maxWidth="md">
-          <Box
-            sx={{
-              alignItems: "center",
-              display: "flex",
-              overflow: "hidden",
-            }}
-          >
-            <div>
-              <Typography noWrap variant="h4">
-                {parameter.category}/{parameter.key}
-              </Typography>
-            </div>
-          </Box>
-          <Box mt={3}>
-            <ConfigParamRemoveForm parameter={parameter} defaultParameter={parameter} />
-          </Box>
-        </Container>
-      </Box>
-    </>
-  );
 };
 
 ConfigParamRemove.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;

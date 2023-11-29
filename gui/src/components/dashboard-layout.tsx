@@ -51,16 +51,34 @@ export const DashboardLayout = (props) => {
         }),
       };
       setUser(user);
+    } else {
+      console.error(
+        "Did not attempt to update user. Access token:",
+        Boolean(session?.accessToken),
+        "Role:",
+        session?.role
+      );
     }
   };
 
   useEffect(() => {
     updateUser();
     if (session?.accessToken) {
-      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
-        setIntersections(intersections);
-        setIntersection(intersections?.[0]?.intersectionID);
-      });
+      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then(
+        (intersections: IntersectionReferenceData[]) => {
+          intersections.push({
+            intersectionID: -1,
+            roadRegulatorID: -1,
+            rsuIP: "0.0.0.0",
+            latitude: 0,
+            longitude: 0,
+          });
+          setIntersections(intersections);
+          setIntersection(intersections?.[0]?.intersectionID);
+        }
+      );
+    } else {
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
     }
   }, [session?.accessToken]);
 

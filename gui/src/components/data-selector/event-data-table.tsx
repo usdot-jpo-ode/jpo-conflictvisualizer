@@ -28,12 +28,17 @@ const applyPagination = (parameters, page, rowsPerPage) =>
 export const EventDataTable = (props: {
   events: MessageMonitor.Event[];
   onDownload: () => void;
+  onDownloadJson: () => void;
 }) => {
-  const { events, onDownload } = props;
+  const { events, onDownload, onDownloadJson } = props;
   const queryRef = useRef<TextFieldProps>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentDescription, setCurrentDescription] = useState("");
+
+  useEffect(() => {
+    setPage(0);
+  }, events);
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -44,7 +49,7 @@ export const EventDataTable = (props: {
   };
 
   // Usually query is done on backend with indexing solutions
-  const paginatedNotifications = applyPagination(events, page, rowsPerPage);
+  const paginatedNotifications = [...applyPagination(events, page, rowsPerPage)];
 
   return (
     <>
@@ -79,6 +84,14 @@ export const EventDataTable = (props: {
                   disabled={events.length <= 0 ? true : false}
                 >
                   Download
+                </Button>
+                <Button
+                  sx={{ m: 1 }}
+                  variant="contained"
+                  onClick={onDownloadJson}
+                  disabled={events.length <= 0 ? true : false}
+                >
+                  Download JSON
                 </Button>
               </Grid>
             </Grid>

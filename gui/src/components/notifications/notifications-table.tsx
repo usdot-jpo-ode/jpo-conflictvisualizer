@@ -68,6 +68,7 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<MessageMonitor.Notification[]>([]);
   const [acceptedNotifications, setAcceptedNotifications] = useState<string[]>([]);
+  const [expandedNotifications, setExpandedNotifications] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -85,17 +86,32 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
         token: session?.accessToken,
         intersection_id: dbIntersectionId.toString(),
       }).then((notifs) => setNotifications(notifs));
+    } else {
+      console.error(
+        "Did not attempt to update notifications. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        dbIntersectionId
+      );
     }
   };
 
   const dismissNotifications = (ids: string[]) => {
     if (session?.accessToken && dbIntersectionId) {
       NotificationApi.dismissNotifications({ token: session?.accessToken, ids });
+    } else {
+      console.error(
+        "Did not attempt to dismiss notifications. Access token:",
+        session?.accessToken,
+        "Intersection ID:",
+        dbIntersectionId
+      );
     }
   };
 
   useEffect(() => {
     updateNotifications();
+    setAcceptedNotifications([]);
   }, [dbIntersectionId]);
 
   useEffect(() => {
@@ -247,6 +263,8 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
             notificationsCount={filteredNotifications.length}
             selectedNotifications={acceptedNotifications}
             onSelectedItemsChanged={setAcceptedNotifications}
+            expandedNotifications={expandedNotifications}
+            onExpandedItemsChanged={setExpandedNotifications}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPage={rowsPerPage}

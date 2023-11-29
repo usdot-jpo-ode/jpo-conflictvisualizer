@@ -27,7 +27,13 @@ export const ConfigParamCreateForm = (props) => {
       value: Yup.string().required("New value is required"),
     }),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken || !intersectionId || !roadRegulatorId) {
+      if (!session?.accessToken || intersectionId == -1) {
+        console.error(
+          "Did not attempt to create configuration param. Access token:",
+          session?.accessToken,
+          "Intersection ID:",
+          intersectionId
+        );
         return;
       }
       try {

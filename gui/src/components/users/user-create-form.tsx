@@ -43,6 +43,7 @@ export const UserCreateForm = (props) => {
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: "Not Authenticated" });
         helpers.setSubmitting(false);
+        console.error("Did not attempt to create user. Access token:", Boolean(session?.accessToken));
         return;
       }
       try {

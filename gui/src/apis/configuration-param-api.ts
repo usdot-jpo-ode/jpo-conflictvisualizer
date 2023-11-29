@@ -107,7 +107,7 @@ class ConfigParamsApi {
           //   failureMessage: `Failed to Retrieve Configuration Parameter ${key}`,
         })
       )
-        .filter((c) => c.key === key)
+        .filter((c) => c.key === key && c.intersectionID !== null && c.intersectionID !== 0 && c.intersectionID !== -1)
         .at(-1);
       return response as IntersectionConfig;
     } catch (exception_var) {
@@ -124,7 +124,7 @@ class ConfigParamsApi {
   ): Promise<Config | undefined> {
     // try to get intersection parameter first, if not found, get general parameter
     var param: Config | undefined = await this.getParameterIntersection(token, key, intersection_id, road_regulator_id);
-    if (param == undefined) {
+    if (param == undefined || intersection_id == "-1") {
       param = await this.getParameterGeneral(token, key);
     }
     return param;
@@ -162,8 +162,8 @@ class ConfigParamsApi {
         headers: { "Content-Type": "application/json" },
         body: param,
         toastOnSuccess: true,
-        successMessage: `Successfully Update Configuration Parameter ${name}`,
-        failureMessage: `Failed to Update Configuration Parameter ${name}`,
+        successMessage: `Successfully Update Intersection Configuration Parameter ${name}`,
+        failureMessage: `Failed to Update Intersection Configuration Parameter ${name}`,
       });
       return response as IntersectionConfig;
     } catch (exception_var) {
@@ -194,8 +194,8 @@ class ConfigParamsApi {
         headers: { "Content-Type": "application/json" },
         body: param,
         toastOnSuccess: true,
-        successMessage: `Successfully Update Configuration Parameter ${name}`,
-        failureMessage: `Failed to Update Configuration Parameter ${name}`,
+        successMessage: `Successfully Created Intersection Configuration Parameter ${name}`,
+        failureMessage: `Failed to Create Intersection Configuration Parameter ${name}`,
       });
       return response as Config;
     } catch (exception_var) {
@@ -217,8 +217,8 @@ class ConfigParamsApi {
         headers: { "Content-Type": "application/json" },
         body: config,
         toastOnSuccess: true,
-        successMessage: `Successfully Update Configuration Parameter ${name}`,
-        failureMessage: `Failed to Update Configuration Parameter ${name}`,
+        successMessage: `Successfully Removed Intersection Configuration Parameter ${name}`,
+        failureMessage: `Failed to Remove Intersection Configuration Parameter ${name}`,
       });
       return response as Config;
     } catch (exception_var) {

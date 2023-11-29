@@ -27,24 +27,22 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled } from "@mui/material/styles";
+import { format } from "date-fns";
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  //border: `1px solid ${theme.palette.divider}`,
-  // '&:not(:last-child)': {
-  //   borderBottom: 0,
-  // },
-  // '&:before': {
-  //   display: 'none',
-  // },
-}));
+const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
+  ({ theme }) => ({
+    //border: `1px solid ${theme.palette.divider}`,
+    // '&:not(:last-child)': {
+    //   borderBottom: 0,
+    // },
+    // '&:before': {
+    //   display: 'none',
+    // },
+  })
+);
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />}
-    {...props}
-  />
+  <MuiAccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.8rem" }} />} {...props} />
 ))(({ theme }) => ({
   minHeight: 0,
   paddingLeft: 10,
@@ -94,7 +92,12 @@ function ControlPanel(props) {
   }, [props.timeQueryParams]);
 
   useEffect(() => {
-    props.onTimeQueryChanged(dateParams.eventTime, dateParams.timeBefore, dateParams.timeAfter);
+    props.onTimeQueryChanged(
+      dateParams.eventTime,
+      dateParams.timeBefore,
+      dateParams.timeAfter,
+      dateParams.timeWindowSeconds
+    );
   }, [dateParams]);
 
   const getNumber = (value: string): number | undefined => {
@@ -108,7 +111,7 @@ function ControlPanel(props) {
   return (
     <div
       style={{
-        padding: "20px 20px 20px 20px",
+        padding: "10px 10px 10px 10px",
       }}
     >
       <Accordion disableGutters>
@@ -122,6 +125,7 @@ function ControlPanel(props) {
                 label="Time Before Event"
                 name="timeRangeBefore"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeBefore: getNumber(e.target.value) };
@@ -132,7 +136,7 @@ function ControlPanel(props) {
                 }}
                 value={dateParams.timeBefore}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 2 }}>
                 <DateTimePicker
                   label="Event Date"
                   value={dayjs(dateParams.eventTime ?? new Date())}
@@ -149,6 +153,7 @@ function ControlPanel(props) {
                 label="Time After Event"
                 name="timeRangeAfter"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeAfter: getNumber(e.target.value) };
@@ -164,6 +169,7 @@ function ControlPanel(props) {
                 label="Time Render Window"
                 name="timeRangeAfter"
                 type="number"
+                sx={{ mt: 1 }}
                 onChange={(e) => {
                   setDateParams((prevState) => {
                     return { ...prevState, timeWindowSeconds: getNumber(e.target.value) };
@@ -179,29 +185,50 @@ function ControlPanel(props) {
         </AccordionDetails>
       </Accordion>
 
-      <div
-        className="control-panel"
-        style={{
-          padding: "20px 50px 0px 50px",
-        }}
-      >
-        <h3>Visualization Time</h3>
-        <Slider
-          aria-label="Volume"
-          //   value={[20, 37]}
-          //   onChange={() => {}}
-          value={props.sliderValue}
-          onChange={props.setSlider}
-          //   marks={props.marks}
-          min={0}
-          max={props.max}
-          valueLabelDisplay="auto"
-          disableSwap
-        />
-        <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
-          Download All Message Data
-        </Button>
-      </div>
+      <Accordion disableGutters defaultExpanded={true}>
+        <AccordionSummary>
+          <Typography variant="h5">Message Times & Download</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div
+            className="control-panel"
+            style={{
+              padding: "10px 30px 0px 20px",
+            }}
+          >
+            <h4>
+              Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
+              {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
+            <h4>
+              MAP Message Time:{" "}
+              {props.mapSpatTimes.mapTime == 0
+                ? "No Data"
+                : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
+
+            <h4>
+              SPAT Message Time:{" "}
+              {props.mapSpatTimes.spatTime == 0
+                ? "No Data"
+                : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+            </h4>
+            <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
+              Download All Message Data
+            </Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+
+      <Slider
+        sx={{ ml: 2, width: "calc(100% - 60px)" }}
+        value={props.sliderValue}
+        onChange={props.setSlider}
+        min={0}
+        max={props.max}
+        valueLabelDisplay="auto"
+        disableSwap
+      />
     </div>
   );
 }

@@ -30,7 +30,7 @@ const DashboardNavbarRoot = styled(AppBar)(({ theme }: { theme: Theme }) => ({
 
 interface Props {
   onSidebarOpen: () => void;
-  intersections: IntersectionReferenceData[];
+  intersections: (IntersectionReferenceData | undefined)[];
 }
 
 function stringToColor(string?: string) {
@@ -118,15 +118,18 @@ export const DashboardNavbar = (props: Props) => {
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
                 value={intersectionId}
-                label="Age"
+                label="IntersectionId"
                 onChange={(e) => {
-                  setIntersection(e.target.value as number);
+                  setIntersection(
+                    e.target.value as number | undefined,
+                    intersections.find((v) => v?.intersectionID == e.target.value)?.roadRegulatorID
+                  );
                 }}
               >
                 {intersections.map((intersection) => {
                   return (
-                    <MenuItem value={intersection.intersectionID} key={intersection.intersectionID}>
-                      {intersection.intersectionID}
+                    <MenuItem value={intersection?.intersectionID} key={intersection?.intersectionID}>
+                      {intersection?.intersectionID == -1 ? "No Intersection" : intersection?.intersectionID}
                     </MenuItem>
                   );
                 })}
@@ -163,7 +166,7 @@ export const DashboardNavbar = (props: Props) => {
         onClose={() => {
           setOpenMapDialog(false);
         }}
-        intersections={intersections}
+        intersections={intersections.filter((v) => v?.intersectionID != undefined) as IntersectionReferenceData[]}
       />
     </>
   );

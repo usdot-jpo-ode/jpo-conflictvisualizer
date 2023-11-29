@@ -1,0 +1,3512 @@
+{
+  "_id": {
+    "$oid": "6501d4b111017b50c04d694d"
+  },
+  "metadata": {
+    "securityResultCode": "success",
+    "recordGeneratedBy": null,
+    "schemaVersion": {
+      "$numberLong": "6"
+    },
+    "odePacketID": "",
+    "sanitized": false,
+    "recordType": "mapTx",
+    "encodings": null,
+    "recordGeneratedAt": "",
+    "maxDurationTime": {
+      "$numberLong": "0"
+    },
+    "odeTimStartDateTime": "",
+    "receivedMessageDetails": {
+      "locationData": null,
+      "rxSource": "NA"
+    },
+    "mapSource": "RSU",
+    "payloadType": "us.dot.its.jpo.ode.model.OdeMapPayload",
+    "serialId": {
+      "recordId": {
+        "$numberLong": "0"
+      },
+      "serialNumber": {
+        "$numberLong": "0"
+      },
+      "streamId": "139ba3af-e501-4854-9327-b9e1a2ed8dfb",
+      "bundleSize": {
+        "$numberLong": "1"
+      },
+      "bundleId": {
+        "$numberLong": "0"
+      }
+    },
+    "logFileName": "",
+    "odeReceivedAt": "2023-09-13T15:26:40.736Z",
+    "originIp": "10.11.81.12"
+  },
+  "payload": {
+    "data": {
+      "timeStamp": null,
+      "layerType": "intersectionData",
+      "layerID": {
+        "$numberLong": "0"
+      },
+      "restrictionList": null,
+      "dataParameters": null,
+      "msgIssueRevision": {
+        "$numberLong": "2"
+      },
+      "intersections": {
+        "intersectionGeometry": [
+          {
+            "speedLimits": null,
+            "laneSet": {
+              "GenericLane": [
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "2"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "15"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": true,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,J2735LaneAttributes
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "1"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "1"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "1511"
+                              },
+                              "y": {
+                                "$numberLong": "-1514"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "723"
+                              },
+                              "y": {
+                                "$numberLong": "-3116"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "892"
+                              },
+                              "y": {
+                                "$numberLong": "-3818"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "702"
+                              },
+                              "y": {
+                                "$numberLong": "-2507"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "681"
+                              },
+                              "y": {
+                                "$numberLong": "-2412"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "827"
+                              },
+                              "y": {
+                                "$numberLong": "-2798"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "1176"
+                              },
+                              "y": {
+                                "$numberLong": "-3614"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "683"
+                              },
+                              "y": {
+                                "$numberLong": "-1992"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "1000"
+                              },
+                              "y": {
+                                "$numberLong": "-2818"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "466"
+                              },
+                              "y": {
+                                "$numberLong": "-1295"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "2505"
+                              },
+                              "y": {
+                                "$numberLong": "-6164"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "6037"
+                              },
+                              "y": {
+                                "$numberLong": "-13380"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "70"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": true,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "2"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "14"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": true,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "2"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "1"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "1192"
+                              },
+                              "y": {
+                                "$numberLong": "-1619"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "807"
+                              },
+                              "y": {
+                                "$numberLong": "-3733"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "1010"
+                              },
+                              "y": {
+                                "$numberLong": "-4226"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "1612"
+                              },
+                              "y": {
+                                "$numberLong": "-5477"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "1142"
+                              },
+                              "y": {
+                                "$numberLong": "-3648"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "1131"
+                              },
+                              "y": {
+                                "$numberLong": "-3343"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "2259"
+                              },
+                              "y": {
+                                "$numberLong": "-6170"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "2359"
+                              },
+                              "y": {
+                                "$numberLong": "-5737"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "5300"
+                              },
+                              "y": {
+                                "$numberLong": "-11774"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "50"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": true,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "2"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "10"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": false,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": true,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "3"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "1"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "805"
+                              },
+                              "y": {
+                                "$numberLong": "-1704"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "380"
+                              },
+                              "y": {
+                                "$numberLong": "-1813"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "832"
+                              },
+                              "y": {
+                                "$numberLong": "-3451"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": {
+                              "x": {
+                                "$numberLong": "202"
+                              },
+                              "y": {
+                                "$numberLong": "-872"
+                              }
+                            },
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "340"
+                              },
+                              "y": {
+                                "$numberLong": "-482"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": false,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": true,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "6"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "2"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-988"
+                              },
+                              "y": {
+                                "$numberLong": "-2151"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "69"
+                              },
+                              "y": {
+                                "$numberLong": "-329"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "5"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "2"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-630"
+                              },
+                              "y": {
+                                "$numberLong": "-2062"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "76"
+                              },
+                              "y": {
+                                "$numberLong": "-377"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "4"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "2"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-245"
+                              },
+                              "y": {
+                                "$numberLong": "-2001"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "76"
+                              },
+                              "y": {
+                                "$numberLong": "-349"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "10"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "4"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2374"
+                              },
+                              "y": {
+                                "$numberLong": "232"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "-357"
+                              },
+                              "y": {
+                                "$numberLong": "-96"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "4"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "15"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": false,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": true,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "8"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "3"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2246"
+                              },
+                              "y": {
+                                "$numberLong": "-514"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2644"
+                              },
+                              "y": {
+                                "$numberLong": "-581"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2887"
+                              },
+                              "y": {
+                                "$numberLong": "-442"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-3583"
+                              },
+                              "y": {
+                                "$numberLong": "-339"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-3757"
+                              },
+                              "y": {
+                                "$numberLong": "27"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-3249"
+                              },
+                              "y": {
+                                "$numberLong": "361"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2050"
+                              },
+                              "y": {
+                                "$numberLong": "478"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-3893"
+                              },
+                              "y": {
+                                "$numberLong": "1184"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2625"
+                              },
+                              "y": {
+                                "$numberLong": "766"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2524"
+                              },
+                              "y": {
+                                "$numberLong": "607"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2280"
+                              },
+                              "y": {
+                                "$numberLong": "325"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": false,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": true,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": null,
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "6"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": false,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": true,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "7"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "3"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2216"
+                              },
+                              "y": {
+                                "$numberLong": "-915"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2322"
+                              },
+                              "y": {
+                                "$numberLong": "-471"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1877"
+                              },
+                              "y": {
+                                "$numberLong": "-349"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1787"
+                              },
+                              "y": {
+                                "$numberLong": "-235"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2666"
+                              },
+                              "y": {
+                                "$numberLong": "-102"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": false,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": true,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "4"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "14"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": false,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": true,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "9"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "3"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2295"
+                              },
+                              "y": {
+                                "$numberLong": "-169"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2420"
+                              },
+                              "y": {
+                                "$numberLong": "-499"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1968"
+                              },
+                              "y": {
+                                "$numberLong": "-339"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1843"
+                              },
+                              "y": {
+                                "$numberLong": "-256"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-2121"
+                              },
+                              "y": {
+                                "$numberLong": "-339"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": false,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": true,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "6"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "5"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": true,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "12"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "5"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1364"
+                              },
+                              "y": {
+                                "$numberLong": "1705"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "-885"
+                              },
+                              "y": {
+                                "$numberLong": "4854"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-410"
+                              },
+                              "y": {
+                                "$numberLong": "2559"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-333"
+                              },
+                              "y": {
+                                "$numberLong": "1847"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-319"
+                              },
+                              "y": {
+                                "$numberLong": "3244"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "-500"
+                              },
+                              "y": {
+                                "$numberLong": "4510"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-333"
+                              },
+                              "y": {
+                                "$numberLong": "3403"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-268"
+                              },
+                              "y": {
+                                "$numberLong": "2982"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "-758"
+                              },
+                              "y": {
+                                "$numberLong": "11212"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "-323"
+                              },
+                              "y": {
+                                "$numberLong": "11176"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-70"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": true,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": {
+                          "$numberLong": "6"
+                        },
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "4"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": true,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": false,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "13"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "5"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-992"
+                              },
+                              "y": {
+                                "$numberLong": "1735"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": {
+                              "x": {
+                                "$numberLong": "-896"
+                              },
+                              "y": {
+                                "$numberLong": "4816"
+                              }
+                            },
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-326"
+                              },
+                              "y": {
+                                "$numberLong": "2227"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-333"
+                              },
+                              "y": {
+                                "$numberLong": "2366"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-410"
+                              },
+                              "y": {
+                                "$numberLong": "3030"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-326"
+                              },
+                              "y": {
+                                "$numberLong": "3009"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-271"
+                              },
+                              "y": {
+                                "$numberLong": "2518"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-264"
+                              },
+                              "y": {
+                                "$numberLong": "2857"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-243"
+                              },
+                              "y": {
+                                "$numberLong": "2504"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "-740"
+                              },
+                              "y": {
+                                "$numberLong": "11165"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-30"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": {
+                              "x": {
+                                "$numberLong": "-253"
+                              },
+                              "y": {
+                                "$numberLong": "11359"
+                              }
+                            },
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-70"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": true,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": false,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": {
+                    "connectsTo": [
+                      {
+                        "userClass": null,
+                        "connectionID": {
+                          "$numberLong": "1"
+                        },
+                        "remoteIntersection": null,
+                        "signalGroup": null,
+                        "connectingLane": {
+                          "lane": {
+                            "$numberLong": "10"
+                          },
+                          "maneuver": {
+                            "maneuverStraightAllowed": false,
+                            "maneuverNoStoppingAllowed": false,
+                            "goWithHalt": false,
+                            "maneuverLeftAllowed": false,
+                            "maneuverUTurnAllowed": false,
+                            "maneuverLeftTurnOnRedAllowed": false,
+                            "reserved1": false,
+                            "maneuverRightAllowed": true,
+                            "maneuverLaneChangeAllowed": false,
+                            "yieldAllwaysRequired": false,
+                            "maneuverRightTurnOnRedAllowed": false,
+                            "caution": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "laneID": {
+                    "$numberLong": "11"
+                  },
+                  "egressApproach": null,
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": true,
+                      "egressPath": false
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": {
+                    "$numberLong": "5"
+                  },
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-1744"
+                              },
+                              "y": {
+                                "$numberLong": "1607"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-563"
+                              },
+                              "y": {
+                                "$numberLong": "3136"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": {
+                              "x": {
+                                "$numberLong": "-352"
+                              },
+                              "y": {
+                                "$numberLong": "2336"
+                              }
+                            },
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-223"
+                              },
+                              "y": {
+                                "$numberLong": "1407"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "-155"
+                              },
+                              "y": {
+                                "$numberLong": "1778"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": {
+                    "maneuverStraightAllowed": false,
+                    "maneuverNoStoppingAllowed": false,
+                    "goWithHalt": false,
+                    "maneuverLeftAllowed": false,
+                    "maneuverUTurnAllowed": false,
+                    "maneuverLeftTurnOnRedAllowed": false,
+                    "reserved1": false,
+                    "maneuverRightAllowed": true,
+                    "maneuverLaneChangeAllowed": false,
+                    "yieldAllwaysRequired": false,
+                    "maneuverRightTurnOnRedAllowed": false,
+                    "caution": false
+                  }
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "14"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "6"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "398"
+                              },
+                              "y": {
+                                "$numberLong": "1931"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-10"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "-76"
+                              },
+                              "y": {
+                                "$numberLong": "356"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                },
+                {
+                  "connectsTo": null,
+                  "laneID": {
+                    "$numberLong": "15"
+                  },
+                  "egressApproach": {
+                    "$numberLong": "6"
+                  },
+                  "laneAttributes": {
+                    "directionalUse": {
+                      "ingressPath": false,
+                      "egressPath": true
+                    },
+                    "shareWith": {
+                      "busVehicleTraffic": false,
+                      "trackedVehicleTraffic": false,
+                      "individualMotorizedVehicleTraffic": false,
+                      "taxiVehicleTraffic": false,
+                      "overlappingLaneDescriptionProvided": false,
+                      "cyclistVehicleTraffic": false,
+                      "otherNonMotorizedTrafficTypes": false,
+                      "multipleLanesTreatedAsOneLane": false,
+                      "pedestrianTraffic": false,
+                      "pedestriansTraffic": false
+                    },
+                    "laneType": {
+                      "sidewalk": null,
+                      "parking": null,
+                      "crosswalk": null,
+                      "median": null,
+                      "striping": null,
+                      "bikeLane": null,
+                      "trackedVehicle": null,
+                      "vehicle": {
+                        "isVehicleRevocableLane": false,
+                        "isVehicleFlyOverLane": false,
+                        "permissionOnRequest": false,
+                        "hasIRbeaconCoverage": false,
+                        "restrictedToBusUse": false,
+                        "restrictedToTaxiUse": false,
+                        "restrictedFromPublicUse": false,
+                        "hovLaneUseOnly": false
+                      }
+                    }
+                  },
+                  "overlays": null,
+                  "name": null,
+                  "ingressApproach": null,
+                  "nodeList": {
+                    "nodes": {
+                      "NodeXY": [
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": {
+                              "x": {
+                                "$numberLong": "838"
+                              },
+                              "y": {
+                                "$numberLong": "1985"
+                              }
+                            },
+                            "nodeXY2": null,
+                            "nodeXY1": null,
+                            "nodeLatLon": null
+                          },
+                          "attributes": {
+                            "data": null,
+                            "dElevation": {
+                              "$numberLong": "-20"
+                            },
+                            "localNode": null,
+                            "disabled": null,
+                            "dWidth": null,
+                            "enabled": null
+                          }
+                        },
+                        {
+                          "delta": {
+                            "nodeXY6": null,
+                            "nodeXY5": null,
+                            "nodeXY4": null,
+                            "nodeXY3": null,
+                            "nodeXY2": null,
+                            "nodeXY1": {
+                              "x": {
+                                "$numberLong": "-89"
+                              },
+                              "y": {
+                                "$numberLong": "349"
+                              }
+                            },
+                            "nodeLatLon": null
+                          },
+                          "attributes": null
+                        }
+                      ]
+                    },
+                    "computed": null
+                  },
+                  "maneuvers": null
+                }
+              ]
+            },
+            "name": null,
+            "refPoint": {
+              "elevation": {
+                "$numberLong": "1691"
+              },
+              "latitude": 39.5880413,
+              "longitude": -105.0908854
+            },
+            "laneWidth": {
+              "$numberLong": "366"
+            },
+            "id": {
+              "id": {
+                "$numberLong": "12109"
+              },
+              "region": null
+            },
+            "revision": {
+              "$numberLong": "2"
+            }
+          }
+        ]
+      },
+      "roadSegments": null
+    },
+    "dataType": "us.dot.its.jpo.ode.plugin.j2735.J2735MAP"
+  }
+}

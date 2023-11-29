@@ -32,6 +32,7 @@ import {
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { FormikCheckboxList } from "./formik-checkbox-list";
+import { useQueryContext } from "../../contexts/query-context";
 
 interface Item {
   label: string;
@@ -49,38 +50,36 @@ const EVENT_TYPES: Item[] = [
   { label: "SignalStateEvent", value: "signal_state" },
   { label: "SignalStateStopEvent", value: "signal_state_stop" },
   { label: "TimeChangeDetailsEvent", value: "time_change_details" },
-  //   { label: "MapMinimumDataEvent", value: "All" },
-  //   { label: "SpatMinimumDataEvent", value: "All" },
-  //   { label: "MapBroadcastRateEvent", value: "All" },
-  //   { label: "SpatBroadcastRateEvent", value: "All" },
+  { label: "MapMinimumDataEvent", value: "map_minimum_data" },
+  { label: "SpatMinimumDataEvent", value: "spat_minimum_data" },
+  { label: "MapBroadcastRateEvent", value: "map_broadcast_rate" },
+  { label: "SpatBroadcastRateEvent", value: "spat_broadcast_rate" },
 ];
 
 const ASSESSMENT_TYPES: Item[] = [
   { label: "All", value: "All" },
   { label: "SignalStateEventAssessment", value: "signal_state_event_assessment" },
-  { label: "SignalStateAssessment", value: "signal_state_assessment" },
+  { label: "StopLineStopAssessment", value: "signal_state_assessment" },
   { label: "LaneDirectionOfTravelAssessment", value: "lane_direction_of_travel" },
   { label: "ConnectionOfTravelAssessment", value: "connection_of_travel" },
 ];
 
-export const DataSelectorEditForm = (props) => {
-  const { onQuery, onVisualize, dbIntersectionId, ...other } = props;
+export const DataSelectorEditForm = (props: {
+  onQuery: (query: any) => void;
+  onVisualize: (query: any) => void;
+  dbIntersectionId: number | undefined;
+  roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] };
+}) => {
+  const { onQuery, onVisualize, dbIntersectionId, roadRegulatorIntersectionIds, ...other } = props;
   const [visualize, setVisualize] = useState(false);
+
+  const { dataSelectorForm, setDataSelectorForm } = useQueryContext();
+
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      type: "events",
-      startDate: new Date(),
-      timeRange: 0,
-      timeUnit: "minutes" as dayjs.ManipulateType,
-      intersectionId: dbIntersectionId,
-      roadRegulatorId: -1,
-      submit: null,
-
-      // type specific filters
-      bsmVehicleId: null,
-      eventTypes: [] as Item[],
-      assessmentTypes: [] as Item[],
+      ...dataSelectorForm,
+      intersectionId: dataSelectorForm.intersectionId ?? dbIntersectionId,
     },
     validationSchema: Yup.object({
       //   type: Yup.string().required("Type is required"),
@@ -104,6 +103,7 @@ export const DataSelectorEditForm = (props) => {
             eventTypes: values.eventTypes.map((e) => e.value).filter((e) => e !== "All"),
           });
         } else {
+          setDataSelectorForm(values);
           helpers.setStatus({ success: true });
           helpers.setSubmitting(false);
           onQuery({
@@ -193,7 +193,26 @@ export const DataSelectorEditForm = (props) => {
         <CardContent>
           <Grid container spacing={3}>
             <Grid item md={6} xs={12}>
-              <TextField
+              <Select
+                error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
+                fullWidth
+                value={formik.values.intersectionId}
+                label="Intersection ID"
+                name="intersectionId"
+                onChange={(e) => {
+                  formik.setFieldValue("intersectionId", Number(e.target.value));
+                }}
+                onBlur={formik.handleBlur}
+              >
+                {roadRegulatorIntersectionIds?.[formik.values.roadRegulatorId]?.map((intersectionId) => {
+                  return (
+                    <MenuItem value={intersectionId} key={intersectionId}>
+                      {intersectionId}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+              {/* <TextField
                 error={Boolean(formik.touched.intersectionId && formik.errors.intersectionId)}
                 fullWidth
                 // helperText={formik.touched.intersectionId && formik.errors.intersectionId}
@@ -201,10 +220,29 @@ export const DataSelectorEditForm = (props) => {
                 name="intersectionId"
                 onChange={formik.handleChange}
                 value={formik.values.intersectionId}
-              />
+              /> */}
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
+              <Select
+                error={Boolean(formik.touched.roadRegulatorId && formik.errors.roadRegulatorId)}
+                fullWidth
+                value={formik.values.roadRegulatorId}
+                label="Road Regulator ID"
+                name="roadRegulatorId"
+                onChange={(e) => {
+                  formik.setFieldValue("roadRegulatorId", Number(e.target.value));
+                }}
+                onBlur={formik.handleBlur}
+              >
+                {Object.keys(roadRegulatorIntersectionIds)?.map((roadRegulatorId) => {
+                  return (
+                    <MenuItem value={roadRegulatorId} key={roadRegulatorId}>
+                      {roadRegulatorId}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+              {/* <TextField
                 error={Boolean(formik.touched.roadRegulatorId && formik.errors.roadRegulatorId)}
                 fullWidth
                 helperText={formik.touched.roadRegulatorId && formik.errors.roadRegulatorId}
@@ -212,7 +250,7 @@ export const DataSelectorEditForm = (props) => {
                 name="roadRegulatorId"
                 onChange={formik.handleChange}
                 value={formik.values.roadRegulatorId}
-              />
+              /> */}
             </Grid>
             <Grid item md={4} xs={12}>
               <Select
@@ -316,10 +354,4 @@ export const DataSelectorEditForm = (props) => {
       </Card>
     </form>
   );
-};
-
-DataSelectorEditForm.propTypes = {
-  onQuery: PropTypes.func.isRequired,
-  onVisualize: PropTypes.func.isRequired,
-  dbIntersectionId: PropTypes.number,
 };

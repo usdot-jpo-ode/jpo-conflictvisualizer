@@ -25,7 +25,13 @@ export const ConfigParamRemoveForm = (props) => {
     },
     validationSchema: Yup.object({}),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken || !intersectionId) {
+      if (!session?.accessToken || intersectionId == -1) {
+        console.error(
+          "Did not attempt to remove configuration parameter. Access token:",
+          session?.accessToken,
+          "Intersection ID:",
+          intersectionId
+        );
         return;
       }
       try {
