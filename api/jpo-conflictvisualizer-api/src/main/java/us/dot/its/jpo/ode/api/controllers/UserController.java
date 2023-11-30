@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.api.controllers;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 // import us.dot.its.jpo.ode.api.EmailService;
 import us.dot.its.jpo.ode.api.ConflictMonitorApiProperties;
+
+import java.util.UUID;
 
 @RestController
 public class UserController {
@@ -145,8 +149,12 @@ public class UserController {
 
             // EmailServiceImpl email = new EmailServiceImpl();
             
-            
-            
+            String password = generateRandomPassword();
+
+            CredentialRepresentation credentials = new CredentialRepresentation();
+
+            credentials.setType("password");
+            credentials.setValue(password);
 
             UserRepresentation user = new UserRepresentation();
             user.setUsername(newUserCreationRequest.getEmail());
@@ -154,6 +162,10 @@ public class UserController {
             user.setFirstName(newUserCreationRequest.getFirstName());
             user.setLastName(newUserCreationRequest.getLastName());
             user.setEnabled(true);
+
+            user.setCredentials(List.of(credentials));
+            
+            
             
             
             List<String> groups = new ArrayList<>();
@@ -187,6 +199,18 @@ public class UserController {
 
                 Query query = userRepo.getQuery(null, null, null, newUserCreationRequest.getEmail(), null, null, null);
                 userRepo.delete(query);
+
+
+                
+                email.sendSimpleMessage(newUserCreationRequest.getEmail(), "New CIMMS User Account Created", "A new account has been created for you.\n\n User info: \n" + 
+                "First Name: " + newUserCreationRequest.getFirstName() + "\n" + 
+                "Last Name: " + newUserCreationRequest.getLastName() + "\n" + 
+                "Email: " + newUserCreationRequest.getEmail() + "\n" +
+                "Role: " + newUserCreationRequest.getRole() + "\n\n\n" + 
+                "Temporary Password: " + password + "\n" +
+                "You may now log into your user account with your email and provided password.\n\n"
+                );
+
                 
                 return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
                     .body(newUserCreationRequest.toString());
@@ -272,5 +296,11 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.TEXT_PLAIN)
                     .body(ExceptionUtils.getStackTrace(e));
         }
+    }
+
+
+    private static String generateRandomPassword() {
+        // You can customize the logic for generating a random password based on your requirements
+        return UUID.randomUUID().toString().substring(0, 8); // Using the first 8 characters of the UUID as a simple example
     }
 }
