@@ -1,6 +1,7 @@
 import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
-import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip } from "recharts";
+import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, Tooltip, TooltipProps } from "recharts";
+import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateEventAssessment | undefined }) => {
   const { assessment } = props;
@@ -14,8 +15,82 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
   0;
   const widthFactor = getWidthFactorFromData(assessment?.signalStateEventAssessmentGroup);
 
+  const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
+    if (active && payload) {
+      const obj = payload[0].payload;
+      return (
+        <div
+          key={obj.laneId}
+          style={{
+            padding: "6px",
+            backgroundColor: "white",
+            border: "1px solid grey",
+          }}
+        >
+          <b>Signal Group: {obj.signalGroup}</b>
+          <p>Total Events: {obj.total}</p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <div style={{ height: 20, width: 20, backgroundColor: "#e74b4b", marginRight: "5px" }}></div>
+            <p>
+              Red Events: {obj.redCount}, {Math.round(obj.red)}%
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <div style={{ height: 20, width: 20, backgroundColor: "#ffe600", marginRight: "5px" }}></div>
+            <p>
+              Yellow Events: {obj.yellowCount}, {Math.round(obj.yellow)}%
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <div style={{ height: 20, width: 20, backgroundColor: "#44db51", marginRight: "5px" }}></div>
+            <p>
+              Green Events: {obj.greenCount}, {Math.round(obj.green)}%
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <div style={{ height: 20, width: 20, backgroundColor: "#505050", marginRight: "5px" }}></div>
+            <p>
+              Dark Events: {obj.darkCount}, {Math.round(obj.dark)}%
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  function sortByName(a, b) {
+    if (a.name < b.name) {
+      return -1;
+    }
+    if (a.name > b.name) {
+      return 1;
+    }
+    return 0;
+  }
+
   return (
-    <Grid item width={100 + widthFactor * 1200}>
+    <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1200}>
       <Card sx={{ height: "100%" }}>
         <CardContent>
           <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
@@ -31,17 +106,25 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                 <BarChart
                   width={widthFactor * 1200}
                   height={350}
-                  data={assessment.signalStateEventAssessmentGroup.map((group) => {
-                    const total =
-                      Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
-                    return {
-                      name: `${group.signalGroup}`,
-                      red: Math.round((group.redEvents / total) * 100) / 100,
-                      yellow: Math.round((group.yellowEvents / total) * 100) / 100,
-                      green: Math.round((group.greenEvents / total) * 100) / 100,
-                      dark: Math.round((group.darkEvents / total) * 100) / 100,
-                    };
-                  })}
+                  data={assessment.signalStateEventAssessmentGroup
+                    .map((group) => {
+                      const total =
+                        Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
+                      return {
+                        name: `${group.signalGroup}`,
+                        signalGroup: `${group.signalGroup}`,
+                        total: total * 100,
+                        red: Math.floor((group.redEvents / total) * 100) / 100,
+                        redCount: group.redEvents,
+                        yellow: Math.floor((group.yellowEvents / total) * 100) / 100,
+                        yellowCount: group.yellowEvents,
+                        green: Math.floor((group.greenEvents / total) * 100) / 100,
+                        greenCount: group.greenEvents,
+                        dark: Math.floor((group.darkEvents / total) * 100) / 100,
+                        darkCount: group.darkEvents,
+                      };
+                    })
+                    .sort(sortByName)}
                   margin={{
                     top: 20,
                     right: 30,
@@ -51,18 +134,18 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" label={{ value: "Signal Group", position: "insideBottomRight", offset: -5 }} />
-                  <YAxis unit="%" label={{ value: "Percentage", angle: -90, position: "insideLeft" }} />
-                  <Tooltip />
+                  <YAxis unit="%" label={{ value: "Event Count (%)", angle: -90, position: "insideLeft" }} />
+                  <Tooltip content={CustomTooltip} />
                   <Legend
                     wrapperStyle={{
                       paddingTop: "10px",
                       height: "50px",
                     }}
                   />
-                  <Bar dataKey="red" stackId="a" fill="#ff0000" />
-                  <Bar dataKey="yellow" stackId="a" fill="#d3df00" />
-                  <Bar dataKey="green" stackId="a" fill="#00cc0a" />
-                  <Bar dataKey="dark" stackId="a" fill="#323232" />
+                  <Bar dataKey="red" stackId="a" fill="#e74b4b" />
+                  <Bar dataKey="yellow" stackId="a" fill="#ffe600" />
+                  <Bar dataKey="green" stackId="a" fill="#44db51" />
+                  <Bar dataKey="dark" stackId="a" fill="#505050" />
                 </BarChart>
               )}
             </Grid>
