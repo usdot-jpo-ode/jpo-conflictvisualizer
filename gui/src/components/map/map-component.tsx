@@ -272,8 +272,8 @@ const MapTab = (props: MyProps) => {
   }>({
     bsmColors: { Other: "#0004ff" },
     laneColors: {
-      Ingress: "#0004ff",
-      Egress: "#eb34e8",
+      Ingress: "#eb34e8",
+      Egress: "#0004ff",
     },
     travelConnectionColors: {
       UNAVAILABLE: ["#797979", [2, 1]],
