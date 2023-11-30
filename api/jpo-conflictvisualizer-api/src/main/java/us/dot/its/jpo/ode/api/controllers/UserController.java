@@ -206,8 +206,8 @@ public class UserController {
                 "First Name: " + newUserCreationRequest.getFirstName() + "\n" + 
                 "Last Name: " + newUserCreationRequest.getLastName() + "\n" + 
                 "Email: " + newUserCreationRequest.getEmail() + "\n" +
-                "Role: " + newUserCreationRequest.getRole() + "\n\n\n" + 
-                "Temporary Password: " + password + "\n" +
+                "Role: " + newUserCreationRequest.getRole() + "\n" + 
+                "Temporary Password: " + password + "\n\n\n" +
                 "You may now log into your user account with your email and provided password.\n\n"
                 );
 
