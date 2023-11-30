@@ -874,34 +874,62 @@ const MapTab = (props: MyProps) => {
 
     console.log("Attempting Web Socket Connection");
     const token = session?.accessToken;
-    const endpoint = "ws://172.250.250.181:8081/live/spat";
-    // const endpoint = "ws://rubberDucky/test";
-    const socket = socketApiHelper.createConnection({endpoint:endpoint, token:token});
-    socket.addEventListener('open', (event)=>{
+
+    const rootUrl = "ws://172.250.250.181:8081";
+    const spatEndpoint = rootUrl + "/live/spat";
+    const mapEndpoint = rootUrl + "/live/map";
+    
+    
+    const spatSocket = socketApiHelper.createConnection({endpoint:spatEndpoint, token:token});
+    const mapSocket = socketApiHelper.createConnection({endpoint:mapEndpoint, token:token});
+
+
+    // Setup Callbacks for Spat Socket
+    spatSocket.addEventListener('open', (event)=>{
       console.log('Received message:', event);
       console.log("Web Socket Connection Opened");
-      socket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
+      spatSocket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
     });
 
-    socket.addEventListener('message', (event) => {
+    spatSocket.addEventListener('message', (event) => {
       console.log('Received message:', event.data);
     });
 
-    socket.addEventListener('close', (event) => {
+    spatSocket.addEventListener('close', (event) => {
       console.log('WebSocket connection closed:', event);
     });
 
-    socket.addEventListener('error', (event) => {
-      // You can access the detailed error message
+    spatSocket.addEventListener('error', (event) => {
       console.log('Error message:', event);
     })
 
-    socket.addEventListener('close', (event) => {
+    spatSocket.addEventListener('close', (event) => {
       console.log('WebSocket connection closed:', event);
+    });
 
-      // You can check the close code and reason for more information
-      console.log('Close code:', event.code);
-      console.log('Close reason:', event.reason);
+
+
+    // Setup Callbacks for Map Socket
+    mapSocket.addEventListener('open', (event)=>{
+      console.log('Received message:', event);
+      console.log("Web Socket Connection Opened");
+      mapSocket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
+    });
+
+    mapSocket.addEventListener('message', (event) => {
+      console.log('Received message:', event.data);
+    });
+
+    mapSocket.addEventListener('close', (event) => {
+      console.log('WebSocket connection closed:', event);
+    });
+
+    mapSocket.addEventListener('error', (event) => {
+      console.log('Error message:', event);
+    })
+
+    mapSocket.addEventListener('close', (event) => {
+      console.log('WebSocket connection closed:', event);
     });
 
 
@@ -913,7 +941,8 @@ const MapTab = (props: MyProps) => {
 
     // Disconnect and clean up when component unmounts
     return () => {
-      socket.close();
+      spatSocket.close();
+      mapSocket.close();
     };
   }, []);
 
