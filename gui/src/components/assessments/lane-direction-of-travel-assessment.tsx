@@ -119,7 +119,7 @@ export const LaneDirectionOfTravelAssessmentCard = (props: {
   };
 
   return (
-    <Grid item width={100 + widthFactor * 1200}>
+    <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1200}>
       <Card sx={{ height: "100%" }}>
         <CardContent>
           <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>

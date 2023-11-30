@@ -165,6 +165,8 @@ const connectingLanesLabelsLayer: SymbolLayer = {
     "text-variable-anchor": ["top", "left", "right", "bottom"],
     "text-allow-overlap": true,
     "icon-allow-overlap": true,
+    "icon-image": "rounded",
+    "icon-text-fit": "both",
   },
   paint: {
     "text-color": "#000000",
@@ -265,7 +267,8 @@ const MapTab = (props: MyProps) => {
   const [mapLegendColors, setMapLegendColors] = useState<{
     bsmColors: { [key: string]: string };
     laneColors: { [key: string]: string };
-    travelConnectionColors: { [key: string]: string };
+    travelConnectionColors: { [key: string]: [string, number[]] };
+    signalHeadIcons: { [key: string]: string };
   }>({
     bsmColors: { Other: "#0004ff" },
     laneColors: {
@@ -273,10 +276,39 @@ const MapTab = (props: MyProps) => {
       Egress: "#eb34e8",
     },
     travelConnectionColors: {
-      Green: "#30af25",
-      Yellow: "#c5b800",
-      Red: "#da2f2f",
-      "No SPAT/Unknown": "#000000",
+      UNAVAILABLE: ["#797979", [2, 1]],
+      DARK: ["#3a3a3a", [2, 1]],
+      STOP_THEN_PROCEED: ["#c00000", [2, 1]],
+      STOP_AND_REMAIN: ["#c00000", [1]],
+      PRE_MOVEMENT: ["#c00000", [2, 2]],
+      PERMISSIVE_MOVEMENT_ALLOWED: ["#267700", [2, 1]],
+      PROTECTED_MOVEMENT_ALLOWED: ["#267700", [1]],
+      PERMISSIVE_CLEARANCE: ["#e6b000", [2, 1]],
+      PROTECTED_CLEARANCE: ["#e6b000", [1]],
+      CAUTION_CONFLICTING_TRAFFIC: ["#e6b000", [1, 4]],
+    },
+    signalHeadIcons: {
+      UNAVAILABLE: "/icons/traffic-light-icon-unknown.svg",
+      DARK: "/icons/traffic-light-icon-unknown.svg",
+      STOP_THEN_PROCEED: "/icons/traffic-light-icon-red-flashing.svg",
+      STOP_AND_REMAIN: "/icons/traffic-light-icon-red-1.svg",
+      PRE_MOVEMENT: "/icons/traffic-light-icon-yellow-red-1.svg",
+      PERMISSIVE_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-yellow-1.svg",
+      PROTECTED_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-green-1.svg",
+      PERMISSIVE_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",
+      PROTECTED_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",
+      CAUTION_CONFLICTING_TRAFFIC: "/icons/traffic-light-icon-yellow-1.svg",
+
+      // "UNAVAILABLE": "traffic-light-icon-unknown",
+      // "DARK": "traffic-light-icon-unknown",
+      // "STOP_THEN_PROCEED": "traffic-light-icon-red-flashing",
+      // "STOP_AND_REMAIN": "traffic-light-icon-red-1",
+      // "PRE_MOVEMENT": "traffic-light-icon-yellow-red-1",
+      // "PERMISSIVE_MOVEMENT_ALLOWED": "traffic-light-icon-yellow-1",
+      // "PROTECTED_MOVEMENT_ALLOWED": "traffic-light-icon-green-1",
+      // "PERMISSIVE_CLEARANCE": "traffic-light-icon-yellow-1",
+      // "PROTECTED_CLEARANCE": "traffic-light-icon-yellow-1",
+      // "CAUTION_CONFLICTING_TRAFFIC": "traffic-light-icon-yellow-1",
     },
   });
 
@@ -360,6 +392,16 @@ const MapTab = (props: MyProps) => {
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
+  const [importedMessageData, setImportedMessageData] = useState<
+    | {
+        mapData: ProcessedMap[];
+        bsmData: OdeBsmData[];
+        spatData: ProcessedSpat[];
+        notificationData: any;
+      }
+    | undefined
+  >(undefined);
+  const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -522,26 +564,6 @@ const MapTab = (props: MyProps) => {
     return markerCollection;
   };
 
-  const parseSignalStateToColor = (state?: SignalState): string => {
-    switch (state) {
-      case "STOP_AND_REMAIN":
-        return RED_LIGHT; // red
-      case "PRE_MOVEMENT":
-        return YELLOW_RED_LIGHT; // red
-      case "STOP_THEN_PROCEED":
-        return RED_FLASHING_LIGHT; // red
-      case "PROTECTED_CLEARANCE":
-      case "PERMISSIVE_MOVEMENT_ALLOWED":
-      case "PERMISSIVE_CLEARANCE":
-      case "CAUTION_CONFLICTING_TRAFFIC":
-        return YELLOW_LIGHT; // yellow
-      case "PROTECTED_MOVEMENT_ALLOWED":
-        return GREEN_LIGHT; // green
-      default:
-        return UNKNOWN_LIGHT;
-    }
-  };
-
   const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
     const timedSignalGroups: SpatSignalGroups = {};
     spats?.forEach((spat: ProcessedSpat) => {
@@ -595,17 +617,52 @@ const MapTab = (props: MyProps) => {
     prevSignalStates: SignalStateFeatureCollection,
     signalGroups: SpatSignalGroup[]
   ): SignalStateFeatureCollection => {
-    (prevSignalStates?.features ?? []).forEach((feature) => {
-      feature.properties.signalState =
-        signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
-        "UNAVAILABLE";
-    });
-    return prevSignalStates;
+    return {
+      ...prevSignalStates,
+      features: (prevSignalStates?.features ?? []).map((feature) => ({
+        ...feature,
+        properties: {
+          ...feature.properties,
+          signalState:
+            signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
+            "UNAVAILABLE",
+        },
+      })),
+    };
   };
 
-  //   useEffect(() => {
-  //     setPointData(mapMessageData.mapFeatureCollection)
-  //   }, []);
+  const handleImportedMessageData = ({
+    mapData,
+    bsmData,
+    spatData,
+    notificationData,
+  }: {
+    mapData: ProcessedMap[];
+    bsmData: OdeBsmData[];
+    spatData: ProcessedSpat[];
+    notificationData: any;
+  }) => {
+    console.log("handleImportedMessageData");
+    const sortedSpatData = spatData.sort((x, y) => {
+      if (x.odeReceivedAt < y.odeReceivedAt) {
+        return 1;
+      }
+      if (x.odeReceivedAt > y.odeReceivedAt) {
+        return -1;
+      }
+      return 0;
+    });
+    const endTime = new Date(sortedSpatData[0].odeReceivedAt);
+    const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].odeReceivedAt);
+    setImportedMessageData({ mapData, bsmData, spatData, notificationData });
+    console.log("Imported Data Changed");
+    setQueryParams({
+      startDate: startTime,
+      endDate: endTime,
+      eventDate: startTime,
+      intersectionId: mapData[0].properties.intersectionId,
+    });
+  };
 
   const pullInitialData = async () => {
     if (
@@ -621,24 +678,82 @@ const MapTab = (props: MyProps) => {
       );
       return;
     }
-    const rawMapPromise = MessageMonitorApi.getMapMessages({
-      token: session?.accessToken,
-      intersection_id: queryParams.intersectionId?.toString(),
-      //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
-      endTime: queryParams.endDate,
-      latest: true,
-    });
-    toast.promise(rawMapPromise, {
-      loading: `Loading MAP Data`,
-      success: `Successfully got MAP Data`,
-      error: `Failed to get MAP data. Please see console`,
-    });
-    const rawMap: ProcessedMap[] = await rawMapPromise;
+    console.log("Pulling Initial Data");
+    let rawMap: ProcessedMap[] = [];
+    let rawSpat: ProcessedSpat[] = [];
+    let rawBsm: OdeBsmData[] = [];
+    if (!importedMessageData) {
+      // ######################### Retrieve MAP Data #########################
+      const rawMapPromise = MessageMonitorApi.getMapMessages({
+        token: session?.accessToken,
+        intersection_id: queryParams.intersectionId?.toString(),
+        //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
+        endTime: queryParams.endDate,
+        latest: true,
+      });
+      toast.promise(rawMapPromise, {
+        loading: `Loading MAP Data`,
+        success: `Successfully got MAP Data`,
+        error: `Failed to get MAP data. Please see console`,
+      });
+      rawMap = await rawMapPromise;
+
+      // ######################### Retrieve SPAT Data #########################
+      const rawSpatPromise = MessageMonitorApi.getSpatMessages({
+        token: session?.accessToken,
+        intersection_id: queryParams.intersectionId?.toString(),
+        startTime: queryParams.startDate,
+        endTime: queryParams.endDate,
+      });
+      toast.promise(rawSpatPromise, {
+        loading: `Loading SPAT Data`,
+        success: `Successfully got SPAT Data`,
+        error: `Failed to get SPAT data. Please see console`,
+      });
+      rawSpat = await rawSpatPromise;
+
+      // ######################### Surrounding Events #########################
+      const surroundingEventsPromise = EventsApi.getAllEvents(
+        session?.accessToken,
+        queryParams.intersectionId,
+        queryParams.startDate,
+        queryParams.endDate
+      );
+      toast.promise(surroundingEventsPromise, {
+        loading: `Loading Event Data`,
+        success: `Successfully got Event Data`,
+        error: `Failed to get Event data. Please see console`,
+      });
+      surroundingEventsPromise.then((events) => setSurroundingEvents(events));
+
+      // ######################### Surrounding Notifications #########################
+      const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
+        token: session?.accessToken,
+        intersection_id: queryParams.intersectionId?.toString(),
+        startTime: queryParams.startDate,
+        endTime: queryParams.endDate,
+      });
+      toast.promise(surroundingNotificationsPromise, {
+        loading: `Loading Notification Data`,
+        success: `Successfully got Notification Data`,
+        error: `Failed to get Notification data. Please see console`,
+      });
+      surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
+    } else {
+      rawMap = importedMessageData.mapData;
+      rawSpat = importedMessageData.spatData;
+      rawBsm = importedMessageData.bsmData;
+    }
     if (!rawMap || rawMap.length == 0) {
       console.info("NO MAP MESSAGES WITHIN TIME");
       return;
     }
+
+    // ######################### MAP Data #########################
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
+    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
+
+    // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, connectingLanes!);
     setMapData(latestMapMessage);
@@ -655,41 +770,28 @@ const MapTab = (props: MyProps) => {
       });
     }
 
-    const rawSpatPromise = MessageMonitorApi.getSpatMessages({
-      token: session?.accessToken,
-      intersection_id: queryParams.intersectionId?.toString(),
-      startTime: queryParams.startDate,
-      endTime: queryParams.endDate,
-    });
-    toast.promise(rawSpatPromise, {
-      loading: `Loading SPAT Data`,
-      success: `Successfully got SPAT Data`,
-      error: `Failed to get SPAT data. Please see console`,
-    });
-
-    const rawSpat = await rawSpatPromise;
-
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
 
-    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
-
-    const rawBsmPromise = MessageMonitorApi.getBsmMessages({
-      token: session?.accessToken,
-      vehicleId: queryParams.vehicleId,
-      startTime: queryParams.startDate,
-      endTime: queryParams.endDate,
-      long: mapCoordinates.longitude,
-      lat: mapCoordinates.latitude,
-      distance: 500,
-    });
-    toast.promise(rawBsmPromise, {
-      loading: `Loading BSM Data`,
-      success: `Successfully got BSM Data`,
-      error: `Failed to get BSM data. Please see console`,
-    });
-    const rawBsm = await rawBsmPromise;
+    // ######################### BSMs #########################
+    if (!importedMessageData) {
+      const rawBsmPromise = MessageMonitorApi.getBsmMessages({
+        token: session?.accessToken,
+        vehicleId: queryParams.vehicleId,
+        startTime: queryParams.startDate,
+        endTime: queryParams.endDate,
+        long: mapCoordinates.longitude,
+        lat: mapCoordinates.latitude,
+        distance: 500,
+      });
+      toast.promise(rawBsmPromise, {
+        loading: `Loading BSM Data`,
+        success: `Successfully got BSM Data`,
+        error: `Failed to get BSM data. Please see console`,
+      });
+      rawBsm = await rawBsmPromise;
+    }
     const bsmGeojson = parseBsmToGeojson(rawBsm);
     const uniqueIds = new Set(bsmGeojson.features.map((bsm) => bsm.properties?.id));
     // generate equally spaced unique colors for each uniqueId
@@ -703,6 +805,7 @@ const MapTab = (props: MyProps) => {
     setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
     setBsmData(bsmGeojson);
 
+    // ######################### Message Data #########################
     rawData["map"] = rawMap;
     rawData["spat"] = rawSpat;
     rawData["bsm"] = rawBsm;
@@ -715,34 +818,7 @@ const MapTab = (props: MyProps) => {
     }
     setRawData(rawData);
 
-    const surroundingEventsPromise = EventsApi.getAllEvents(
-      session?.accessToken,
-      queryParams.intersectionId,
-      queryParams.startDate,
-      queryParams.endDate
-    );
-    toast.promise(surroundingEventsPromise, {
-      loading: `Loading Event Data`,
-      success: `Successfully got Event Data`,
-      error: `Failed to get Event data. Please see console`,
-    });
-    const localSurroundingEvents = await surroundingEventsPromise;
-    setSurroundingEvents(localSurroundingEvents);
-
-    const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
-      token: session?.accessToken,
-      intersection_id: queryParams.intersectionId?.toString(),
-      startTime: queryParams.startDate,
-      endTime: queryParams.endDate,
-    });
-    toast.promise(surroundingNotificationsPromise, {
-      loading: `Loading Notification Data`,
-      success: `Successfully got Notification Data`,
-      error: `Failed to get Notification data. Please see console`,
-    });
-    const localSurroundingNotifications = await surroundingNotificationsPromise;
-    setSurroundingNotifications(localSurroundingNotifications);
-
+    // ######################### Set Slider Position #########################
     setSliderValue(
       Math.min(
         getTimeRange(queryParams.startDate, queryParams.eventDate ?? new Date()),
@@ -757,30 +833,36 @@ const MapTab = (props: MyProps) => {
         ...queryParams,
         intersectionId: props.intersectionId,
       };
+      console.log("Intersection ID changed");
       setQueryParams(query_params);
       setTimeWindowSeconds(60);
     }
-  }, [queryParams.intersectionId]);
+  }, [props.intersectionId]);
 
   useEffect(() => {
-    const query_params = {
+    const newQueryParams = {
       ...generateQueryParams(props.sourceData, props.sourceDataType),
       intersectionId: props.intersectionId,
     };
     if (
-      queryParams.startDate.getTime() != query_params.startDate.getTime() ||
-      queryParams.endDate.getTime() != query_params.endDate.getTime() ||
-      queryParams.eventDate.getTime() != query_params.eventDate.getTime() ||
-      queryParams.vehicleId != query_params.vehicleId ||
-      queryParams.intersectionId != query_params.intersectionId
+      queryParams.startDate.getTime() != newQueryParams.startDate.getTime() ||
+      queryParams.endDate.getTime() != newQueryParams.endDate.getTime() ||
+      queryParams.eventDate.getTime() != newQueryParams.eventDate.getTime() ||
+      queryParams.vehicleId != newQueryParams.vehicleId ||
+      queryParams.intersectionId != newQueryParams.intersectionId
     ) {
-      setQueryParams(query_params);
+      console.log("Source Data changed");
+      setQueryParams(newQueryParams);
       setTimeWindowSeconds(60);
     }
   }, [props.sourceData]);
 
   useEffect(() => {
-    pullInitialData();
+    console.log("Setting Timeout to Pull Initial Data");
+    if (loadInitialDataTimeoutId) {
+      clearTimeout(loadInitialDataTimeoutId);
+    }
+    setLoadInitialdataTimeoutId(setTimeout(pullInitialData, 500));
   }, [queryParams]);
 
   useEffect(() => {
@@ -812,7 +894,6 @@ const MapTab = (props: MyProps) => {
     }
 
     // retrieve filtered BSMs
-    let start = performance.now();
     const filteredBsms: BsmFeature[] = [];
     (bsmData?.features ?? []).forEach((feature) => {
       if (
@@ -909,6 +990,7 @@ const MapTab = (props: MyProps) => {
       queryParams.eventDate.getTime() != updatedQueryParams.eventDate.getTime()
     ) {
       // Detected change in query params
+      console.log("Time Query Changed");
       setQueryParams(updatedQueryParams);
     } else {
       // No change in query params
@@ -971,6 +1053,7 @@ const MapTab = (props: MyProps) => {
                 setLaneLabelsVisible={setLaneLabelsVisible}
                 sigGroupLabelsVisible={sigGroupLabelsVisible}
                 setSigGroupLabelsVisible={setSigGroupLabelsVisible}
+                handleImportedMessageData={handleImportedMessageData}
               />
             </Paper>
           </Box>
@@ -985,6 +1068,7 @@ const MapTab = (props: MyProps) => {
             fontSize: "16px",
             overflow: "auto",
             scrollBehavior: "auto",
+            width: "100%",
           }}
         >
           <Box style={{ position: "relative" }}>
@@ -992,6 +1076,7 @@ const MapTab = (props: MyProps) => {
               bsmColors={mapLegendColors.bsmColors}
               laneColors={mapLegendColors.laneColors}
               travelConnectionColors={mapLegendColors.travelConnectionColors}
+              signalHeadIcons={mapLegendColors.signalHeadIcons}
             />
           </Box>
         </div>
@@ -999,9 +1084,7 @@ const MapTab = (props: MyProps) => {
         <Map
           {...viewState}
           ref={mapRef}
-          onLoad={() => {
-            //     mapRef.current.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 });
-          }}
+          onLoad={() => {}}
           mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
@@ -1017,26 +1100,6 @@ const MapTab = (props: MyProps) => {
           // onMouseEnter={() => this.setState({ cursor: "pointer" })}
           // onMouseLeave={() => this.setState({ cursor: "grab" })}
         >
-          {/* {
-            <Source
-              type="geojson"
-              data={{
-                type: "FeatureCollection",
-                features: [
-                  {
-                    type: "Feature",
-                    properties: {},
-                    geometry: {
-                      type: "Point",
-                      coordinates: [0, 0],
-                    },
-                  },
-                ],
-              }}
-            >
-              <Layer {...pulsingDotLayer} />
-            </Source>
-          } */}
           {connectingLanes && currentSignalGroups && (
             <Source
               type="geojson"
