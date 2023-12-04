@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Head from "next/head";
 import { Box, Container, Typography, CircularProgress } from "@mui/material";
-import { DashboardLayout } from "../components/dashboard-layout";
-import { ReportRequestEditForm } from "../components/reports/report-request-edit-form";
-import { useDashboardContext } from "../contexts/dashboard-context";
+import { DashboardLayout } from "../../components/dashboard-layout";
+import { ReportRequestEditForm } from "../../components/reports/report-request-edit-form";
+import { useDashboardContext } from "../../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
-import ReportsApi from "../apis/reports-api";
+import ReportsApi from "../../apis/reports-api";
 import toast from "react-hot-toast";
 
 const PerformanceReportPage = () => {
@@ -30,7 +30,7 @@ const PerformanceReportPage = () => {
       );
       return;
     }
-    const promise = ReportsApi.getReport({ token: session?.accessToken, intersection_id, startTime, endTime });
+    const promise = ReportsApi.generateReport({ token: session?.accessToken, intersection_id, startTime, endTime });
     toast.promise(promise, {
       loading: "Generating Performance Report",
       success: "Successfully Generated Performance Report",
