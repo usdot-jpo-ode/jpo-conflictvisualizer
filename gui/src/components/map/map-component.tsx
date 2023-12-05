@@ -22,8 +22,8 @@ import { MapLegend } from "./map-legend";
 import toast from "react-hot-toast";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
-// import { connect, disconnect, subscribeToWebSocket, unsubscribeFromWebSocket, sendMessage } from '../../apis/socket-api';
-import { socketApiHelper } from '../../apis/socket-api';
+
+import { Stomp } from "@stomp/stompjs";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -953,77 +953,60 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     // Connect to WebSocket when component mounts
 
-    console.log("Attempting Web Socket Connection");
     const token = session?.accessToken;
+    let protocols = ['v10.stomp', 'v11.stomp'];
+    protocols.push(token!);
+    const url = "ws://172.250.250.181:8081/stomp";
 
-    const rootUrl = "ws://172.250.250.181:8081";
-    const spatEndpoint = rootUrl + "/live/spat";
-    const mapEndpoint = rootUrl + "/live/map";
+
+    // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
+    let client = Stomp.client(url, protocols);
+
+
+    // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
+    let spatTopic = "/live/-1/12109/spat";
+    let mapTopic = "/live/-1/12109/map";
+    let bsmTopic = "/live/-1/12109/bsm";
     
-    
-    const spatSocket = socketApiHelper.createConnection({endpoint:spatEndpoint, token:token});
-    const mapSocket = socketApiHelper.createConnection({endpoint:mapEndpoint, token:token});
-
-
-    // Setup Callbacks for Spat Socket
-    spatSocket.addEventListener('open', (event)=>{
-      console.log('Received message:', event);
-      console.log("Web Socket Connection Opened");
-      spatSocket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
-    });
-
-    spatSocket.addEventListener('message', (event) => {
-      console.log('Received message:', event.data);
-    });
-
-    spatSocket.addEventListener('close', (event) => {
-      console.log('WebSocket connection closed:', event);
-    });
-
-    spatSocket.addEventListener('error', (event) => {
-      console.log('Error message:', event);
-    })
-
-    spatSocket.addEventListener('close', (event) => {
-      console.log('WebSocket connection closed:', event);
-    });
-
-
-
-    // Setup Callbacks for Map Socket
-    mapSocket.addEventListener('open', (event)=>{
-      console.log('Received message:', event);
-      console.log("Web Socket Connection Opened");
-      mapSocket.send(JSON.stringify({"intersectionID": queryParams.intersectionId, "roadRegulatorID":"-1"}));
-    });
-
-    mapSocket.addEventListener('message', (event) => {
-      console.log('Received message:', event.data);
-    });
-
-    mapSocket.addEventListener('close', (event) => {
-      console.log('WebSocket connection closed:', event);
-    });
-
-    mapSocket.addEventListener('error', (event) => {
-      console.log('Error message:', event);
-    })
-
-    mapSocket.addEventListener('close', (event) => {
-      console.log('WebSocket connection closed:', event);
-    });
 
 
     
+    client.connect(
+        {
+          "username": "test",
+          "password": "test",
+          Token: token,
+          
+        },
+        () => {
+            console.log("Connection established");
+            // client.subscribe(spatTopic, function (mes) {
+            //     // console.log("Received SPaT message " + mes.body);
+            // });
+
+            client.subscribe(mapTopic, function (mes) {
+              console.log("Received MAP message " + mes.body);
+            });
+
+            client.subscribe(bsmTopic, function (mes) {
+              console.log("Received BSM message " + mes.body);
+            });
+        },
+        error => { console.log("ERROR: " + error); }
+    );
 
     
+  
+  
+
 
 
 
     // Disconnect and clean up when component unmounts
     return () => {
-      spatSocket.close();
-      mapSocket.close();
+      client.disconnect(()=>{
+        console.log("Disconnected from STOMP endpoint");
+      });
     };
   }, []);
 
