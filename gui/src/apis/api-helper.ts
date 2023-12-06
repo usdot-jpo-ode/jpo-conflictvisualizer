@@ -17,7 +17,7 @@ class AuthApiHelper {
     queryParams,
     body,
     token,
-    timeout,
+    timeout = 30000,
     responseType = "json",
     booleanResponse = false,
     toastOnFailure = true,
@@ -48,12 +48,8 @@ class AuthApiHelper {
       localHeaders["Content-Type"] = "application/json";
     }
 
-    let controller: AbortController | undefined = undefined;
-    let id: NodeJS.Timeout | undefined = undefined;
-    if (timeout) {
-      controller = new AbortController();
-      id = setTimeout(() => controller?.abort(), timeout);
-    }
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
 
     const options: RequestInit = {
       method: method,
@@ -64,7 +60,7 @@ class AuthApiHelper {
           : JSON.stringify(body)
         : undefined,
       mode: "cors",
-      signal: controller?.signal,
+      signal: controller.signal,
     };
 
     console.debug("MAKING REQUEST TO " + url + " WITH OPTIONS", options);
@@ -99,7 +95,7 @@ class AuthApiHelper {
         toast.error(errorMessage + ". Error: " + error.message);
         console.error(error.message);
       });
-    if (id) clearTimeout(id);
+    clearTimeout(id);
     return resp;
   }
 }
