@@ -1,16 +1,26 @@
-import { useState } from "react";
-import Head from "next/head";
-import { Box, Container, Typography, CircularProgress } from "@mui/material";
-import { DashboardLayout } from "../../components/dashboard-layout";
-import { ReportRequestEditForm } from "../../components/reports/report-request-edit-form";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogTitle, Container, DialogActions, Button, Paper, Box, Typography } from "@mui/material";
+
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
+import { ReportRequestEditForm } from "./report-request-edit-form";
 import ReportsApi from "../../apis/reports-api";
 import toast from "react-hot-toast";
 
-const PerformanceReportPage = () => {
+type ReportGenerationDialogProps = {
+  onClose: () => void;
+  open: boolean;
+};
+
+export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
   const { intersectionId } = useDashboardContext();
   const { data: session } = useSession();
+
+  const { onClose, open } = props;
+
+  const handleClose = () => {
+    onClose();
+  };
 
   const getReport = async ({
     intersection_id,
@@ -54,40 +64,17 @@ const PerformanceReportPage = () => {
 
   return (
     <>
-      <Head>
-        <title>Performance Report</title>
-      </Head>
-      <Box
-        component="main"
-        sx={{
-          backgroundColor: "background.default",
-          flexGrow: 1,
-          py: 8,
-        }}
-      >
-        <Container maxWidth="md">
-          <Box
-            sx={{
-              alignItems: "center",
-              display: "flex",
-              overflow: "hidden",
-            }}
-          >
-            <div>
-              <Typography noWrap variant="h4">
-                Performance Report
-              </Typography>
-            </div>
-          </Box>
-          <Box mt={3}>
-            <ReportRequestEditForm onGenerateReport={getReport} dbIntersectionId={intersectionId} />
-          </Box>
+      <Dialog onClose={handleClose} open={open} fullWidth maxWidth={"lg"}>
+        <DialogTitle>Generate Performance Report</DialogTitle>
+        <Container>
+          <ReportRequestEditForm onGenerateReport={getReport} dbIntersectionId={intersectionId} />
         </Container>
-      </Box>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
-
-PerformanceReportPage.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
-
-export default PerformanceReportPage;
