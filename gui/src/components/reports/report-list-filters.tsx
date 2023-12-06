@@ -46,20 +46,19 @@ const FiltersDrawerMobile = styled(Drawer)({
 export type ReportListFilter = {
   startDate: Date | null;
   endDate: Date | null;
-};
+}
 
 interface ReportListFiltersProps {
   filters: ReportListFilter;
   onChange: (filters: ReportListFilter) => void;
-  onClose: () => void;
+  onClose: () => void; 
   open: boolean;
   loading: boolean;
   containerRef: any;
-  setOpenReportGenerationDialog: (open: boolean) => void;
 }
 
 export const ReportListFilters = (props: ReportListFiltersProps) => {
-  const { containerRef, filters, onChange, onClose, open, loading, setOpenReportGenerationDialog, ...other } = props;
+  const { containerRef, filters, onChange, onClose, open, loading, ...other } = props;
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [filtersValid, setFiltersValid] = useState([true, ""]);
 
@@ -85,7 +84,8 @@ export const ReportListFilters = (props: ReportListFiltersProps) => {
     if (currentFilters.startDate === null || currentFilters.endDate === null) {
       filtersValidLocal = false;
       reasons.push("Start Date and End Date must be set");
-    } else if (currentFilters.startDate >= currentFilters.endDate) {
+    }
+    else if (currentFilters.startDate >= currentFilters.endDate) {
       filtersValidLocal = false;
       reasons.push("Start Date must be before End Date");
     }
@@ -158,14 +158,11 @@ export const ReportListFilters = (props: ReportListFiltersProps) => {
           />
         )}
       </Box>
-      <Button
-        component="a"
-        onClick={() => {
-          setOpenReportGenerationDialog(true);
-        }}
-      >
-        Generate Manual Report
-      </Button>
+      <NextLink href={`/reports/generate`} passHref>
+        <Button component="a">
+          Generate Manual Report
+        </Button>
+      </NextLink>
     </Box>
   );
 
