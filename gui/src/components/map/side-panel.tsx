@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Map, { Source, Layer } from "react-map-gl";
 
-import { Paper, Box, IconButton, Typography } from "@mui/material";
+import { Container, Col } from "reactstrap";
+
+import { Paper, Box, IconButton, Typography, breadcrumbsClasses } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
@@ -10,6 +13,13 @@ import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled } from "@mui/material/styles";
 import { CustomTable } from "./custom-table";
 import { format } from "date-fns";
+
+// import mapMessageData from "./processed_map_v4.json";
+import type { LayerProps } from "react-map-gl";
+import ControlPanel from "./control-panel";
+import MessageMonitorApi from "../../apis/mm-api";
+import { useDashboardContext } from "../../contexts/dashboard-context";
+import { Marker } from "mapbox-gl";
 import { ExpandableTable } from "./expandable-table";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
@@ -42,17 +52,7 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-interface SidePanelProps {
-  laneInfo: ConnectingLanesFeatureCollection | undefined;
-  signalGroups: SpatSignalGroup[] | undefined;
-  bsms: BsmFeatureCollection;
-  events: MessageMonitor.Event[];
-  notifications: MessageMonitor.Notification[];
-  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
-}
-
-export const SidePanel = (props: SidePanelProps) => {
+export const SidePanel = (props) => {
   const {
     laneInfo,
     signalGroups,
@@ -61,14 +61,16 @@ export const SidePanel = (props: SidePanelProps) => {
     notifications,
     sourceData,
     sourceDataType,
+    selectedFeature,
   }: {
     laneInfo: ConnectingLanesFeatureCollection | undefined;
-    signalGroups: SpatSignalGroup[] | undefined;
+    signalGroups: SpatSignalGroup[];
     bsms: BsmFeatureCollection;
     events: MessageMonitor.Event[];
     notifications: MessageMonitor.Notification[];
     sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
     sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+    selectedFeature: any;
   } = props;
 
   const [open, setOpen] = useState(false);

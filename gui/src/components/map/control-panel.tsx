@@ -28,11 +28,9 @@ import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
-import { styled, SxProps } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
 import JSZip from "jszip";
-import { getSelectedLayerPopupContent } from "./popup";
-import { LayerProps } from "react-map-gl";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -64,39 +62,7 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-interface ControlPanelProps {
-  sx: SxProps<Theme> | undefined;
-  timeQueryParams: {
-    startDate: Date;
-    endDate: Date;
-    eventDate: Date;
-    timeWindowSeconds: number;
-  };
-  onTimeQueryChanged: (eventTime?: Date, timeBefore?: number, timeAfter?: number, timeWindowSeconds?: number) => void;
-  handleImportedMessageData: (messageData: any) => void;
-  sliderValue: number;
-  setSlider: (event: Event, value: number | number[], activeThumb: number) => void;
-  max: number;
-  sliderTimeValue: {
-    start: Date;
-    end: Date;
-  };
-  mapSpatTimes: {
-    mapTime: number;
-    spatTime: number;
-  };
-  downloadAllData: () => void;
-  signalStateLayer: any;
-  setSignalStateLayer: (signalStateLayer: any) => void;
-  laneLabelsVisible: boolean;
-  setLaneLabelsVisible: (laneLabelsVisible: boolean) => void;
-  sigGroupLabelsVisible: boolean;
-  setSigGroupLabelsVisible: (sigGroupLabelsVisible: boolean) => void;
-  showPopupOnHover: boolean;
-  setShowPopupOnHover: (showPopupOnHover: boolean) => void;
-}
-
-function ControlPanel(props: ControlPanelProps) {
+function ControlPanel(props) {
   const getQueryParams = ({
     startDate,
     endDate,
@@ -158,36 +124,39 @@ function ControlPanel(props: ControlPanelProps) {
       mapData: [],
       bsmData: [],
       spatData: [],
-      notificationData: undefined,
+      notificationData: undefined
     };
     jsZip.loadAsync(file).then(async (zip) => {
-      const zipObjects: { relativePath: string; zipEntry: JSZip.JSZipObject }[] = [];
-      zip.forEach((relativePath, zipEntry) => zipObjects.push({ relativePath, zipEntry }));
+      const zipObjects: {relativePath: string; zipEntry: JSZip.JSZipObject}[] = []
+      zip.forEach((relativePath, zipEntry) => zipObjects.push({relativePath, zipEntry}))
       for (let i = 0; i < zipObjects.length; i++) {
-        const { relativePath, zipEntry } = zipObjects[i];
-        console.log(relativePath);
+        const {relativePath, zipEntry} = zipObjects[i];
+        console.log(relativePath)
         if (relativePath.endsWith("_MAP_data.json")) {
-          const data = await zipEntry.async("string");
+          const data = await zipEntry.async("string")
           messageData.mapData = JSON.parse(data);
-          console.log("AddedMAPData", messageData.mapData.length);
-        } else if (relativePath.endsWith("_BSM_data.json")) {
-          const data = await zipEntry.async("string");
+          console.log("AddedMAPData", messageData.mapData.length)
+        }
+        else if (relativePath.endsWith("_BSM_data.json")) {
+          const data = await zipEntry.async("string")
           messageData.bsmData = JSON.parse(data);
-          console.log("AddedBSMData", messageData.bsmData.length);
-        } else if (relativePath.endsWith("_Notification_data.json")) {
-          const data = await zipEntry.async("string");
+          console.log("AddedBSMData", messageData.bsmData.length)
+        }
+        else if (relativePath.endsWith("_Notification_data.json")) {
+          const data = await zipEntry.async("string")
           messageData.notificationData = JSON.parse(data);
-          console.log("AddedNotificationData", messageData.notificationData.length);
-        } else if (relativePath.endsWith("_SPAT_data.json")) {
-          const data = await zipEntry.async("string");
+          console.log("AddedNotificationData", messageData.notificationData.length)
+        }
+        else if (relativePath.endsWith("_SPAT_data.json")) {
+          const data = await zipEntry.async("string")
           messageData.spatData = JSON.parse(data);
-          console.log("AddedSPATData", messageData.spatData.length);
+          console.log("AddedSPATData", messageData.spatData.length)
         }
       }
       console.log("Sending Message Data", messageData);
       props.handleImportedMessageData(messageData);
-    });
-  };
+    })
+  }
 
   return (
     <div
@@ -298,21 +267,22 @@ function ControlPanel(props: ControlPanelProps) {
               Download All Message Data
             </Button>
             <h4>
-              Upload Message Data:{" "}
-              <label htmlFor="upload">
-                <input
-                  accept=".zip"
-                  id="upload"
-                  name="upload"
-                  type="file"
-                  multiple={false}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                    console.log("Input Changed", e.target.files);
-                    openMessageData(e.target.files);
-                  }}
-                />
-              </label>
+            Upload Message Data:{" "}
+            <label htmlFor="upload">
+              <input
+                accept=".zip"
+                id="upload"
+                name="upload"
+                type="file"
+                multiple={false}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  console.log("Input Changed", e.target.files);
+                  openMessageData(e.target.files)
+                }}
+              />
+            </label>
             </h4>
+
           </div>
         </AccordionDetails>
       </Accordion>
@@ -356,13 +326,6 @@ function ControlPanel(props: ControlPanelProps) {
               <Checkbox
                 checked={props.sigGroupLabelsVisible}
                 onChange={(event) => props.setSigGroupLabelsVisible(event.target.checked)}
-              />
-            </div>
-            <div>
-              <h4 style={{ float: "left", marginTop: "10px" }}>Show Popup on Hover </h4>
-              <Checkbox
-                checked={props.showPopupOnHover}
-                onChange={(event) => props.setShowPopupOnHover(event.target.checked)}
               />
             </div>
           </div>
