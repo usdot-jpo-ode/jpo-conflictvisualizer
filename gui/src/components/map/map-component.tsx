@@ -966,23 +966,22 @@ const MapTab = (props: MyProps) => {
     // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
     let spatTopic = "/live/-1/12109/spat";
     let mapTopic = "/live/-1/12109/map";
-    let bsmTopic = "/live/-1/12109/bsm";
+    let bsmTopic = "/live/0/12109/bsm";
     
 
 
     
     client.connect(
         {
-          "username": "test",
-          "password": "test",
-          Token: token,
-          
+          // "username": "test",
+          // "password": "test",
+          // Token: token,
         },
         () => {
             console.log("Connection established");
-            // client.subscribe(spatTopic, function (mes) {
-            //     // console.log("Received SPaT message " + mes.body);
-            // });
+            client.subscribe(spatTopic, function (mes) {
+                console.log("Received SPaT message " + mes.body);
+            });
 
             client.subscribe(mapTopic, function (mes) {
               console.log("Received MAP message " + mes.body);
