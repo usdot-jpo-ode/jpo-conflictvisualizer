@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Map, { Source, Layer, Popup } from "react-map-gl";
+import Map, { Source, Layer } from "react-map-gl";
 
 import { Container, Col } from "reactstrap";
 
@@ -11,8 +11,6 @@ import ControlPanel from "./control-panel";
 import MessageMonitorApi from "../../apis/mm-api";
 import EventsApi from "../../apis/events-api";
 import NotificationApi from "../../apis/notification-api";
-import { useDashboardContext } from "../../contexts/dashboard-context";
-import { Marker } from "mapbox-gl";
 import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
 import { useSession } from "next-auth/react";
@@ -24,18 +22,7 @@ import JSZip from "jszip";
 import FileSaver from "file-saver";
 const { publicRuntimeConfig } = getConfig();
 
-const allInteractiveLayerIds = [
-  "mapMessage",
-  "connectingLanes",
-  "connectingLanesYellow",
-  "connectingLanesInactive",
-  "connectingLanesMissing",
-  "signalStatesGreen",
-  "signalStatesYellow",
-  "signalStatesRed",
-  "bsm",
-  "invalidLaneCollection",
-];
+const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
 
 const mapMessageLayer: LineLayer = {
   id: "mapMessage",
@@ -61,15 +48,6 @@ const mapMessageLabelsLayer: SymbolLayer = {
     "text-color": "#000000",
     "text-halo-color": "#ffffff",
     "text-halo-width": 5,
-  },
-};
-
-const connectingLanesPreMovementLayer: LineLayer = {
-  id: "connectingLanesPreMovement",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": "#e6b000",
   },
 };
 
@@ -387,11 +365,13 @@ const MapTab = (props: MyProps) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
   const mapRef = React.useRef<any>(null);
+  const [hoveredFeature, setHoveredFeature] = useState<any>(undefined);
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
+  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(true);
   const [importedMessageData, setImportedMessageData] = useState<
     | {
         mapData: ProcessedMap[];
@@ -401,6 +381,8 @@ const MapTab = (props: MyProps) => {
       }
     | undefined
   >(undefined);
+  const [cursor, setCursor] = useState<string>("default");
+
   const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const { data: session } = useSession();
 
@@ -1002,7 +984,6 @@ const MapTab = (props: MyProps) => {
     const features = mapRef.current.queryRenderedFeatures(e.point, {
       //   layers: allInteractiveLayerIds,
     });
-
     const feature = features?.[0];
     if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
       setSelectedFeature({ clickedLocation: e.lngLat, feature });
@@ -1054,6 +1035,8 @@ const MapTab = (props: MyProps) => {
                 sigGroupLabelsVisible={sigGroupLabelsVisible}
                 setSigGroupLabelsVisible={setSigGroupLabelsVisible}
                 handleImportedMessageData={handleImportedMessageData}
+                showPopupOnHover={showPopupOnHover}
+                setShowPopupOnHover={setShowPopupOnHover}
               />
             </Paper>
           </Box>
@@ -1095,24 +1078,28 @@ const MapTab = (props: MyProps) => {
           onClick={onClickMap}
           // onMouseDown={this.onMouseDown}
           // onMouseUp={this.onMouseUp}
-          // interactiveLayerIds={interactiveLayerIds}
-          // cursor={cursor}
-          // onMouseEnter={() => this.setState({ cursor: "pointer" })}
-          // onMouseLeave={() => this.setState({ cursor: "grab" })}
+          interactiveLayerIds={allInteractiveLayerIds}
+          cursor={cursor}
+          onMouseMove={(e: mapboxgl.MapLayerMouseEvent) => {
+            const feature = e.features?.[0];
+            if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
+              setHoveredFeature({ clickedLocation: e.lngLat, feature });
+            }
+          }}
+          onMouseEnter={(e: mapboxgl.MapLayerMouseEvent) => {
+            setCursor("pointer");
+            const feature = e.features?.[0];
+            if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
+              setHoveredFeature({ clickedLocation: e.lngLat, feature });
+            } else {
+              setHoveredFeature(undefined);
+            }
+          }}
+          onMouseLeave={(e: mapboxgl.MapLayerMouseEvent) => {
+            setCursor("");
+            setHoveredFeature(undefined);
+          }}
         >
-          {connectingLanes && currentSignalGroups && (
-            <Source
-              type="geojson"
-              data={{
-                type: "FeatureCollection",
-                features: addConnections(connectingLanes, currentSignalGroups).features.filter(
-                  (feature) => feature.properties.signalState == "PRE_MOVEMENT"
-                ),
-              }}
-            >
-              <Layer {...connectingLanesPreMovementLayer} />
-            </Source>
-          )}
           {connectingLanes && currentSignalGroups && (
             <Source type="geojson" data={addConnections(connectingLanes, currentSignalGroups)}>
               <Layer {...connectingLanesLayer} />
@@ -1157,6 +1144,9 @@ const MapTab = (props: MyProps) => {
           )}
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
+          )}
+          {showPopupOnHover && hoveredFeature && !selectedFeature && (
+            <CustomPopup selectedFeature={hoveredFeature} onClose={() => setHoveredFeature(undefined)} />
           )}
         </Map>
         <SidePanel
