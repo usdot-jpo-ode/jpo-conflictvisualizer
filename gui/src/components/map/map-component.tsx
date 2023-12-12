@@ -371,7 +371,7 @@ const MapTab = (props: MyProps) => {
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
-  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(true);
+  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(false);
   const [importedMessageData, setImportedMessageData] = useState<
     | {
         mapData: ProcessedMap[];
@@ -986,11 +986,15 @@ const MapTab = (props: MyProps) => {
     });
     const feature = features?.[0];
     if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
+      console.log("Map Clicked, updating feature");
       setSelectedFeature({ clickedLocation: e.lngLat, feature });
     } else {
+      console.log("Map Clicked, resetting feature");
       setSelectedFeature(undefined);
     }
   };
+
+  console.log("Selected Feature", selectedFeature);
 
   return (
     <Container fluid={true} style={{ width: "100%", height: "100%", display: "flex" }}>
