@@ -1,8 +1,7 @@
 
 type BroadcastRateEvent = {
   topicName: str
-  sourceDeviceId: str
-  intersectionId: number
+  source: str
   timePeriod: ProcessingTimePeriod
   numberOfMessages: number
 }

@@ -17,10 +17,8 @@ import us.dot.its.jpo.ode.api.accessors.spat.ProcessedSpatRepository;
 import us.dot.its.jpo.ode.mockdata.MockSpatGenerator;
 
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.server.ResponseStatusException;
 
 import us.dot.its.jpo.ode.api.ConflictMonitorApiProperties;
 

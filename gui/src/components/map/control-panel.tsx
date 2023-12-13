@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Slider from "@mui/material/Slider";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -20,14 +20,19 @@ import {
   MenuItem,
   TextField,
   Button,
+  Checkbox,
   InputAdornment,
+  Container,
 } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
-import { styled } from "@mui/material/styles";
+import { styled, SxProps } from "@mui/material/styles";
 import { format } from "date-fns";
+import JSZip from "jszip";
+import { getSelectedLayerPopupContent } from "./popup";
+import { LayerProps } from "react-map-gl";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -59,7 +64,39 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-function ControlPanel(props) {
+interface ControlPanelProps {
+  sx: SxProps<Theme> | undefined;
+  timeQueryParams: {
+    startDate: Date;
+    endDate: Date;
+    eventDate: Date;
+    timeWindowSeconds: number;
+  };
+  onTimeQueryChanged: (eventTime?: Date, timeBefore?: number, timeAfter?: number, timeWindowSeconds?: number) => void;
+  handleImportedMessageData: (messageData: any) => void;
+  sliderValue: number;
+  setSlider: (event: Event, value: number | number[], activeThumb: number) => void;
+  max: number;
+  sliderTimeValue: {
+    start: Date;
+    end: Date;
+  };
+  mapSpatTimes: {
+    mapTime: number;
+    spatTime: number;
+  };
+  downloadAllData: () => void;
+  signalStateLayer: any;
+  setSignalStateLayer: (signalStateLayer: any) => void;
+  laneLabelsVisible: boolean;
+  setLaneLabelsVisible: (laneLabelsVisible: boolean) => void;
+  sigGroupLabelsVisible: boolean;
+  setSigGroupLabelsVisible: (sigGroupLabelsVisible: boolean) => void;
+  showPopupOnHover: boolean;
+  setShowPopupOnHover: (showPopupOnHover: boolean) => void;
+}
+
+function ControlPanel(props: ControlPanelProps) {
   const getQueryParams = ({
     startDate,
     endDate,
@@ -106,6 +143,50 @@ function ControlPanel(props) {
       return undefined;
     }
     return num;
+  };
+
+  const openMessageData = (files: FileList | null) => {
+    if (files == null) return;
+    const file = files[0];
+    var jsZip = new JSZip();
+    const messageData: {
+      mapData: ProcessedMap[];
+      bsmData: OdeBsmData[];
+      spatData: ProcessedSpat[];
+      notificationData: any;
+    } = {
+      mapData: [],
+      bsmData: [],
+      spatData: [],
+      notificationData: undefined,
+    };
+    jsZip.loadAsync(file).then(async (zip) => {
+      const zipObjects: { relativePath: string; zipEntry: JSZip.JSZipObject }[] = [];
+      zip.forEach((relativePath, zipEntry) => zipObjects.push({ relativePath, zipEntry }));
+      for (let i = 0; i < zipObjects.length; i++) {
+        const { relativePath, zipEntry } = zipObjects[i];
+        console.log(relativePath);
+        if (relativePath.endsWith("_MAP_data.json")) {
+          const data = await zipEntry.async("string");
+          messageData.mapData = JSON.parse(data);
+          console.log("AddedMAPData", messageData.mapData.length);
+        } else if (relativePath.endsWith("_BSM_data.json")) {
+          const data = await zipEntry.async("string");
+          messageData.bsmData = JSON.parse(data);
+          console.log("AddedBSMData", messageData.bsmData.length);
+        } else if (relativePath.endsWith("_Notification_data.json")) {
+          const data = await zipEntry.async("string");
+          messageData.notificationData = JSON.parse(data);
+          console.log("AddedNotificationData", messageData.notificationData.length);
+        } else if (relativePath.endsWith("_SPAT_data.json")) {
+          const data = await zipEntry.async("string");
+          messageData.spatData = JSON.parse(data);
+          console.log("AddedSPATData", messageData.spatData.length);
+        }
+      }
+      console.log("Sending Message Data", messageData);
+      props.handleImportedMessageData(messageData);
+    });
   };
 
   return (
@@ -216,6 +297,74 @@ function ControlPanel(props) {
             <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
               Download All Message Data
             </Button>
+            <h4>
+              Upload Message Data:{" "}
+              <label htmlFor="upload">
+                <input
+                  accept=".zip"
+                  id="upload"
+                  name="upload"
+                  type="file"
+                  multiple={false}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    console.log("Input Changed", e.target.files);
+                    openMessageData(e.target.files);
+                  }}
+                />
+              </label>
+            </h4>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion disableGutters defaultExpanded={false}>
+        <AccordionSummary>
+          <Typography variant="h5">Visual Settings</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div
+            className="control-panel"
+            style={{
+              padding: "10px 30px 0px 20px",
+            }}
+          >
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Rotate Signal Head Icons With Map </h4>
+              <Checkbox
+                checked={props.signalStateLayer.layout["icon-rotation-alignment"] == "map"}
+                onChange={(event) =>
+                  props.setSignalStateLayer({
+                    ...props.signalStateLayer,
+                    layout: {
+                      ...props.signalStateLayer.layout,
+                      "icon-rotation-alignment": event.target.checked ? "map" : "viewport",
+                      "icon-rotate": event.target.checked ? ["get", "orientation"] : 0,
+                    },
+                  })
+                }
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Show Lane IDs </h4>
+              <Checkbox
+                checked={props.laneLabelsVisible}
+                onChange={(event) => props.setLaneLabelsVisible(event.target.checked)}
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Show Signal Group IDs </h4>
+              <Checkbox
+                checked={props.sigGroupLabelsVisible}
+                onChange={(event) => props.setSigGroupLabelsVisible(event.target.checked)}
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Show Popup on Hover </h4>
+              <Checkbox
+                checked={props.showPopupOnHover}
+                onChange={(event) => props.setShowPopupOnHover(event.target.checked)}
+              />
+            </div>
           </div>
         </AccordionDetails>
       </Accordion>

@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -407,7 +405,6 @@ public class EventController {
             Query query = spatMinimumDataEventRepo.getQuery(intersectionID, startTime, endTime, latest);
             long count = spatMinimumDataEventRepo.getQueryResultCount(query);
             logger.info("Returning SpatMinimumdataEvent Response with Size: " + count);
-            System.out.println("Spat Minimum Data Event");
             return ResponseEntity.ok(spatMinimumDataEventRepo.find(query));
         }
     }
@@ -426,7 +423,6 @@ public class EventController {
             List<MapMinimumDataEvent> list = new ArrayList<>();
             return ResponseEntity.ok(list);
         } else {
-            System.out.println("Map Minimum Data Event");
             Query query = mapMinimumDataEventRepo.getQuery(intersectionID, startTime, endTime, latest);
             long count = mapMinimumDataEventRepo.getQueryResultCount(query);
             logger.info("Returning MapMinimumDataEventRepo Response with Size: " + count);

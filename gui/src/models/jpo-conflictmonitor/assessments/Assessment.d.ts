@@ -4,4 +4,5 @@ type Assessment = {
   assessmentType: str
   intersectionID: number
   roadRegulatorID: number
+  source: str
 }

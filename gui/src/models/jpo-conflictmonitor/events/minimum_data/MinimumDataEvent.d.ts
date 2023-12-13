@@ -1,7 +1,6 @@
 
 type MinimumDataEvent = {
-  sourceDeviceId: str
-  intersectionId: number
+  source: str
   timePeriod: ProcessingTimePeriod
   missingDataElements: String[]
 }
