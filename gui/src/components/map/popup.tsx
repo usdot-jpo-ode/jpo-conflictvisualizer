@@ -85,6 +85,7 @@ export const CustomPopup = (props) => {
       onClose={props.onClose}
       onOpen={() => {}}
       maxWidth={"500px"}
+      closeOnClick={false}
     >
       {getSelectedLayerPopupContent(props.selectedFeature.feature)}
     </Popup>

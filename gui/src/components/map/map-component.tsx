@@ -371,7 +371,7 @@ const MapTab = (props: MyProps) => {
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
-  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(true);
+  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(false);
   const [importedMessageData, setImportedMessageData] = useState<
     | {
         mapData: ProcessedMap[];
