@@ -210,7 +210,7 @@ function ControlPanel(props: ControlPanelProps) {
                 }}
                 value={dateParams.timeBefore}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 1 }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 4 }}>
                 <DateTimePicker
                   label="Event Date"
                   disabled={props.liveDataActive}

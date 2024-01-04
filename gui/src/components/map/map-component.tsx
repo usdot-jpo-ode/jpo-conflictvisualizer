@@ -396,31 +396,30 @@ const MapTab = (props: MyProps) => {
   const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const { data: session } = useSession();
   const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
-  const [liveDataTimer, setLiveDataTimer] = useState<NodeJS.Timer | undefined>(undefined);
 
   const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
-  const [lastSliderUpdate, setLastSliderUpdate] = useState<number | undefined>(undefined);
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [___, setCurrentBsmData] = useState<BsmFeatureCollection>({
     type: "FeatureCollection",
     features: [],
   });
+  const [____, setLastSliderUpdate] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
-  function deg2rad(deg) {
+  function deg2rad(deg: number) {
     return deg * (Math.PI / 180);
   }
 
-  function rad2deg(rad) {
+  function rad2deg(rad: number) {
     return rad * (180 / Math.PI);
   }
 
   // get bearing between two lat/long points
-  function getBearingBetweenPoints(start, end) {
+  function getBearingBetweenPoints(start: number[], end: number[]) {
     if (!start || !end) return 0;
     const lat1 = deg2rad(start[1]!);
     const lon1 = deg2rad(start[0]!);
@@ -433,10 +432,7 @@ const MapTab = (props: MyProps) => {
     return rad2deg(brng);
   }
 
-  const parseMapSignalGroups = (
-    mapMessage: ProcessedMap,
-    connectingLanes: ConnectingLanesFeatureCollection
-  ): SignalStateFeatureCollection => {
+  const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
     mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
@@ -764,7 +760,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, connectingLanes!);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -823,7 +819,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, connectingLanes!);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -899,7 +895,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, connectingLanes!);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -918,6 +914,7 @@ const MapTab = (props: MyProps) => {
         zoom: 19,
       });
     }
+    console.log("MAP RENDER TIME:", Date.now() - start, "ms");
     return currentMapDataLocal;
   };
 
@@ -957,6 +954,7 @@ const MapTab = (props: MyProps) => {
     }, {} as SpatSignalGroups);
 
     setSpatSignalGroups(currentSpatSignalGroupsLocal);
+    console.log("SPAT RENDER TIME:", Date.now() - start, "ms");
     return currentSpatSignalGroupsLocal;
   };
 
@@ -995,6 +993,7 @@ const MapTab = (props: MyProps) => {
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
     setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
     setBsmData(currentBsmGeojson);
+    console.log("BSM RENDER TIME:", Date.now() - start, "ms");
     return currentBsmGeojson;
   };
 
@@ -1008,7 +1007,7 @@ const MapTab = (props: MyProps) => {
       setQueryParams(query_params);
       setTimeWindowSeconds(60);
     }
-  }, [props.intersectionId]);
+  }, [props.intersectionId, props.roadRegulatorId]);
 
   useEffect(() => {
     const newQueryParams = {
@@ -1040,9 +1039,8 @@ const MapTab = (props: MyProps) => {
   }, [queryParams]);
 
   useEffect(() => {
-    const start = Date.now();
     if (!mapSignalGroups || !spatSignalGroups) {
-      console.error("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
+      console.debug("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
       return;
     }
 
@@ -1069,44 +1067,29 @@ const MapTab = (props: MyProps) => {
     }
 
     // retrieve filtered BSMs
-    const filteredBsms: BsmFeature[] = [];
-    (bsmData?.features ?? []).forEach((feature) => {
-      if (
+    const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
+      (feature) =>
         feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
         feature.properties?.odeReceivedAt <= renderTimeInterval[1]
-      ) {
-        filteredBsms.push(feature);
-      }
-    });
-
+    );
     setCurrentBsms({ ...bsmData, features: filteredBsms });
 
-    const filteredEvents: MessageMonitor.Event[] = [];
-    surroundingEvents.forEach((event) => {
-      if (
-        event.eventGeneratedAt / 1000 >= renderTimeInterval[0] &&
-        event.eventGeneratedAt / 1000 <= renderTimeInterval[1]
-      ) {
-        filteredEvents.push(event);
-      }
-    });
+    const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
+      (event) =>
+        event.eventGeneratedAt / 1000 >= renderTimeInterval[0] && event.eventGeneratedAt / 1000 <= renderTimeInterval[1]
+    );
     setFilteredSurroundingEvents(filteredEvents);
 
-    const filteredNotifications: MessageMonitor.Notification[] = [];
-    surroundingNotifications.forEach((notification) => {
-      if (
+    const filteredNotifications: MessageMonitor.Notification[] = surroundingNotifications.filter(
+      (notification) =>
         notification.notificationGeneratedAt / 1000 >= renderTimeInterval[0] &&
         notification.notificationGeneratedAt / 1000 <= renderTimeInterval[1]
-      ) {
-        filteredNotifications.push(notification);
-      }
-    });
+    );
     setFilteredSurroundingNotifications(filteredNotifications);
   }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
     const startTime = queryParams.startDate.getTime() / 1000;
-    const timeRange = getTimeRange(queryParams.startDate, queryParams.endDate);
 
     const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
     const filteredEndTime = startTime + sliderValue;
@@ -1137,8 +1120,7 @@ const MapTab = (props: MyProps) => {
     if (liveDataActive) {
       if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
         initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
-        maybeUpdateLiveSliderValue();
-        // setLiveDataTimer(setInterval(, 1000));
+        onTimeQueryChanged(new Date(), 10, 0, 5);
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -1151,18 +1133,17 @@ const MapTab = (props: MyProps) => {
       }
     } else {
       cleanUpLiveStreaming();
-      // clearInterval(liveDataTimer);
-      // setLiveDataTimer(undefined);
     }
   }, [liveDataActive]);
 
   const updateLiveSliderValue = () => {
     const newQueryParams = {
-      startDate: new Date(Date.now() - 1000 * 60 * 1),
+      startDate: new Date(Date.now() - (queryParams.endDate.getTime() - queryParams.startDate.getTime())),
       endDate: new Date(Date.now()),
       eventDate: new Date(Date.now()),
       vehicleId: undefined,
       intersectionId: queryParams.intersectionId,
+      roadRegulatorId: queryParams.roadRegulatorId,
     };
     setQueryParams(newQueryParams);
     const sliderValue = getTimeRange(newQueryParams.startDate, newQueryParams.endDate);
@@ -1172,7 +1153,7 @@ const MapTab = (props: MyProps) => {
 
   const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
     // Connect to WebSocket when component mounts
-    onTimeQueryChanged(new Date(), 60, 0, 5);
+    onTimeQueryChanged(new Date(), 10, 0, 5);
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
@@ -1411,48 +1392,48 @@ const MapTab = (props: MyProps) => {
             setHoveredFeature(undefined);
           }}
         >
-          {connectingLanes && currentSignalGroups && (
-            <Source type="geojson" data={addConnections(connectingLanes, currentSignalGroups)}>
-              <Layer {...connectingLanesLayer} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && sigGroupLabelsVisible && (
-            <Source type="geojson" data={addConnections(connectingLanes, currentSignalGroups)}>
-              <Layer {...connectingLanesLabelsLayer} />
-            </Source>
-          )}
-          {currentBsms && (
-            <Source type="geojson" data={currentBsms}>
-              <Layer {...bsmLayerStyle} />
-            </Source>
-          )}
-          {mapData && (
-            <Source type="geojson" data={mapData?.mapFeatureCollection}>
-              <Layer {...mapMessageLayer} />
-            </Source>
-          )}
-          {mapData && laneLabelsVisible && (
-            <Source type="geojson" data={mapData?.mapFeatureCollection}>
-              <Layer {...mapMessageLabelsLayer} />
-            </Source>
-          )}
-          {connectingLanes && currentSignalGroups && signalStateData && (
-            <Source type="geojson" data={signalStateData}>
-              <Layer {...signalStateLayer} />
-            </Source>
-          )}
-          {mapData && props.sourceData && props.sourceDataType == "notification" && (
-            <Source
-              type="geojson"
-              data={createMarkerForNotification(
-                [0, 0],
-                props.sourceData as MessageMonitor.Notification,
-                mapData.mapFeatureCollection
-              )}
-            >
-              <Layer {...markerLayer} />
-            </Source>
-          )}
+          <Source
+            type="geojson"
+            data={connectingLanes && currentSignalGroups && addConnections(connectingLanes, currentSignalGroups)}
+          >
+            <Layer {...connectingLanesLayer} />
+          </Source>
+          <Source
+            type="geojson"
+            data={
+              connectingLanes && currentSignalGroups && sigGroupLabelsVisible
+                ? addConnections(connectingLanes, currentSignalGroups)
+                : undefined
+            }
+          >
+            <Layer {...connectingLanesLabelsLayer} />
+          </Source>
+          <Source type="geojson" data={currentBsms}>
+            <Layer {...bsmLayerStyle} />
+          </Source>
+          <Source type="geojson" data={mapData?.mapFeatureCollection}>
+            <Layer {...mapMessageLayer} />
+          </Source>
+          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
+            <Layer {...mapMessageLabelsLayer} />
+          </Source>
+          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
+            <Layer {...signalStateLayer} />
+          </Source>
+          <Source
+            type="geojson"
+            data={
+              mapData && props.sourceData && props.sourceDataType == "notification"
+                ? createMarkerForNotification(
+                    [0, 0],
+                    props.sourceData as MessageMonitor.Notification,
+                    mapData.mapFeatureCollection
+                  )
+                : undefined
+            }
+          >
+            <Layer {...markerLayer} />
+          </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
           )}
