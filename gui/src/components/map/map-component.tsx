@@ -21,7 +21,8 @@ import toast from "react-hot-toast";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
 
-import { IMessage, Stomp } from "@stomp/stompjs";
+import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
+import { set } from "date-fns";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -175,7 +176,7 @@ const markerLayer: LayerProps = {
 
 const generateQueryParams = (
   source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "live" | undefined
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
 ) => {
   const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
@@ -213,13 +214,6 @@ const generateQueryParams = (
         eventDate: new Date(ts),
         vehicleId: undefined,
       };
-    case "live":
-      return {
-        startDate: new Date(Date.now() - startOffset),
-        endDate: new Date(Date.now() + endOffset),
-        eventDate: new Date(Date.now()),
-        vehicleId: undefined,
-      };
     default:
       return {
         startDate: new Date(Date.now() - startOffset),
@@ -236,8 +230,9 @@ type timestamp = {
 
 type MyProps = {
   sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "live" | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
   intersectionId: number | undefined;
+  roadRegulatorId: number | undefined;
   loadOnNull?: boolean;
 };
 
@@ -250,7 +245,12 @@ const MapTab = (props: MyProps) => {
     eventDate: Date;
     vehicleId?: string;
     intersectionId?: number;
-  }>({ ...generateQueryParams(props.sourceData, props.sourceDataType), intersectionId: props.intersectionId });
+    roadRegulatorId?: number;
+  }>({
+    ...generateQueryParams(props.sourceData, props.sourceDataType),
+    intersectionId: props.intersectionId,
+    roadRegulatorId: props.roadRegulatorId,
+  });
 
   const [mapLegendColors, setMapLegendColors] = useState<{
     bsmColors: { [key: string]: string };
@@ -395,8 +395,11 @@ const MapTab = (props: MyProps) => {
 
   const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const { data: session } = useSession();
+  const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
+  const [liveDataTimer, setLiveDataTimer] = useState<NodeJS.Timer | undefined>(undefined);
 
-  const [liveDataActive, setLiveDataActive] = useState<boolean>(true);
+  const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
+  const [lastSliderUpdate, setLastSliderUpdate] = useState<number | undefined>(undefined);
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [___, setCurrentBsmData] = useState<BsmFeatureCollection>({
@@ -642,7 +645,6 @@ const MapTab = (props: MyProps) => {
     spatData: ProcessedSpat[];
     notificationData: any;
   }) => {
-    console.log("handleImportedMessageData");
     const sortedSpatData = spatData.sort((x, y) => {
       if (x.odeReceivedAt < y.odeReceivedAt) {
         return 1;
@@ -655,12 +657,12 @@ const MapTab = (props: MyProps) => {
     const endTime = new Date(sortedSpatData[0].odeReceivedAt);
     const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].odeReceivedAt);
     setImportedMessageData({ mapData, bsmData, spatData, notificationData });
-    console.log("Imported Data Changed");
     setQueryParams({
       startDate: startTime,
       endDate: endTime,
       eventDate: startTime,
       intersectionId: mapData[0].properties.intersectionId,
+      roadRegulatorId: -1,
     });
   };
 
@@ -668,17 +670,20 @@ const MapTab = (props: MyProps) => {
     if (
       !session?.accessToken ||
       !queryParams.intersectionId ||
+      !queryParams.roadRegulatorId ||
       (props.sourceData == undefined && props.loadOnNull == false)
     ) {
       console.error(
         "Did not attempt to pull initial map data. Access token:",
         session?.accessToken,
         "Intersection ID:",
-        queryParams.intersectionId
+        queryParams.intersectionId,
+        "Road Regulator ID:",
+        queryParams.roadRegulatorId
       );
       return;
     }
-    console.log("Pulling Initial Data");
+    console.debug("Pulling Initial Data");
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
@@ -686,7 +691,8 @@ const MapTab = (props: MyProps) => {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
-        intersection_id: queryParams.intersectionId?.toString(),
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
         //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
         endTime: queryParams.endDate,
         latest: true,
@@ -701,7 +707,8 @@ const MapTab = (props: MyProps) => {
       // ######################### Retrieve SPAT Data #########################
       const rawSpatPromise = MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
-        intersection_id: queryParams.intersectionId?.toString(),
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
       });
@@ -716,6 +723,7 @@ const MapTab = (props: MyProps) => {
       const surroundingEventsPromise = EventsApi.getAllEvents(
         session?.accessToken,
         queryParams.intersectionId,
+        queryParams.roadRegulatorId,
         queryParams.startDate,
         queryParams.endDate
       );
@@ -729,7 +737,8 @@ const MapTab = (props: MyProps) => {
       // ######################### Surrounding Notifications #########################
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
         token: session?.accessToken,
-        intersection_id: queryParams.intersectionId?.toString(),
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
       });
@@ -867,14 +876,14 @@ const MapTab = (props: MyProps) => {
   };
 
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
-    const OLDEST_DATA_TO_KEEP = 60 * 1000; // 60 seconds
+    const start = Date.now();
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
     if (newMapData.length == 0) {
       console.warn("Did not attempt to render map (iterative MAP), no new MAP messages available:", newMapData);
       return currentMapData;
     }
 
     const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt);
-    console.log("Oldest MAP Data", new Date(currTimestamp).toISOString());
     let oldIndex = 0;
     for (let i = 0; i < currentMapData.length; i++) {
       if ((currentMapData[i].properties.odeReceivedAt as unknown as number) < currTimestamp - OLDEST_DATA_TO_KEEP) {
@@ -883,14 +892,6 @@ const MapTab = (props: MyProps) => {
         break;
       }
     }
-    console.log(
-      "MAP Data Changed. Previous count:",
-      currentMapData.length,
-      "Update count:",
-      newMapData.length,
-      "New Total Count",
-      currentMapData.length - oldIndex + newMapData.length
-    );
     const currentMapDataLocal = currentMapData.slice(oldIndex, currentMapData.length).concat(newMapData);
 
     // ######################### MAP Data #########################
@@ -905,7 +906,12 @@ const MapTab = (props: MyProps) => {
       mapTime: currTimestamp,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
-    if (latestMapMessage != null) {
+    const previousMapMessage: ProcessedMap | undefined = currentMapData.at(-1);
+    if (
+      latestMapMessage != null &&
+      (latestMapMessage.properties.refPoint.latitude != previousMapMessage?.properties.refPoint.latitude ||
+        latestMapMessage.properties.refPoint.longitude != previousMapMessage?.properties.refPoint.longitude)
+    ) {
       setViewState({
         latitude: latestMapMessage?.properties.refPoint.latitude,
         longitude: latestMapMessage?.properties.refPoint.longitude,
@@ -917,14 +923,14 @@ const MapTab = (props: MyProps) => {
 
   // New iterative spat data is available. Add to current data, remove old data, and update base map data
   const renderIterative_Spat = (currentSpatSignalGroups: SpatSignalGroups, newSpatData: ProcessedSpat[]) => {
-    const OLDEST_DATA_TO_KEEP = 60 * 1000; // 60 seconds
+    const start = Date.now();
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
     if (newSpatData.length == 0) {
       console.warn("Did not attempt to render map (iterative SPAT), no new SPAT messages available:", newSpatData);
       return currentSpatSignalGroups;
     }
     // Inject and filter spat data
     const currTimestamp = Date.parse(newSpatData.at(-1)!.odeReceivedAt);
-    console.log("Oldest SPAT Data", new Date(currTimestamp).toISOString());
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
       key,
@@ -937,14 +943,6 @@ const MapTab = (props: MyProps) => {
         break;
       }
     }
-    console.log(
-      "SPAT Data Changed. Previous count:",
-      currentSpatSignalGroupsArr.length,
-      "Update count:",
-      newSpatData.length,
-      "New Total Count",
-      currentSpatSignalGroupsArr.length - oldIndex + newSpatData.length
-    );
     const newSpatSignalGroups = parseSpatSignalGroups(newSpatData);
     const newSpatSignalGroupsArr = Object.keys(newSpatSignalGroups).map((key) => ({
       key,
@@ -957,21 +955,21 @@ const MapTab = (props: MyProps) => {
       acc[curr.key] = curr.sigGroup;
       return acc;
     }, {} as SpatSignalGroups);
-    
+
     setSpatSignalGroups(currentSpatSignalGroupsLocal);
     return currentSpatSignalGroupsLocal;
   };
 
   // New iterative spat data is available. Add to current data, remove old data, and update base map data
   const renderIterative_Bsm = (currentBsmData: BsmFeatureCollection, newBsmData: OdeBsmData[]) => {
-    const OLDEST_DATA_TO_KEEP = 60 * 1000; // 60 seconds
+    const start = Date.now();
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
     if (newBsmData.length == 0) {
       console.warn("Did not attempt to render map (iterative SPAT), no new SPAT messages available:", newBsmData);
       return currentBsmData;
     }
     // Inject and filter spat data
     const currTimestamp = new Date(newBsmData.at(-1)!.metadata.odeReceivedAt as string).getTime() / 1000;
-    console.log("Oldest BSM Data", new Date(currTimestamp).toISOString());
     let oldIndex = 0;
     for (let i = 0; i < currentBsmData.features.length; i++) {
       if (Number(currentBsmData.features[i].properties.odeReceivedAt) < currTimestamp - OLDEST_DATA_TO_KEEP) {
@@ -980,14 +978,6 @@ const MapTab = (props: MyProps) => {
         break;
       }
     }
-    console.log(
-      "BSM Data Changed. Previous count:",
-      currentBsmData.features.length,
-      "Update count:",
-      newBsmData.length,
-      "New Total Count",
-      currentBsmData.features.length - oldIndex + newBsmData.length
-    );
     const newBsmGeojson = parseBsmToGeojson(newBsmData);
     const currentBsmGeojson = {
       ...currentBsmData,
@@ -1009,12 +999,12 @@ const MapTab = (props: MyProps) => {
   };
 
   useEffect(() => {
-    if (props.intersectionId != queryParams.intersectionId) {
+    if (props.intersectionId != queryParams.intersectionId || props.roadRegulatorId != queryParams.roadRegulatorId) {
       const query_params = {
         ...queryParams,
         intersectionId: props.intersectionId,
+        roadRegulatorId: props.roadRegulatorId,
       };
-      console.log("Intersection ID changed");
       setQueryParams(query_params);
       setTimeWindowSeconds(60);
     }
@@ -1024,15 +1014,16 @@ const MapTab = (props: MyProps) => {
     const newQueryParams = {
       ...generateQueryParams(props.sourceData, props.sourceDataType),
       intersectionId: props.intersectionId,
+      roadRegulatorId: props.roadRegulatorId,
     };
     if (
       queryParams.startDate.getTime() != newQueryParams.startDate.getTime() ||
       queryParams.endDate.getTime() != newQueryParams.endDate.getTime() ||
       queryParams.eventDate.getTime() != newQueryParams.eventDate.getTime() ||
       queryParams.vehicleId != newQueryParams.vehicleId ||
-      queryParams.intersectionId != newQueryParams.intersectionId
+      queryParams.intersectionId != newQueryParams.intersectionId ||
+      queryParams.roadRegulatorId != newQueryParams.roadRegulatorId
     ) {
-      console.log("Source Data changed");
       setQueryParams(newQueryParams);
       setTimeWindowSeconds(60);
     }
@@ -1042,7 +1033,6 @@ const MapTab = (props: MyProps) => {
     if (liveDataActive) {
       return;
     }
-    console.log("Setting Timeout to Pull Initial Data");
     if (loadInitialDataTimeoutId) {
       clearTimeout(loadInitialDataTimeoutId);
     }
@@ -1050,6 +1040,7 @@ const MapTab = (props: MyProps) => {
   }, [queryParams]);
 
   useEffect(() => {
+    const start = Date.now();
     if (!mapSignalGroups || !spatSignalGroups) {
       console.error("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
       return;
@@ -1129,36 +1120,76 @@ const MapTab = (props: MyProps) => {
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number);
+    setLiveDataActive(false);
+  };
+
+  const maybeUpdateLiveSliderValue = () => {
+    setLastSliderUpdate((prevLastSliderUpdate) => {
+      if (liveDataActive && (!prevLastSliderUpdate || Date.now() - prevLastSliderUpdate > 1 * 1000)) {
+        return updateLiveSliderValue();
+      } else {
+        return undefined;
+      }
+    });
   };
 
   useEffect(() => {
-    // Connect to WebSocket when component mounts
+    if (liveDataActive) {
+      if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
+        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
+        maybeUpdateLiveSliderValue();
+        // setLiveDataTimer(setInterval(, 1000));
+      } else {
+        console.error(
+          "Did not attempt to update notifications. Access token:",
+          session?.accessToken,
+          "Intersection ID:",
+          props.intersectionId,
+          "Road Regulator ID:",
+          props.roadRegulatorId
+        );
+      }
+    } else {
+      cleanUpLiveStreaming();
+      // clearInterval(liveDataTimer);
+      // setLiveDataTimer(undefined);
+    }
+  }, [liveDataActive]);
 
-    const token = session?.accessToken;
+  const updateLiveSliderValue = () => {
+    const newQueryParams = {
+      startDate: new Date(Date.now() - 1000 * 60 * 1),
+      endDate: new Date(Date.now()),
+      eventDate: new Date(Date.now()),
+      vehicleId: undefined,
+      intersectionId: queryParams.intersectionId,
+    };
+    setQueryParams(newQueryParams);
+    const sliderValue = getTimeRange(newQueryParams.startDate, newQueryParams.endDate);
+    setSliderValue(sliderValue);
+    return sliderValue;
+  };
+
+  const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
+    // Connect to WebSocket when component mounts
+    onTimeQueryChanged(new Date(), 60, 0, 5);
+
     let protocols = ["v10.stomp", "v11.stomp"];
-    protocols.push(token!);
+    protocols.push(token);
     const url = publicRuntimeConfig.API_WS_URL;
-    console.log("Connecting to STOMP endpoint: " + url + " with token: " + token);
+    console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
 
     // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
     let client = Stomp.client(url, protocols);
-    setInterval(() => {
-      const newQueryParams = {
-        startDate: new Date(Date.now() - 1000 * 60 * 1),
-        endDate: new Date(Date.now()),
-        eventDate: new Date(Date.now()),
-        vehicleId: undefined,
-        intersectionId: queryParams.intersectionId,
-      };
-      setQueryParams(newQueryParams);
-      setSliderValue(getTimeRange(newQueryParams.startDate, newQueryParams.endDate));
-    }, 1000);
+    client.debug = () => {};
 
     // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
-    let spatTopic = "/live/-1/12109/spat";
-    let mapTopic = "/live/-1/12109/map";
-    let bsmTopic = "/live/0/12109/bsm";
-
+    let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
+    let mapTopic = `/live/${roadRegulatorId}/${intersectionId}/map`;
+    let bsmTopic = `/live/0/${intersectionId}/bsm`; // TODO: Filter by road regulator ID
+    let spatTime = Date.now();
+    let mapTime = Date.now();
+    let bsmTime = Date.now();
     client.connect(
       {
         // "username": "test",
@@ -1166,37 +1197,46 @@ const MapTab = (props: MyProps) => {
         // Token: token,
       },
       () => {
-        console.log("Connection established");
         client.subscribe(spatTopic, function (mes: IMessage) {
           const spatMessage: ProcessedSpat = JSON.parse(mes.body);
-          console.log("Received SPaT message", spatMessage);
+          console.debug("Received SPaT message " + (Date.now() - spatTime) + " ms");
+          spatTime = Date.now();
           setCurrentSpatData((prevValue) => renderIterative_Spat(prevValue, [spatMessage]));
+          maybeUpdateLiveSliderValue();
         });
 
         client.subscribe(mapTopic, function (mes: IMessage) {
           const mapMessage: ProcessedMap = JSON.parse(mes.body);
-          console.log("Received MAP message", mapMessage);
+          console.debug("Received MAP message " + (Date.now() - mapTime) + " ms");
+          mapTime = Date.now();
           setCurrentMapData((prevValue) => renderIterative_Map(prevValue, [mapMessage]));
+          maybeUpdateLiveSliderValue();
         });
 
         client.subscribe(bsmTopic, function (mes: IMessage) {
           const bsmData: OdeBsmData = JSON.parse(mes.body);
-          console.log("Received BSM message", bsmData);
+          console.debug("Received BSM message " + (Date.now() - bsmTime) + " ms");
+          bsmTime = Date.now();
           setCurrentBsmData((prevValue) => renderIterative_Bsm(prevValue, [bsmData]));
+          maybeUpdateLiveSliderValue();
         });
       },
       (error) => {
-        console.log("ERROR: " + error);
+        console.error("ERROR connecting to live data Websockets", error);
       }
     );
 
-    // Disconnect and clean up when component unmounts
-    return () => {
-      client.disconnect(() => {
-        console.log("Disconnected from STOMP endpoint");
+    setWsClient(client);
+  };
+
+  const cleanUpLiveStreaming = () => {
+    if (wsClient) {
+      wsClient.disconnect(() => {
+        console.debug("Disconnected from STOMP endpoint");
       });
-    };
-  }, []);
+    }
+    setWsClient(undefined);
+  };
 
   const downloadJsonFile = (contents: any, name: string) => {
     const element = document.createElement("a");
@@ -1234,6 +1274,7 @@ const MapTab = (props: MyProps) => {
       endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
       eventDate: eventTime,
       intersectionId: queryParams.intersectionId,
+      roadRegulatorId: queryParams.roadRegulatorId,
     };
     if (
       queryParams.startDate.getTime() != updatedQueryParams.startDate.getTime() ||
@@ -1241,7 +1282,6 @@ const MapTab = (props: MyProps) => {
       queryParams.eventDate.getTime() != updatedQueryParams.eventDate.getTime()
     ) {
       // Detected change in query params
-      console.log("Time Query Changed");
       setQueryParams(updatedQueryParams);
     } else {
       // No change in query params
@@ -1306,6 +1346,8 @@ const MapTab = (props: MyProps) => {
                 handleImportedMessageData={handleImportedMessageData}
                 showPopupOnHover={showPopupOnHover}
                 setShowPopupOnHover={setShowPopupOnHover}
+                liveDataActive={liveDataActive}
+                setLiveDataActive={setLiveDataActive}
               />
             </Paper>
           </Box>

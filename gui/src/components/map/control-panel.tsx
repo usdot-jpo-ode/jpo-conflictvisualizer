@@ -4,31 +4,12 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import {
-  AppBar,
-  Avatar,
-  Badge,
-  Box,
-  IconButton,
-  Toolbar,
-  Tooltip,
-  Theme,
-  FormControl,
-  InputLabel,
-  Select,
-  Typography,
-  MenuItem,
-  TextField,
-  Button,
-  Checkbox,
-  InputAdornment,
-  Container,
-} from "@mui/material";
+import { Box, Typography, TextField, Button, Checkbox, InputAdornment, Chip } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
-import { styled, SxProps } from "@mui/material/styles";
+import { styled, SxProps, Theme } from "@mui/material/styles";
 import { format } from "date-fns";
 import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
@@ -87,13 +68,15 @@ interface ControlPanelProps {
   };
   downloadAllData: () => void;
   signalStateLayer: any;
-  setSignalStateLayer: (signalStateLayer: any) => void;
+  setSignalStateLayer: React.Dispatch<React.SetStateAction<any>>;
   laneLabelsVisible: boolean;
-  setLaneLabelsVisible: (laneLabelsVisible: boolean) => void;
+  setLaneLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
   sigGroupLabelsVisible: boolean;
-  setSigGroupLabelsVisible: (sigGroupLabelsVisible: boolean) => void;
+  setSigGroupLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
   showPopupOnHover: boolean;
-  setShowPopupOnHover: (showPopupOnHover: boolean) => void;
+  setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
+  liveDataActive: boolean;
+  setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function ControlPanel(props: ControlPanelProps) {
@@ -116,6 +99,7 @@ function ControlPanel(props: ControlPanelProps) {
     };
   };
 
+  const [shouldReRender, setShouldReRender] = useState(true);
   const [dateParams, setDateParams] = useState<{
     eventTime?: Date;
     timeBefore?: number;
@@ -125,16 +109,26 @@ function ControlPanel(props: ControlPanelProps) {
 
   useEffect(() => {
     const newDateParams = getQueryParams(props.timeQueryParams);
-    if (newDateParams.eventTime != dateParams.eventTime) setDateParams(newDateParams);
+    if (
+      newDateParams.eventTime.getTime() != dateParams.eventTime?.getTime() ||
+      newDateParams.timeWindowSeconds != dateParams.timeWindowSeconds
+    ) {
+      setShouldReRender(false);
+      setDateParams(newDateParams);
+    }
   }, [props.timeQueryParams]);
 
   useEffect(() => {
-    props.onTimeQueryChanged(
-      dateParams.eventTime,
-      dateParams.timeBefore,
-      dateParams.timeAfter,
-      dateParams.timeWindowSeconds
-    );
+    if (shouldReRender) {
+      props.onTimeQueryChanged(
+        dateParams.eventTime,
+        dateParams.timeBefore,
+        dateParams.timeAfter,
+        dateParams.timeWindowSeconds
+      );
+    } else {
+      setShouldReRender(true);
+    }
   }, [dateParams]);
 
   const getNumber = (value: string): number | undefined => {
@@ -165,26 +159,20 @@ function ControlPanel(props: ControlPanelProps) {
       zip.forEach((relativePath, zipEntry) => zipObjects.push({ relativePath, zipEntry }));
       for (let i = 0; i < zipObjects.length; i++) {
         const { relativePath, zipEntry } = zipObjects[i];
-        console.log(relativePath);
         if (relativePath.endsWith("_MAP_data.json")) {
           const data = await zipEntry.async("string");
           messageData.mapData = JSON.parse(data);
-          console.log("AddedMAPData", messageData.mapData.length);
         } else if (relativePath.endsWith("_BSM_data.json")) {
           const data = await zipEntry.async("string");
           messageData.bsmData = JSON.parse(data);
-          console.log("AddedBSMData", messageData.bsmData.length);
         } else if (relativePath.endsWith("_Notification_data.json")) {
           const data = await zipEntry.async("string");
           messageData.notificationData = JSON.parse(data);
-          console.log("AddedNotificationData", messageData.notificationData.length);
         } else if (relativePath.endsWith("_SPAT_data.json")) {
           const data = await zipEntry.async("string");
           messageData.spatData = JSON.parse(data);
-          console.log("AddedSPATData", messageData.spatData.length);
         }
       }
-      console.log("Sending Message Data", messageData);
       props.handleImportedMessageData(messageData);
     });
   };
@@ -197,7 +185,12 @@ function ControlPanel(props: ControlPanelProps) {
     >
       <Accordion disableGutters>
         <AccordionSummary>
-          <Typography variant="h5">Time Query</Typography>
+          <Typography variant="h5">
+            Time Query
+            {props.liveDataActive && (
+              <Chip label="Live Data Active" className="blink_me" sx={{ ml: 1 }} color="success" />
+            )}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ mt: 1 }}>
@@ -217,9 +210,10 @@ function ControlPanel(props: ControlPanelProps) {
                 }}
                 value={dateParams.timeBefore}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 2 }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 1 }}>
                 <DateTimePicker
                   label="Event Date"
+                  disabled={props.liveDataActive}
                   value={dayjs(dateParams.eventTime ?? new Date())}
                   onChange={(e) => {
                     setDateParams((prevState) => {
@@ -262,6 +256,15 @@ function ControlPanel(props: ControlPanelProps) {
                 value={dateParams.timeWindowSeconds}
               />
             </Box>
+            <Chip
+              label={props.liveDataActive ? "Stop Live Data" : "Render Live Data"}
+              sx={{ mt: 1 }}
+              onClick={() => {
+                props.setLiveDataActive((prevValue) => !prevValue);
+              }}
+              color={props.liveDataActive ? "success" : "default"}
+              variant={props.liveDataActive ? undefined : "outlined"}
+            />
           </Box>
         </AccordionDetails>
       </Accordion>
@@ -307,7 +310,6 @@ function ControlPanel(props: ControlPanelProps) {
                   type="file"
                   multiple={false}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                    console.log("Input Changed", e.target.files);
                     openMessageData(e.target.files);
                   }}
                 />

@@ -2,6 +2,46 @@ import { createTheme } from "@mui/material";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
+const blinking = {
+  main: {
+    "@keyframes blinker": {
+      from: { opacity: 1 },
+      to: { opacity: 0.2 },
+    },
+    headerGT: {
+      animationName: "$blinker",
+      animationDuration: "2s",
+      animationTimingFunction: "linear",
+      animationIterationCount: "infinite",
+    },
+  },
+  light: {
+    "@keyframes blinker": {
+      from: { opacity: 1 },
+      to: { opacity: 0.2 },
+    },
+    headerGT: {
+      animationName: "$blinker",
+      animationDuration: "2s",
+      animationTimingFunction: "linear",
+      animationIterationCount: "infinite",
+    },
+  },
+  dark: {
+    "@keyframes blinker": {
+      from: { opacity: 1 },
+      to: { opacity: 0.2 },
+    },
+    headerGT: {
+      animationName: "$blinker",
+      animationDuration: "2s",
+      animationTimingFunction: "linear",
+      animationIterationCount: "infinite",
+    },
+  },
+  contrastText: "#111827",
+};
+
 export const theme = createTheme({
   breakpoints: {
     values: {
@@ -199,6 +239,7 @@ export const theme = createTheme({
       secondary: "#65748B",
       disabled: "rgba(55, 65, 81, 0.48)",
     },
+    blinking,
   },
   shape: {
     borderRadius: 8,

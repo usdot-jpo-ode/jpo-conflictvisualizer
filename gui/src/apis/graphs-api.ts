@@ -83,19 +83,22 @@ class GraphsApi {
 
   async getGraphData({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     event_types,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: number;
+    intersectionId: number;
+    roadRegulatorId: number;
     event_types: string[];
     startTime: Date;
     endTime: Date;
   }): Promise<Array<GraphArrayDataType>> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id.toString();
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
@@ -118,7 +121,7 @@ class GraphsApi {
           }
         });
       } catch (e) {
-        console.log("Failed to generate graph data for event type " + event_type, e);
+        console.error("Failed to generate graph data for event type " + event_type, e);
       }
     }
 

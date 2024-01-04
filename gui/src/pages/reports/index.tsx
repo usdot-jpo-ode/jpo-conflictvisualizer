@@ -41,7 +41,7 @@ const LogsListInner = styled("div", { shouldForwardProp: (prop) => prop !== "ope
 const Page = () => {
   const rootRef = useRef(null);
   const { data: session } = useSession();
-  const { intersectionId } = useDashboardContext();
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
 
   const [group, setGroup] = useState(true);
   const [logs, setLogs] = useState<ReportMetadata[]>([]);
@@ -68,7 +68,12 @@ const Page = () => {
     return 0;
   }
 
-  const listReports = async (start_timestamp: Date, end_timestamp: Date, intersectionId: number) => {
+  const listReports = async (
+    start_timestamp: Date,
+    end_timestamp: Date,
+    intersectionId: number,
+    roadRegulatorId: number
+  ) => {
     if (!session?.accessToken) {
       console.error("Did not attempt to list reports. Access token:", session?.accessToken);
       setLoading(false);
@@ -79,7 +84,8 @@ const Page = () => {
       let data =
         (await ReportsApi.listReports({
           token: session.accessToken,
-          intersection_id: intersectionId,
+          intersectionId,
+          roadRegulatorId,
           startTime: start_timestamp,
           endTime: end_timestamp,
         })) ?? [];
@@ -95,7 +101,7 @@ const Page = () => {
   useEffect(
     () => {
       setLoading(true);
-      setTimeout(() => listReports(filters.startDate, filters.endDate, intersectionId), 300);
+      setTimeout(() => listReports(filters.startDate, filters.endDate, intersectionId, roadRegulatorId), 300);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [filters, intersectionId]
@@ -132,7 +138,7 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>Dashboard: Logs List</title>
+        <title>Reports List</title>
       </Head>
       <Box
         component="main"
@@ -156,7 +162,7 @@ const Page = () => {
         <LogsListInner open={openFilters} theme={undefined}>
           <Box sx={{ mb: 3 }}>
             <Stack spacing={3} maxWidth="sm">
-              <Typography variant="h4">Logs</Typography>
+              <Typography variant="h4">Reports</Typography>
               <Box>
                 <Button
                   endIcon={<FilterAlt fontSize="small" />}

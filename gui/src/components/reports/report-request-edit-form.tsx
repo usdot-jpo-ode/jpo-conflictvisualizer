@@ -9,11 +9,13 @@ import { Button, Card, CardActions, CardContent, Divider, Grid, TextField } from
 
 type Props = {
   onGenerateReport: ({
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
-    intersection_id?: number;
+    intersectionId?: number;
+    roadRegulatorId?: number;
     startTime: Date;
     endTime: Date;
   }) => void;
@@ -27,7 +29,7 @@ export const ReportRequestEditForm = (props: Props) => {
       startDate: new Date(Date.now() - 86400000), //yesterday
       endDate: new Date(),
       intersectionId: dbIntersectionId,
-      //   roadRegulatorId: -1,
+      roadRegulatorId: -1,
       submit: null,
     },
     validationSchema: Yup.object({
@@ -43,8 +45,8 @@ export const ReportRequestEditForm = (props: Props) => {
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);
         onGenerateReport({
-          intersection_id: values.intersectionId,
-          //   roadRegulatorId: values.roadRegulatorId,
+          intersectionId: values.intersectionId,
+          roadRegulatorId: values.roadRegulatorId,
           startTime: values.startDate,
           endTime: values.endDate,
         });

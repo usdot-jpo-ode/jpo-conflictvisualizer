@@ -12,17 +12,20 @@ class MessageMonitorApi {
 
   async getSpatMessages({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: string;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime?: Date;
     endTime?: Date;
   }): Promise<ProcessedSpat[]> {
     const queryParams: Record<string, string> = {};
-    if (intersection_id) queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
@@ -37,19 +40,22 @@ class MessageMonitorApi {
 
   async getMapMessages({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
     latest,
   }: {
     token: string;
-    intersection_id: string;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime?: Date;
     endTime?: Date;
     latest?: boolean;
   }): Promise<ProcessedMap[]> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     if (latest !== undefined) queryParams["latest"] = latest.toString();

@@ -7,7 +7,7 @@ import { useDashboardContext } from "../../../contexts/dashboard-context";
 
 const Map = () => {
   const currentDate = new Date();
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId: dbIntersectionId, roadRegulatorId } = useDashboardContext();
   return (
     <>
       <Head>
@@ -20,7 +20,12 @@ const Map = () => {
         }}
       >
         <Container maxWidth={false} style={{ padding: 0, width: "100%", height: "100%", display: "flex" }}>
-          <MapTab sourceData={undefined} sourceDataType={undefined} intersectionId={dbIntersectionId} />
+          <MapTab
+            sourceData={undefined}
+            sourceDataType={undefined}
+            intersectionId={dbIntersectionId}
+            roadRegulatorId={roadRegulatorId}
+          />
         </Container>
       </Box>
     </>
