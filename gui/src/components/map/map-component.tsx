@@ -1157,7 +1157,7 @@ const MapTab = (props: MyProps) => {
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
-    const url = publicRuntimeConfig.API_WS_URL;
+    const url = `${publicRuntimeConfig.API_WS_URL}/stomp`;
     console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
 
     // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
@@ -1167,7 +1167,7 @@ const MapTab = (props: MyProps) => {
     // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
     let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
     let mapTopic = `/live/${roadRegulatorId}/${intersectionId}/map`;
-    let bsmTopic = `/live/0/${intersectionId}/bsm`; // TODO: Filter by road regulator ID
+    let bsmTopic = `/live/${roadRegulatorId}/${intersectionId}/bsm`; // TODO: Filter by road regulator ID
     let spatTime = Date.now();
     let mapTime = Date.now();
     let bsmTime = Date.now();
