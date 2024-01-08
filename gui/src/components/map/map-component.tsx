@@ -1153,7 +1153,7 @@ const MapTab = (props: MyProps) => {
 
   const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
     // Connect to WebSocket when component mounts
-    onTimeQueryChanged(new Date(), 10, 0, 5);
+    onTimeQueryChanged(new Date(), 10, 0, 2);
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
