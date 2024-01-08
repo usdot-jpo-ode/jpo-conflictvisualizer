@@ -40,15 +40,15 @@ class ConfigParamsApi {
 
   async getIntersectionParameters(
     token: string,
-    intersection_id: string,
-    road_regulator_id: string
+    intersectionId: number,
+    roadRegulatorId: number
   ): Promise<IntersectionConfig[]> {
     // return configParamsIntersection;
     try {
       var response = await authApiHelper.invokeApi({
         path: "/config/intersection/unique",
         token: token,
-        queryParams: { intersection_id, road_regulator_id },
+        queryParams: { intersection_id: intersectionId.toString(), road_regulator_id: roadRegulatorId.toString() },
         failureMessage: "Failed to retrieve unique intersection parameters",
       });
       return response ?? ([] as IntersectionConfig[]);
@@ -58,12 +58,12 @@ class ConfigParamsApi {
     }
   }
 
-  async getAllParameters(token: string, intersection_id: string, road_regulator_id: string): Promise<Config[]> {
+  async getAllParameters(token: string, intersectionId: number, roadRegulatorId: number): Promise<Config[]> {
     try {
       var response = await authApiHelper.invokeApi({
         path: "/config/intersection/unique",
         token: token,
-        queryParams: { intersection_id, road_regulator_id },
+        queryParams: { intersection_id: intersectionId.toString(), road_regulator_id: roadRegulatorId.toString() },
         failureMessage: "Failed to retrieve unique intersection parameters",
       });
       return response ?? ([] as IntersectionConfig[]);
@@ -94,15 +94,15 @@ class ConfigParamsApi {
   async getParameterIntersection(
     token: string,
     key: string,
-    intersection_id: string,
-    road_regulator_id: string
+    intersectionId: number,
+    roadRegulatorId: number
   ): Promise<IntersectionConfig | undefined> {
     try {
       var response = (
         await authApiHelper.invokeApi({
           path: `/config/intersection/all`,
           token: token,
-          queryParams: { intersection_id, road_regulator_id },
+          queryParams: { intersection_id: intersectionId.toString(), road_regulator_id: roadRegulatorId.toString() },
           toastOnFailure: false,
           //   failureMessage: `Failed to Retrieve Configuration Parameter ${key}`,
         })
@@ -119,12 +119,15 @@ class ConfigParamsApi {
   async getParameter(
     token: string,
     key: string,
-    road_regulator_id: string,
-    intersection_id: string
+    intersectionId: number,
+    roadRegulatorId: number
   ): Promise<Config | undefined> {
     // try to get intersection parameter first, if not found, get general parameter
-    var param: Config | undefined = await this.getParameterIntersection(token, key, intersection_id, road_regulator_id);
-    if (param == undefined || intersection_id == "-1") {
+    var param: Config | undefined = undefined;
+    if (intersectionId !== -1) {
+      var param: Config | undefined = await this.getParameterIntersection(token, key, intersectionId, roadRegulatorId);
+    }
+    if (param == undefined) {
       param = await this.getParameterGeneral(token, key);
     }
     return param;
@@ -176,12 +179,12 @@ class ConfigParamsApi {
     token: string,
     name: string,
     value: Config,
-    intersectionID: number,
-    roadRegulatorID: number
+    intersectionId: number,
+    roadRegulatorId: number
   ): Promise<Config | undefined> {
     const param: IntersectionConfig = {
-      intersectionID,
-      roadRegulatorID,
+      intersectionID: intersectionId,
+      roadRegulatorID: roadRegulatorId,
       rsuID: "rsu_1",
       ...value,
     };

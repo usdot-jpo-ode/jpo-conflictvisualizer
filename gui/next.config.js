@@ -21,6 +21,7 @@ const nextConfig = {
     GUI_SERVER_URL: process.env.GUI_SERVER_URL,
     AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
     API_SERVER_URL: process.env.API_SERVER_URL,
+    API_WS_URL: process.env.API_WS_URL,
   },
 };
 

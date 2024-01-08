@@ -23,24 +23,34 @@ export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
   };
 
   const getReport = async ({
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
-    intersection_id?: number;
+    intersectionId?: number;
+    roadRegulatorId?: number;
     startTime: Date;
     endTime: Date;
   }) => {
-    if (!session?.accessToken || !intersection_id) {
+    if (!session?.accessToken || !intersectionId || !roadRegulatorId) {
       console.error(
         "Did not attempt to generate report. Access token:",
         session?.accessToken,
         "Intersection ID:",
-        intersection_id
+        intersectionId,
+        "Road Regulator ID:",
+        roadRegulatorId
       );
       return;
     }
-    const promise = ReportsApi.generateReport({ token: session?.accessToken, intersection_id, startTime, endTime });
+    const promise = ReportsApi.generateReport({
+      token: session?.accessToken,
+      intersectionId,
+      roadRegulatorId,
+      startTime,
+      endTime,
+    });
     toast.promise(promise, {
       loading: "Generating Performance Report",
       success: "Successfully Generated Performance Report",
