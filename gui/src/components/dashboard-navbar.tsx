@@ -20,8 +20,9 @@ import React from "react";
 import { getInitials } from "../utils/get-initials";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useTheme } from "@mui/material/styles";
-import { useSession } from "next-auth/react";
 import MapDialog from "./intersection-selector/intersection-selector-dialog";
+import { useDispatch, useSelector } from "react-redux";
+import { selectFullName } from "../slices/userSlice";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -71,11 +72,13 @@ function stringAvatar(name?: string) {
 
 export const DashboardNavbar = (props: Props) => {
   const { onSidebarOpen, intersections, ...other } = props;
+  const dispatch = useDispatch();
+
+  const fullName = useSelector(selectFullName);
   const settingsRef = useRef(null);
   const { intersectionId, setIntersection } = useDashboardContext();
   const [openAccountPopover, setOpenAccountPopover] = useState(false);
   const [openMapDialog, setOpenMapDialog] = useState(false);
-  const { data: session } = useSession();
   const theme = useTheme();
 
   return (
@@ -150,9 +153,9 @@ export const DashboardNavbar = (props: Props) => {
           <Avatar
             onClick={() => setOpenAccountPopover(true)}
             ref={settingsRef}
-            {...stringAvatar(session?.user?.name ?? undefined)}
+            {...stringAvatar(fullName ?? undefined)}
           >
-            {getInitials(session?.user?.name ?? undefined)}
+            {getInitials(fullName ?? undefined)}
           </Avatar>
         </Toolbar>
       </DashboardNavbarRoot>

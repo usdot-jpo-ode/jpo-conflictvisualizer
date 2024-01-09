@@ -6,27 +6,31 @@ import { configParamApi } from "../../../apis/configuration-param-api";
 import { DashboardLayout } from "../../../components/dashboard-layout";
 import { ConfigParamEditForm } from "../../../components/configuration/configuration-edit-form";
 import { useDashboardContext } from "../../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../../slices/userSlice";
 
 const ConfigParamEdit = () => {
   const { intersectionId, roadRegulatorId } = useDashboardContext();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   const [parameter, setParameter] = useState<Config | undefined>(undefined);
-  const { data: session } = useSession();
 
   const router = useRouter();
   const { key } = router.query;
 
   const getParameter = async (key: string) => {
-    if (session?.accessToken) {
+    if (authToken) {
       try {
-        const data = await configParamApi.getParameter(session?.accessToken, key, intersectionId, roadRegulatorId);
+        const data = await configParamApi.getParameter(authToken, key, intersectionId, roadRegulatorId);
 
         setParameter(data);
       } catch (err) {
         console.error(err);
       }
     } else {
-      console.error("Did not attempt to get configuration parameter in edit form. Access token:", session?.accessToken);
+      console.error("Did not attempt to get configuration parameter in edit form. Access token:", authToken);
     }
   };
 

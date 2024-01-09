@@ -6,13 +6,16 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Button, Card, CardActions, CardContent, CardHeader, Divider, Grid, TextField } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
-import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 export const ConfigParamCreateForm = (props) => {
   const { parameter }: { parameter: Config } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const router = useRouter();
-  const { data: session } = useSession();
   const { intersectionId, roadRegulatorId } = useDashboardContext();
   const formik = useFormik({
     initialValues: {
@@ -27,10 +30,10 @@ export const ConfigParamCreateForm = (props) => {
       value: Yup.string().required("New value is required"),
     }),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken || intersectionId == -1) {
+      if (!authToken || intersectionId == -1) {
         console.error(
           "Did not attempt to create configuration param. Access token:",
-          session?.accessToken,
+          authToken,
           "Intersection ID:",
           intersectionId
         );
@@ -44,7 +47,7 @@ export const ConfigParamCreateForm = (props) => {
           roadRegulatorID: roadRegulatorId,
           rsuID: "",
         };
-        await configParamApi.updateIntersectionParameter(session?.accessToken, values.name, updatedConfig);
+        await configParamApi.updateIntersectionParameter(authToken, values.name, updatedConfig);
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);
         router

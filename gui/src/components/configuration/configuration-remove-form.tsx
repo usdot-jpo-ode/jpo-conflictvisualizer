@@ -7,12 +7,15 @@ import { useFormik } from "formik";
 import { Button, Card, CardActions, CardContent, CardHeader, Divider, Grid, TextField } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
 import { useDashboardContext } from "../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 export const ConfigParamRemoveForm = (props) => {
   const { parameter, defaultParameter, ...other } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const router = useRouter();
-  const { data: session } = useSession();
   const { intersectionId } = useDashboardContext();
   const formik = useFormik({
     initialValues: {
@@ -25,17 +28,17 @@ export const ConfigParamRemoveForm = (props) => {
     },
     validationSchema: Yup.object({}),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken || intersectionId == -1) {
+      if (!authToken || intersectionId == -1) {
         console.error(
           "Did not attempt to remove configuration parameter. Access token:",
-          session?.accessToken,
+          authToken,
           "Intersection ID:",
           intersectionId
         );
         return;
       }
       try {
-        await configParamApi.removeOverriddenParameter(session?.accessToken, values.name, parameter);
+        await configParamApi.removeOverriddenParameter(authToken, values.name, parameter);
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);
         router

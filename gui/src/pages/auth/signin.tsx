@@ -3,25 +3,15 @@ import Head from "next/head";
 import NextLink from "next/link";
 import { Box, Button, Grid, Typography } from "@mui/material";
 import { Logo } from "../../components/logo";
-import { getProviders, signIn } from "next-auth/react";
 import React from "react";
 import getConfig from "next/config";
+import { selectKeycloakClient } from "../../slices/userSlice";
+import { useSelector } from "react-redux";
+
 const { publicRuntimeConfig } = getConfig();
 
-interface Provider {
-  id: string;
-  name: string;
-}
-
 const Page = () => {
-  const [providers, setProviders] = useState<Record<string, Provider>>({});
-
-  useEffect(() => {
-    (async () => {
-      const res = await getProviders();
-      setProviders(res!);
-    })();
-  }, []);
+  const keycloakClient = useSelector(selectKeycloakClient);
 
   return (
     <>
@@ -90,16 +80,26 @@ const Page = () => {
                     CIMMS Cloud Management Console
                   </Typography>
                   <div>
-                    {Object.values(providers).map((provider) => (
-                      <div key={provider.name}>
-                        <Button
-                          onClick={() => signIn(provider.id, { callbackUrl: `${publicRuntimeConfig.GUI_SERVER_URL}/` })} //
-                          variant="contained"
-                        >
-                          Sign in with {provider.name}
-                        </Button>
-                      </div>
-                    ))}
+                    <div key={"Keycloak"}>
+                      <Button
+                        onClick={() => {
+                          console.log("Signing in with Keycloak...", keycloakClient);
+                          keycloakClient?.login({ redirectUri: `${publicRuntimeConfig.GUI_SERVER_URL}/` });
+                        }}
+                        variant="contained"
+                      >
+                        Sign in with Keycloak
+                      </Button>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={() => {
+                          console.log("Button Clicked");
+                        }}
+                      >
+                        TestButton
+                      </Button>
+                    </div>
 
                     <NextLink href="/auth/signup" passHref>
                       <Button

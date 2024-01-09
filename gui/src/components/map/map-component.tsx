@@ -13,17 +13,16 @@ import EventsApi from "../../apis/events-api";
 import NotificationApi from "../../apis/notification-api";
 import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
-import { useSession } from "next-auth/react";
 import getConfig from "next/config";
 import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 import { MapLegend } from "./map-legend";
 import toast from "react-hot-toast";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
-
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
-
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
@@ -238,6 +237,9 @@ type MyProps = {
 
 const MapTab = (props: MyProps) => {
   const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;
@@ -394,7 +396,6 @@ const MapTab = (props: MyProps) => {
   const [cursor, setCursor] = useState<string>("default");
 
   const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
-  const { data: session } = useSession();
   const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
 
   const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
@@ -664,14 +665,14 @@ const MapTab = (props: MyProps) => {
 
   const pullInitialData = async () => {
     if (
-      !session?.accessToken ||
+      !authToken ||
       !queryParams.intersectionId ||
       !queryParams.roadRegulatorId ||
       (props.sourceData == undefined && props.loadOnNull == false)
     ) {
       console.error(
         "Did not attempt to pull initial map data. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         queryParams.intersectionId,
         "Road Regulator ID:",
@@ -686,7 +687,7 @@ const MapTab = (props: MyProps) => {
     if (!importedMessageData) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
@@ -702,7 +703,7 @@ const MapTab = (props: MyProps) => {
 
       // ######################### Retrieve SPAT Data #########################
       const rawSpatPromise = MessageMonitorApi.getSpatMessages({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
@@ -717,7 +718,7 @@ const MapTab = (props: MyProps) => {
 
       // ######################### Surrounding Events #########################
       const surroundingEventsPromise = EventsApi.getAllEvents(
-        session?.accessToken,
+        authToken,
         queryParams.intersectionId,
         queryParams.roadRegulatorId,
         queryParams.startDate,
@@ -732,7 +733,7 @@ const MapTab = (props: MyProps) => {
 
       // ######################### Surrounding Notifications #########################
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
@@ -782,7 +783,7 @@ const MapTab = (props: MyProps) => {
     // ######################### BSMs #########################
     if (!importedMessageData) {
       const rawBsmPromise = MessageMonitorApi.getBsmMessages({
-        token: session?.accessToken,
+        token: authToken,
         vehicleId: queryParams.vehicleId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
@@ -1118,13 +1119,13 @@ const MapTab = (props: MyProps) => {
 
   useEffect(() => {
     if (liveDataActive) {
-      if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
-        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
+      if (authToken && props.roadRegulatorId && props.intersectionId) {
+        initializeLiveStreaming(authToken, props.roadRegulatorId, props.intersectionId);
         onTimeQueryChanged(new Date(), 10, 0, 5);
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
-          session?.accessToken,
+          authToken,
           "Intersection ID:",
           props.intersectionId,
           "Road Regulator ID:",

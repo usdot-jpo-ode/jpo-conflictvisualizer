@@ -10,6 +10,4 @@ export const setupStore = (preloadedState) => {
   });
 };
 
-const tempState = setupStore({}).getState;
-
-export type RootStateType = ReturnType<typeof tempState>;
+export type RootState = ReturnType<ReturnType<typeof setupStore>["getState"]>;

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogTitle, Container, DialogActions, Button, Paper, Box, Typography } from "@mui/material";
 
 import { useDashboardContext } from "../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
 import { ReportRequestEditForm } from "./report-request-edit-form";
 import ReportsApi from "../../apis/reports-api";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 type ReportGenerationDialogProps = {
   onClose: () => void;
@@ -14,7 +15,9 @@ type ReportGenerationDialogProps = {
 
 export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
   const { intersectionId } = useDashboardContext();
-  const { data: session } = useSession();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
 
   const { onClose, open } = props;
 
@@ -33,10 +36,10 @@ export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
     startTime: Date;
     endTime: Date;
   }) => {
-    if (!session?.accessToken || !intersectionId || !roadRegulatorId) {
+    if (authToken || !intersectionId || !roadRegulatorId) {
       console.error(
         "Did not attempt to generate report. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         intersectionId,
         "Road Regulator ID:",
@@ -45,7 +48,7 @@ export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
       return;
     }
     const promise = ReportsApi.generateReport({
-      token: session?.accessToken,
+      token: authToken,
       intersectionId,
       roadRegulatorId,
       startTime,

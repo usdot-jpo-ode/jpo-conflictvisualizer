@@ -8,7 +8,6 @@ import { createEmotionCache } from "../utils/create-emotion-cache";
 import { registerChartJs } from "../utils/register-chart-js";
 import { theme } from "../theme";
 import React from "react";
-import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
@@ -23,7 +22,7 @@ const App = (props) => {
   const {
     Component,
     emotionCache = clientSideEmotionCache,
-    pageProps: { session, ...pageProps },
+    pageProps: { ...pageProps },
   } = props;
 
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -38,7 +37,7 @@ const App = (props) => {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
+            {getLayout(<Component {...pageProps} />)}
           </ThemeProvider>
         </LocalizationProvider>
         <Toaster />

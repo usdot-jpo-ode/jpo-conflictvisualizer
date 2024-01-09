@@ -1,41 +1,41 @@
 import Router from "next/router";
 import PropTypes from "prop-types";
 import { Box, MenuItem, MenuList, Popover, Typography } from "@mui/material";
-import { ENABLE_AUTH } from "../lib/auth";
 import React from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
-import keycloakApi from "../apis/keycloak-api";
 import getConfig from "next/config";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken, selectFirstName, selectKeycloakClient, selectRefreshToken } from "../slices/userSlice";
 const { publicRuntimeConfig } = getConfig();
 
 export const AccountPopover = (props) => {
   const { anchorEl, onClose, open, ...other } = props;
-  const { data: session } = useSession();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+  const firstName = useSelector(selectFirstName);
+  const refreshToken = useSelector(selectRefreshToken);
+  const keycloakClient = useSelector(selectKeycloakClient);
 
   const handleSignOut = async () => {
     onClose?.();
 
     try {
       console.info("Signing out");
+      keycloakClient?.logout();
 
-      if (session?.accessToken && session?.refreshToken) {
-        keycloakApi.logout({
-          token: session?.accessToken,
-          refresh_token: session?.refreshToken,
-        });
-      } else {
-        console.error(
-          "Did not attempt to logout. Access token:",
-          session?.accessToken,
-          "Refresh Token:",
-          session?.refreshToken
-        );
-      }
+      // if (authToken && refreshToken) {
+      //   keycloakApi.logout({
+      //     token: authToken,
+      //     refresh_token: refreshToken,
+      //   });
+      // } else {
+      //   console.error("Did not attempt to logout. Access token:", authToken, "Refresh Token:", refreshToken);
+      // }
       // This can be call inside AuthProvider component, but we do it here for simplicity
-      signOut();
+      // signOut();
 
       // Redirect to sign-in page
-      //   Router.push("/sign-in").catch(console.error);
+      Router.push("/auth/signin").catch(console.error);
     } catch (err) {
       console.error(err);
     }
@@ -63,7 +63,7 @@ export const AccountPopover = (props) => {
       >
         <Typography variant="overline">Account</Typography>
         <Typography color="text.secondary" variant="body2">
-          {session?.user?.name}
+          {firstName}
         </Typography>
       </Box>
       <MenuList

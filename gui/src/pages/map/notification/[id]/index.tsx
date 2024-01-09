@@ -6,19 +6,22 @@ import MapTab from "../../../../components/map/map-component";
 import { useRouter } from "next/router";
 import NotificationApi from "../../../../apis/notification-api";
 import { useDashboardContext } from "../../../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../../../slices/userSlice";
 
 const Map = () => {
   const router = useRouter();
   const { id } = router.query;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const [notification, setNotification] = useState<MessageMonitor.Notification | undefined>();
   const { intersectionId, roadRegulatorId } = useDashboardContext();
-  const { data: session } = useSession();
 
   const updateNotifications = () => {
-    if (session?.accessToken && intersectionId) {
+    if (authToken && intersectionId) {
       NotificationApi.getActiveNotifications({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId,
         roadRegulatorId,
         key: id as string,
@@ -29,7 +32,7 @@ const Map = () => {
     } else {
       console.error(
         "Did not attempt to get notification data in map. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         intersectionId
       );

@@ -1,5 +1,4 @@
 import toast from "react-hot-toast";
-import { signIn } from "next-auth/react";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
@@ -78,7 +77,7 @@ class AuthApiHelper {
           console.error("Request failed with status code " + response.status + ": " + response.statusText);
           if (response.status === 401) {
             toast.error("Authentication failed, please sign in again");
-            signIn();
+            // signIn();
           } else if (response.status === 403) {
             toast.error("You are not authorized to perform this action.");
           } else if (toastOnFailure) toast.error(failureMessage + ", with status code " + response.status);

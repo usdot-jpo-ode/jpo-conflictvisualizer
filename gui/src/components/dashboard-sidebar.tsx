@@ -2,26 +2,18 @@ import { useEffect } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
-import { Box, Button, Divider, Drawer, Typography, useMediaQuery, Theme, Chip } from "@mui/material";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { Box, Divider, Drawer, useMediaQuery, Theme } from "@mui/material";
 import { ChartBar as ChartBarIcon } from "../icons/chart-bar";
 import { Cog as CogIcon } from "../icons/cog";
-import { Lock as LockIcon } from "../icons/lock";
-import { Selector as SelectorIcon } from "../icons/selector";
-import { ShoppingBag as ShoppingBagIcon } from "../icons/shopping-bag";
-import { User as UserIcon } from "../icons/user";
-import { UserAdd as UserAddIcon } from "../icons/user-add";
 import { Users as UsersIcon } from "../icons/users";
 import MapIcon from "@mui/icons-material/Map";
-import TimelineIcon from "@mui/icons-material/Timeline";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArticleIcon from "@mui/icons-material/Article";
 import { Logo } from "./logo";
-import { NavItem } from "./nav-item";
 import React from "react";
 import { DashboardSidebarSection } from "./dashboard-sidebar-section";
-import { useDashboardContext } from "../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectRole } from "../slices/userSlice";
 
 const generalItems = [
   {
@@ -90,12 +82,14 @@ const getSections = (role) =>
 
 export const DashboardSidebar = (props) => {
   const { open, onClose } = props;
+  const dispatch = useDispatch();
+
+  const role = useSelector(selectRole);
   const router = useRouter();
   const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up("lg"), {
     defaultMatches: true,
     noSsr: false,
   });
-  const { data: session } = useSession();
 
   useEffect(
     () => {
@@ -141,7 +135,7 @@ export const DashboardSidebar = (props) => {
           }}
         />
         <Box sx={{ flexGrow: 1 }}>
-          {getSections(session?.role).map((section) => (
+          {getSections(role).map((section) => (
             <DashboardSidebarSection
               key={section.title}
               path={router.asPath}

@@ -6,12 +6,15 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Button, Card, CardActions, CardContent, CardHeader, Divider, Grid, TextField } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 export const ConfigParamEditForm = (props) => {
   const { parameter }: { parameter: DefaultConfig | IntersectionConfig } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const router = useRouter();
-  const { data: session } = useSession();
   const formik = useFormik({
     initialValues: {
       name: parameter.key,
@@ -25,8 +28,8 @@ export const ConfigParamEditForm = (props) => {
       value: Yup.string().required("New value is required"),
     }),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken) {
-        console.error("Did not attempt to edit configuration parameter. Access token:", Boolean(session?.accessToken));
+      if (!authToken) {
+        console.error("Did not attempt to edit configuration parameter. Access token:", Boolean(authToken));
         return;
       }
       try {
@@ -79,13 +82,13 @@ export const ConfigParamEditForm = (props) => {
             ...(parameter as IntersectionConfig),
             value: typedValue,
           };
-          await configParamApi.updateIntersectionParameter(session?.accessToken, values.name, updatedConfig);
+          await configParamApi.updateIntersectionParameter(authToken, values.name, updatedConfig);
         } else {
           const updatedConfig = {
             ...parameter,
             value: typedValue,
           };
-          await configParamApi.updateDefaultParameter(session?.accessToken, values.name, updatedConfig);
+          await configParamApi.updateDefaultParameter(authToken, values.name, updatedConfig);
         }
         helpers.setStatus({ success: true });
         helpers.setSubmitting(false);
