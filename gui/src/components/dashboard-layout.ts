@@ -57,7 +57,8 @@ const DashboardLayoutSSR = (props) => {
   const firstName = useSelector(selectFirstName);
   const lastName = useSelector(selectLastName);
   const parsedJwt = useSelector(selectParsedJwt);
-  const [keycloakClient, setKeycloakClient] = useState<Keycloak | undefined>(undefined);
+  const keycloakClient = useSelector(selectKeycloakClient);
+  // const [keycloakClient, setKeycloakClient] = useState<Keycloak | undefined>(undefined);
   // const keycloakClient = useSelector(selectKeycloakClient);
 
   const { children } = props;
@@ -85,15 +86,20 @@ const DashboardLayoutSSR = (props) => {
   };
 
   const initKeycloakClientLocal = () => {
+    console.log("Should Init Keycloak Client")
     if (!keycloakClient) {
-      setKeycloakClient(
-        new Keycloak({
-          url: `${publicRuntimeConfig.AUTH_SERVER_URL}`,
-          realm: `${publicRuntimeConfig.KEYCLOAK_REALM}`,
-          clientId: `${publicRuntimeConfig.KEYCLOAK_CLIENT_ID}`,
-          //   clientSecret: `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`,
-        })
-      );
+      console.log("Start Init Keycloak Client")
+      
+      const client = new Keycloak({
+        url: `${publicRuntimeConfig.AUTH_SERVER_URL}`,
+        realm: `${publicRuntimeConfig.KEYCLOAK_REALM}`,
+        clientId: `${publicRuntimeConfig.KEYCLOAK_CLIENT_ID}`,
+        //   clientSecret: `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`,
+      });
+      setTimeout(() => () => {
+        console.log("CHANGING KEYCLOAK CLIENT", client);
+        initKeycloakClient(client);
+      }, 5000)
     }
   };
 
@@ -118,7 +124,7 @@ const DashboardLayoutSSR = (props) => {
 
   useEffect(() => {
     // dispatch(initKeycloakClient());
-    setTimeout(initKeycloakClientLocal, 5000);
+    // setTimeout(initKeycloakClientLocal, 5000);
     initKeycloakClientLocal();
   }, []);
 

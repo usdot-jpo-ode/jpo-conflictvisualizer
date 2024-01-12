@@ -65,8 +65,6 @@ services:
       SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
       CM_SERVER_URL: ${CM_SERVER_URL}
       load: "false"
-      #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
-      #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
     logging:
       options:
         max-size: "10m"

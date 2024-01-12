@@ -36,7 +36,7 @@ export const ReportGenerationDialog = (props: ReportGenerationDialogProps) => {
     startTime: Date;
     endTime: Date;
   }) => {
-    if (authToken || !intersectionId || !roadRegulatorId) {
+    if (!authToken || !intersectionId || !roadRegulatorId) {
       console.error(
         "Did not attempt to generate report. Access token:",
         authToken,

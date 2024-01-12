@@ -26,9 +26,9 @@ export const AuthGuard = (props) => {
     }
   };
 
-  useEffect(() => {
-    dispatch(initKeycloakClient());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(initKeycloakClient());
+  // }, []);
 
   // Only do authentication check on component mount.
   // This flow allows you to manually redirect the user after sign-out, otherwise this will be

@@ -85,16 +85,9 @@ export const userSlice = createSlice({
     setRefreshToken: (state, action: PayloadAction<string>) => {
       state.value.refreshToken = action.payload;
     },
-    initKeycloakClient: (state) => {
-      if (state.value.keycloakClient) return;
-      state.value.keycloakClient = new Keycloak({
-        url: `${publicRuntimeConfig.AUTH_SERVER_URL}`,
-        realm: `${publicRuntimeConfig.KEYCLOAK_REALM}`,
-        clientId: `${publicRuntimeConfig.KEYCLOAK_CLIENT_ID}`,
-        //   clientSecret: `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`,
-      });
-      state.value.keycloakClient.clientSecret = `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`;
-      console.log("CHANGING KEYCLOAK CLIENT", state.value.keycloakClient);
+    initKeycloakClient: (state, action: PayloadAction<Keycloak>) => {
+        state.value.keycloakClient = action.payload;
+        state.value.keycloakClient.clientSecret = `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`;
     },
   },
   extraReducers: (builder) => {

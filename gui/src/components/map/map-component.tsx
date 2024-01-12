@@ -23,155 +23,23 @@ import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAuthToken } from "../../slices/userSlice";
+import {
+  selectBsmLayerStyle,
+  selectConnectingLanesLabelsLayerStyle,
+  selectConnectingLanesLayerStyle,
+  selectMapMessageLabelsLayerStyle,
+  selectMapMessageLayerStyle,
+  selectMarkerLayerStyle,
+  selectSignalStateLayerStyle,
+  setBsmCircleColor,
+  setBsmLegendColors,
+} from "./map-layer-style-slice";
+import { getBearingBetweenPoints, getTimeRange } from "./utilities/map-utils";
+import { pullInitialData } from "./map-slice";
+import { addConnections, createMarkerForNotification } from "./utilities/message-utils";
+import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
+import { RootState } from "../../store";
 const { publicRuntimeConfig } = getConfig();
-
-const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
-
-const mapMessageLayer: LineLayer = {
-  id: "mapMessage",
-  type: "line",
-  paint: {
-    "line-width": 5,
-    "line-color": ["case", ["==", ["get", "ingressPath"], true], "#eb34e8", "#0004ff"],
-  },
-};
-
-const mapMessageLabelsLayer: SymbolLayer = {
-  id: "mapMessageLabels",
-  type: "symbol",
-  layout: {
-    "text-field": ["concat", "lane: ", ["to-string", ["get", "laneId"]]],
-    "text-size": 20,
-    // "text-offset": [0, 1],
-    "text-variable-anchor": ["top", "left", "right", "bottom"],
-    "text-allow-overlap": true,
-    "icon-allow-overlap": true,
-  },
-  paint: {
-    "text-color": "#000000",
-    "text-halo-color": "#ffffff",
-    "text-halo-width": 5,
-  },
-};
-
-const connectingLanesLayer: LineLayer = {
-  id: "connectingLanes",
-  type: "line",
-  paint: {
-    "line-width": [
-      "match",
-      ["get", "signalState"],
-      "UNAVAILABLE",
-      3,
-      "DARK",
-      3,
-      "STOP_THEN_PROCEED",
-      3,
-      "STOP_AND_REMAIN",
-      3,
-      "PRE_MOVEMENT",
-      5,
-      "PERMISSIVE_MOVEMENT_ALLOWED",
-      5,
-      "PROTECTED_MOVEMENT_ALLOWED",
-      5,
-      "PERMISSIVE_CLEARANCE",
-      5,
-      "PROTECTED_CLEARANCE",
-      5,
-      "CAUTION_CONFLICTING_TRAFFIC",
-      5,
-      5,
-    ],
-    "line-color": [
-      "match",
-      ["get", "signalState"],
-      "UNAVAILABLE",
-      "#797979",
-      "DARK",
-      "#3a3a3a",
-      "STOP_THEN_PROCEED",
-      "#c00000",
-      "STOP_AND_REMAIN",
-      "#c00000",
-      "PRE_MOVEMENT",
-      "#c00000",
-      "PERMISSIVE_MOVEMENT_ALLOWED",
-      "#267700",
-      "PROTECTED_MOVEMENT_ALLOWED",
-      "#267700",
-      "PERMISSIVE_CLEARANCE",
-      "#e6b000",
-      "PROTECTED_CLEARANCE",
-      "#e6b000",
-      "CAUTION_CONFLICTING_TRAFFIC",
-      "#e6b000",
-      "#797979",
-    ],
-    "line-dasharray": [
-      "match",
-      ["get", "signalState"],
-      "UNAVAILABLE",
-      ["literal", [2, 1]],
-      "DARK",
-      ["literal", [2, 1]],
-      "STOP_THEN_PROCEED",
-      ["literal", [2, 1]],
-      "STOP_AND_REMAIN",
-      ["literal", [1]],
-      "PRE_MOVEMENT",
-      ["literal", [2, 2]],
-      "PERMISSIVE_MOVEMENT_ALLOWED",
-      ["literal", [2, 1]],
-      "PROTECTED_MOVEMENT_ALLOWED",
-      ["literal", [1]],
-      "PERMISSIVE_CLEARANCE",
-      ["literal", [2, 1]],
-      "PROTECTED_CLEARANCE",
-      ["literal", [1]],
-      "CAUTION_CONFLICTING_TRAFFIC",
-      ["literal", [1, 4]],
-      ["literal", [2, 1]],
-    ],
-  },
-};
-
-const connectingLanesLabelsLayer: SymbolLayer = {
-  id: "connectingLanesLabels",
-  type: "symbol",
-  layout: {
-    "text-field": ["concat", "sig-group: ", ["to-string", ["get", "signalGroupId"]]],
-    "text-size": 20,
-    "text-offset": [0, 1],
-    "text-variable-anchor": ["top", "left", "right", "bottom"],
-    "text-allow-overlap": true,
-    "icon-allow-overlap": true,
-    "icon-image": "rounded",
-    "icon-text-fit": "both",
-  },
-  paint: {
-    "text-color": "#000000",
-    "text-halo-color": "#ffffff",
-    "text-halo-width": 5,
-  },
-};
-
-const RED_LIGHT = "RED_LIGHT";
-const YELLOW_LIGHT = "YELLOW_LIGHT";
-const GREEN_LIGHT = "GREEN_LIGHT";
-const YELLOW_RED_LIGHT = "YELLOW_RED_LIGHT";
-const RED_FLASHING_LIGHT = "RED_FLASHING_LIGHT";
-const UNKNOWN_LIGHT = "UNKNOWN_LIGHT";
-
-const markerLayer: LayerProps = {
-  id: "invalidLaneCollection",
-  type: "line",
-  paint: {
-    "line-width": 20,
-    "line-color": "#d40000",
-    // "line-dasharray": [2, 1],
-  },
-};
 
 const generateQueryParams = (
   source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
@@ -237,9 +105,21 @@ type MyProps = {
 
 const MapTab = (props: MyProps) => {
   const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
-  const dispatch = useDispatch();
+  const dispatch: ThunkDispatch<RootState, void, AnyAction> = useDispatch();
 
+  // userSlice
   const authToken = useSelector(selectAuthToken);
+
+  // mapLayerStyleSlice
+  const mapMessageLayerStyle = useSelector(selectMapMessageLayerStyle);
+  const mapMessageLabelsLayerStyle = useSelector(selectMapMessageLabelsLayerStyle);
+  const connectingLanesLayerStyle = useSelector(selectConnectingLanesLayerStyle);
+  const connectingLanesLabelsLayerStyle = useSelector(selectConnectingLanesLabelsLayerStyle);
+  const markerLayerStyle = useSelector(selectMarkerLayerStyle);
+  const bsmLayerStyle = useSelector(selectBsmLayerStyle);
+  const signalStateLayerStyle = useSelector(selectSignalStateLayerStyle);
+
+  const mapRef = React.useRef<any>(null);
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;
@@ -252,99 +132,6 @@ const MapTab = (props: MyProps) => {
     ...generateQueryParams(props.sourceData, props.sourceDataType),
     intersectionId: props.intersectionId,
     roadRegulatorId: props.roadRegulatorId,
-  });
-
-  const [mapLegendColors, setMapLegendColors] = useState<{
-    bsmColors: { [key: string]: string };
-    laneColors: { [key: string]: string };
-    travelConnectionColors: { [key: string]: [string, number[]] };
-    signalHeadIcons: { [key: string]: string };
-  }>({
-    bsmColors: { Other: "#0004ff" },
-    laneColors: {
-      Ingress: "#eb34e8",
-      Egress: "#0004ff",
-    },
-    travelConnectionColors: {
-      UNAVAILABLE: ["#797979", [2, 1]],
-      DARK: ["#3a3a3a", [2, 1]],
-      STOP_THEN_PROCEED: ["#c00000", [2, 1]],
-      STOP_AND_REMAIN: ["#c00000", [1]],
-      PRE_MOVEMENT: ["#c00000", [2, 2]],
-      PERMISSIVE_MOVEMENT_ALLOWED: ["#267700", [2, 1]],
-      PROTECTED_MOVEMENT_ALLOWED: ["#267700", [1]],
-      PERMISSIVE_CLEARANCE: ["#e6b000", [2, 1]],
-      PROTECTED_CLEARANCE: ["#e6b000", [1]],
-      CAUTION_CONFLICTING_TRAFFIC: ["#e6b000", [1, 4]],
-    },
-    signalHeadIcons: {
-      UNAVAILABLE: "/icons/traffic-light-icon-unknown.svg",
-      DARK: "/icons/traffic-light-icon-unknown.svg",
-      STOP_THEN_PROCEED: "/icons/traffic-light-icon-red-flashing.svg",
-      STOP_AND_REMAIN: "/icons/traffic-light-icon-red-1.svg",
-      PRE_MOVEMENT: "/icons/traffic-light-icon-yellow-red-1.svg",
-      PERMISSIVE_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-yellow-1.svg",
-      PROTECTED_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-green-1.svg",
-      PERMISSIVE_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",
-      PROTECTED_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",
-      CAUTION_CONFLICTING_TRAFFIC: "/icons/traffic-light-icon-yellow-1.svg",
-
-      // "UNAVAILABLE": "traffic-light-icon-unknown",
-      // "DARK": "traffic-light-icon-unknown",
-      // "STOP_THEN_PROCEED": "traffic-light-icon-red-flashing",
-      // "STOP_AND_REMAIN": "traffic-light-icon-red-1",
-      // "PRE_MOVEMENT": "traffic-light-icon-yellow-red-1",
-      // "PERMISSIVE_MOVEMENT_ALLOWED": "traffic-light-icon-yellow-1",
-      // "PROTECTED_MOVEMENT_ALLOWED": "traffic-light-icon-green-1",
-      // "PERMISSIVE_CLEARANCE": "traffic-light-icon-yellow-1",
-      // "PROTECTED_CLEARANCE": "traffic-light-icon-yellow-1",
-      // "CAUTION_CONFLICTING_TRAFFIC": "traffic-light-icon-yellow-1",
-    },
-  });
-
-  const [bsmLayerStyle, setBsmLayerStyle] = useState<CircleLayer>({
-    id: "bsm",
-    type: "circle",
-    paint: {
-      "circle-color": ["match", ["get", "id"], "temp-id", "#0004ff", "#0004ff"],
-      "circle-radius": 8,
-    },
-  });
-
-  const [signalStateLayer, setSignalStateLayer] = useState<LayerProps>({
-    id: "signalStates",
-    type: "symbol",
-    layout: {
-      "icon-image": [
-        "match",
-        ["get", "signalState"],
-        "UNAVAILABLE",
-        "traffic-light-icon-unknown",
-        "DARK",
-        "traffic-light-icon-unknown",
-        "STOP_THEN_PROCEED",
-        "traffic-light-icon-red-flashing",
-        "STOP_AND_REMAIN",
-        "traffic-light-icon-red-1",
-        "PRE_MOVEMENT",
-        "traffic-light-icon-yellow-red-1",
-        "PERMISSIVE_MOVEMENT_ALLOWED",
-        "traffic-light-icon-yellow-1",
-        "PROTECTED_MOVEMENT_ALLOWED",
-        "traffic-light-icon-green-1",
-        "PERMISSIVE_CLEARANCE",
-        "traffic-light-icon-yellow-1",
-        "PROTECTED_CLEARANCE",
-        "traffic-light-icon-yellow-1",
-        "CAUTION_CONFLICTING_TRAFFIC",
-        "traffic-light-icon-yellow-1",
-        "traffic-light-icon-unknown",
-      ],
-      "icon-rotate": ["get", "orientation"],
-      "icon-allow-overlap": true,
-      "icon-rotation-alignment": "map",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0, 9, 0.01, 19, 0.15, 22, 0.4],
-    },
   });
 
   const [mapData, setMapData] = useState<ProcessedMap>();
@@ -376,7 +163,6 @@ const MapTab = (props: MyProps) => {
   const [timeWindowSeconds, setTimeWindowSeconds] = useState<number>(60);
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
-  const mapRef = React.useRef<any>(null);
   const [hoveredFeature, setHoveredFeature] = useState<any>(undefined);
   const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
   const [rawData, setRawData] = useState({});
@@ -411,226 +197,6 @@ const MapTab = (props: MyProps) => {
     console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
-  function deg2rad(deg: number) {
-    return deg * (Math.PI / 180);
-  }
-
-  function rad2deg(rad: number) {
-    return rad * (180 / Math.PI);
-  }
-
-  // get bearing between two lat/long points
-  function getBearingBetweenPoints(start: number[], end: number[]) {
-    if (!start || !end) return 0;
-    const lat1 = deg2rad(start[1]!);
-    const lon1 = deg2rad(start[0]!);
-    const lat2 = deg2rad(end[1]!);
-    const lon2 = deg2rad(end[0]!);
-    const dLon = lon2 - lon1;
-    const y = Math.sin(dLon) * Math.cos(lat2);
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    const brng = Math.atan2(y, x);
-    return rad2deg(brng);
-  }
-
-  const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
-    const features: SignalStateFeature[] = [];
-
-    mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
-      if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
-        return;
-      }
-      const coords = mapFeature.geometry.coordinates.slice(0, 2);
-      features.push({
-        type: "Feature",
-        properties: {
-          signalGroup: mapFeature.properties.connectsTo[0].signalGroup,
-          intersectionId: mapMessage.properties.intersectionId,
-          orientation: getBearingBetweenPoints(coords[1], coords[0]),
-          signalState: "UNAVAILABLE",
-        },
-        geometry: {
-          type: "Point",
-          coordinates: mapFeature.geometry.coordinates[0],
-        },
-      });
-    });
-
-    return {
-      type: "FeatureCollection" as "FeatureCollection",
-      features: features,
-    };
-  };
-
-  const createMarkerForNotification = (
-    center: number[],
-    notification: MessageMonitor.Notification,
-    connectingLanes: MapFeatureCollection
-  ) => {
-    const features: any[] = [];
-    const markerCollection = {
-      type: "FeatureCollection" as "FeatureCollection",
-      features: features,
-    };
-    switch (notification.notificationType) {
-      case "ConnectionOfTravelNotification":
-        // TODO: Re-add once more notification data is available
-        // const connTravelNotification = notification as ConnectionOfTravelNotification;
-        // const connTravelAssessmentGroups = connTravelNotification.assessment.connectionOfTravelAssessmentGroups;
-        // connTravelAssessmentGroups?.forEach((assessmentGroup) => {
-        //   const ingressLocation: number[] | undefined = connectingLanes.features.find(
-        //     (connectingLaneFeature: MapFeature) => {
-        //       return connectingLaneFeature.properties.laneId === assessmentGroup.ingressLaneID;
-        //     }
-        //   )?.geometry.coordinates[0];
-        //   const egressLocation: number[] | undefined = connectingLanes.features.find(
-        //     (connectingLaneFeature: MapFeature) => {
-        //       return connectingLaneFeature.properties.laneId === assessmentGroup.egressLaneID;
-        //     }
-        //   )?.geometry.coordinates[0];
-        //   if (!ingressLocation || !egressLocation) return;
-        //   const marker = {
-        //     type: "Feature",
-        //     properties: {
-        //       description: `${connTravelNotification.notificationText}, egress lane ${assessmentGroup.egressLaneID}, ingress lane ${assessmentGroup.ingressLaneID}, connection ID ${assessmentGroup.connectionID}, event count ${assessmentGroup.eventCount}`,
-        //       title: connTravelNotification.notificationType,
-        //     },
-        //     geometry: {
-        //       type: "LineString",
-        //       coordinates: [ingressLocation, egressLocation],
-        //     },
-        //   };
-        //   markerCollection.features.push(marker);
-        // });
-        break;
-      case "IntersectionReferenceAlignmentNotification":
-        // No markers for this notification
-        break;
-      case "LaneDirectionOfTravelNotification":
-        const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
-        const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
-        laneDirTravelAssessmentGroups?.forEach((assessmentGroup) => {
-          const laneLocation: number[] | undefined = connectingLanes.features.find(
-            (connectingLaneFeature: MapFeature) => {
-              return connectingLaneFeature.properties.laneId === assessmentGroup.laneID;
-            }
-          )?.geometry.coordinates[0];
-          if (!laneLocation) return;
-          const numEvents = assessmentGroup.inToleranceEvents + assessmentGroup.outOfToleranceEvents;
-          const eventsRatio = assessmentGroup.inToleranceEvents / numEvents;
-          const marker = {
-            type: "Feature",
-            properties: {
-              description: `${laneDirTravelNotification.notificationText}, lane ID ${assessmentGroup.laneID}, in tolerance events ${eventsRatio} (${assessmentGroup.inToleranceEvents}/${numEvents})`,
-              title: laneDirTravelNotification.notificationType,
-            },
-            geometry: {
-              type: "Point",
-              coordinates: laneLocation,
-            },
-          };
-          markerCollection.features.push(marker);
-        });
-        break;
-      case "SignalGroupAlignmentNotification":
-        // No markers for this notification
-        break;
-      case "SignalStateConflictNotification":
-        const sigStateConflictNotification = notification as SignalStateConflictNotification;
-        const sigStateConflictEvent = sigStateConflictNotification.event;
-        const sigStateConflictMarker = {
-          type: "Feature",
-          properties: {
-            description: `${sigStateConflictNotification.notificationText}, Conflict type ${sigStateConflictEvent.conflictType}, First conflicting signal state ${sigStateConflictEvent.firstConflictingSignalState} of group ${sigStateConflictEvent.firstConflictingSignalGroup}, Second conflicting signal state ${sigStateConflictEvent.secondConflictingSignalState} of group ${sigStateConflictEvent.secondConflictingSignalGroup}`,
-            title: sigStateConflictNotification.notificationType,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: center,
-          },
-        };
-        markerCollection.features.push(sigStateConflictMarker);
-        break;
-      case "TimeChangeDetailsNotification":
-        // No markers for this notification
-        break;
-      case "KafkaStreamsAnomalyNotification":
-        // No markers for this notification
-        break;
-      case "BroadcastRateNotification":
-        // No markers for this notification
-        break;
-    }
-    return markerCollection;
-  };
-
-  const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
-    const timedSignalGroups: SpatSignalGroups = {};
-    spats?.forEach((spat: ProcessedSpat) => {
-      timedSignalGroups[Date.parse(spat.odeReceivedAt)] = spat.states.map((state) => {
-        return {
-          signalGroup: state.signalGroup,
-          state: state.stateTimeSpeed?.[0]?.eventState as SignalState,
-        };
-      });
-    });
-    return timedSignalGroups;
-  };
-
-  const parseBsmToGeojson = (bsmData: OdeBsmData[]): BsmFeatureCollection => {
-    return {
-      type: "FeatureCollection" as "FeatureCollection",
-      features: bsmData.map((bsm) => {
-        return {
-          type: "Feature",
-          properties: {
-            ...bsm.payload.data.coreData,
-            odeReceivedAt: new Date(bsm.metadata.odeReceivedAt as string).getTime() / 1000,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: [bsm.payload.data.coreData.position.longitude, bsm.payload.data.coreData.position.latitude],
-          },
-        };
-      }),
-    };
-  };
-
-  const addConnections = (
-    connectingLanes: ConnectingLanesFeatureCollection,
-    signalGroups: SpatSignalGroup[]
-  ): ConnectingLanesFeatureCollectionWithSignalState => {
-    return {
-      ...connectingLanes,
-      features: connectingLanes.features.map((feature) => ({
-        ...feature,
-        properties: {
-          ...feature.properties,
-          signalState: signalGroups.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroupId)
-            ?.state,
-        },
-      })),
-    };
-  };
-
-  const generateSignalStateFeatureCollection = (
-    prevSignalStates: SignalStateFeatureCollection,
-    signalGroups: SpatSignalGroup[]
-  ): SignalStateFeatureCollection => {
-    return {
-      ...prevSignalStates,
-      features: (prevSignalStates?.features ?? []).map((feature) => ({
-        ...feature,
-        properties: {
-          ...feature.properties,
-          signalState:
-            signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
-            "UNAVAILABLE",
-        },
-      })),
-    };
-  };
-
   const handleImportedMessageData = ({
     mapData,
     bsmData,
@@ -661,215 +227,6 @@ const MapTab = (props: MyProps) => {
       intersectionId: mapData[0].properties.intersectionId,
       roadRegulatorId: -1,
     });
-  };
-
-  const pullInitialData = async () => {
-    if (
-      !authToken ||
-      !queryParams.intersectionId ||
-      !queryParams.roadRegulatorId ||
-      (props.sourceData == undefined && props.loadOnNull == false)
-    ) {
-      console.error(
-        "Did not attempt to pull initial map data. Access token:",
-        authToken,
-        "Intersection ID:",
-        queryParams.intersectionId,
-        "Road Regulator ID:",
-        queryParams.roadRegulatorId
-      );
-      return;
-    }
-    console.debug("Pulling Initial Data");
-    let rawMap: ProcessedMap[] = [];
-    let rawSpat: ProcessedSpat[] = [];
-    let rawBsm: OdeBsmData[] = [];
-    if (!importedMessageData) {
-      // ######################### Retrieve MAP Data #########################
-      const rawMapPromise = MessageMonitorApi.getMapMessages({
-        token: authToken,
-        intersectionId: queryParams.intersectionId,
-        roadRegulatorId: queryParams.roadRegulatorId,
-        //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
-        endTime: queryParams.endDate,
-        latest: true,
-      });
-      toast.promise(rawMapPromise, {
-        loading: `Loading MAP Data`,
-        success: `Successfully got MAP Data`,
-        error: `Failed to get MAP data. Please see console`,
-      });
-      rawMap = await rawMapPromise;
-
-      // ######################### Retrieve SPAT Data #########################
-      const rawSpatPromise = MessageMonitorApi.getSpatMessages({
-        token: authToken,
-        intersectionId: queryParams.intersectionId,
-        roadRegulatorId: queryParams.roadRegulatorId,
-        startTime: queryParams.startDate,
-        endTime: queryParams.endDate,
-      });
-      toast.promise(rawSpatPromise, {
-        loading: `Loading SPAT Data`,
-        success: `Successfully got SPAT Data`,
-        error: `Failed to get SPAT data. Please see console`,
-      });
-      rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
-
-      // ######################### Surrounding Events #########################
-      const surroundingEventsPromise = EventsApi.getAllEvents(
-        authToken,
-        queryParams.intersectionId,
-        queryParams.roadRegulatorId,
-        queryParams.startDate,
-        queryParams.endDate
-      );
-      toast.promise(surroundingEventsPromise, {
-        loading: `Loading Event Data`,
-        success: `Successfully got Event Data`,
-        error: `Failed to get Event data. Please see console`,
-      });
-      surroundingEventsPromise.then((events) => setSurroundingEvents(events));
-
-      // ######################### Surrounding Notifications #########################
-      const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
-        token: authToken,
-        intersectionId: queryParams.intersectionId,
-        roadRegulatorId: queryParams.roadRegulatorId,
-        startTime: queryParams.startDate,
-        endTime: queryParams.endDate,
-      });
-      toast.promise(surroundingNotificationsPromise, {
-        loading: `Loading Notification Data`,
-        success: `Successfully got Notification Data`,
-        error: `Failed to get Notification data. Please see console`,
-      });
-      surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
-    } else {
-      rawMap = importedMessageData.mapData;
-      rawSpat = importedMessageData.spatData.sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
-      rawBsm = importedMessageData.bsmData;
-    }
-    if (!rawMap || rawMap.length == 0) {
-      console.info("NO MAP MESSAGES WITHIN TIME");
-      return;
-    }
-
-    // ######################### MAP Data #########################
-    const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
-    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
-
-    // ######################### SPAT Signal Groups #########################
-    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    setMapData(latestMapMessage);
-    setMapSpatTimes((prevValue) => ({
-      ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
-    }));
-    setMapSignalGroups(mapSignalGroupsLocal);
-    if (latestMapMessage != null) {
-      setViewState({
-        latitude: latestMapMessage?.properties.refPoint.latitude,
-        longitude: latestMapMessage?.properties.refPoint.longitude,
-        zoom: 19,
-      });
-    }
-
-    const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
-
-    setSpatSignalGroups(spatSignalGroupsLocal);
-
-    // ######################### BSMs #########################
-    if (!importedMessageData) {
-      const rawBsmPromise = MessageMonitorApi.getBsmMessages({
-        token: authToken,
-        vehicleId: queryParams.vehicleId,
-        startTime: queryParams.startDate,
-        endTime: queryParams.endDate,
-        long: mapCoordinates.longitude,
-        lat: mapCoordinates.latitude,
-        distance: 500,
-      });
-      toast.promise(rawBsmPromise, {
-        loading: `Loading BSM Data`,
-        success: `Successfully got BSM Data`,
-        error: `Failed to get BSM data. Please see console`,
-      });
-      rawBsm = await rawBsmPromise;
-    }
-    let bsmGeojson = parseBsmToGeojson(rawBsm);
-    bsmGeojson = {
-      ...bsmGeojson,
-      features: [...bsmGeojson.features.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt)],
-    };
-    renderEntireMap(rawMap, rawSpat, bsmGeojson);
-  };
-
-  const renderEntireMap = async (
-    currentMapData: ProcessedMap[],
-    currentSpatData: ProcessedSpat[],
-    currentBsmData: BsmFeatureCollection
-  ) => {
-    if (currentMapData.length == 0) {
-      console.error("Did not attempt to render map, no map messages available:", currentMapData);
-      return;
-    }
-    // ######################### MAP Data #########################
-    const latestMapMessage: ProcessedMap = currentMapData.at(-1)!;
-
-    // ######################### SPAT Signal Groups #########################
-    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    setMapData(latestMapMessage);
-    setMapSpatTimes((prevValue) => ({
-      ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
-    }));
-    setMapSignalGroups(mapSignalGroupsLocal);
-    if (latestMapMessage != null) {
-      setViewState({
-        latitude: latestMapMessage?.properties.refPoint.latitude,
-        longitude: latestMapMessage?.properties.refPoint.longitude,
-        zoom: 19,
-      });
-    }
-
-    const spatSignalGroupsLocal = parseSpatSignalGroups(currentSpatData);
-
-    setSpatSignalGroups(spatSignalGroupsLocal);
-    const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id));
-    // generate equally spaced unique colors for each uniqueId
-    const colors = generateColorDictionary(uniqueIds);
-    setMapLegendColors((prevValue) => ({
-      ...prevValue,
-      bsmColors: colors,
-    }));
-    // add color to each feature
-    const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
-    setBsmData(currentBsmData);
-
-    // ######################### Message Data #########################
-    rawData["map"] = currentMapData;
-    rawData["spat"] = currentSpatData;
-    rawData["bsm"] = currentBsmData;
-    if (props.sourceDataType == "notification") {
-      rawData["notification"] = props.sourceData;
-    } else if (props.sourceDataType == "event") {
-      rawData["event"] = props.sourceData;
-    } else if (props.sourceDataType == "assessment") {
-      rawData["assessment"] = props.sourceData;
-    }
-    setRawData(rawData);
-
-    // ######################### Set Slider Position #########################
-    setSliderValue(
-      Math.min(
-        getTimeRange(queryParams.startDate, queryParams.eventDate ?? new Date()),
-        getTimeRange(queryParams.startDate, queryParams.endDate)
-      )
-    );
   };
 
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
@@ -986,13 +343,10 @@ const MapTab = (props: MyProps) => {
     const uniqueIds = new Set(currentBsmGeojson.features.map((bsm) => bsm.properties?.id));
     // generate equally spaced unique colors for each uniqueId
     const colors = generateColorDictionary(uniqueIds);
-    setMapLegendColors((prevValue) => ({
-      ...prevValue,
-      bsmColors: colors,
-    }));
+    dispatch(setBsmLegendColors(colors));
     // add color to each feature
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
+    dispatch(setBsmCircleColor(bsmLayerStyle));
     setBsmData(currentBsmGeojson);
     console.log("BSM RENDER TIME:", Date.now() - start, "ms");
     return currentBsmGeojson;
@@ -1036,7 +390,7 @@ const MapTab = (props: MyProps) => {
     if (loadInitialDataTimeoutId) {
       clearTimeout(loadInitialDataTimeoutId);
     }
-    setLoadInitialdataTimeoutId(setTimeout(pullInitialData, 500));
+    setLoadInitialdataTimeoutId(setTimeout(() => dispatch(pullInitialData()), 500));
   }, [queryParams]);
 
   useEffect(() => {
@@ -1097,10 +451,6 @@ const MapTab = (props: MyProps) => {
 
     setRenderTimeInterval([filteredStartTime, filteredEndTime]);
   }, [sliderValue, queryParams, timeWindowSeconds]);
-
-  const getTimeRange = (startDate: Date, endDate: Date) => {
-    return (endDate.getTime() - startDate.getTime()) / 1000;
-  };
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number);
@@ -1218,31 +568,6 @@ const MapTab = (props: MyProps) => {
       });
     }
     setWsClient(undefined);
-  };
-
-  const downloadJsonFile = (contents: any, name: string) => {
-    const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(contents)], {
-      type: "text/plain",
-    });
-    element.href = URL.createObjectURL(file);
-    element.download = name;
-    document.body.appendChild(element); // Required for this to work in FireFox
-    element.click();
-  };
-
-  const downloadAllData = () => {
-    var zip = new JSZip();
-    zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData["map"]));
-    zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData["spat"]));
-    zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData["bsm"]));
-    zip.file(
-      `intersection_${queryParams.intersectionId}_Notification_data.json`,
-      JSON.stringify(rawData["notification"])
-    );
-    zip.generateAsync({ type: "blob" }).then(function (content) {
-      FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
-    });
   };
 
   const onTimeQueryChanged = (
@@ -1397,7 +722,7 @@ const MapTab = (props: MyProps) => {
             type="geojson"
             data={connectingLanes && currentSignalGroups && addConnections(connectingLanes, currentSignalGroups)}
           >
-            <Layer {...connectingLanesLayer} />
+            <Layer {...connectingLanesLayerStyle} />
           </Source>
           <Source
             type="geojson"
@@ -1407,19 +732,19 @@ const MapTab = (props: MyProps) => {
                 : undefined
             }
           >
-            <Layer {...connectingLanesLabelsLayer} />
+            <Layer {...connectingLanesLabelsLayerStyle} />
           </Source>
           <Source type="geojson" data={currentBsms}>
             <Layer {...bsmLayerStyle} />
           </Source>
           <Source type="geojson" data={mapData?.mapFeatureCollection}>
-            <Layer {...mapMessageLayer} />
+            <Layer {...mapMessageLayerStyle} />
           </Source>
           <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
-            <Layer {...mapMessageLabelsLayer} />
+            <Layer {...mapMessageLabelsLayerStyle} />
           </Source>
           <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
-            <Layer {...signalStateLayer} />
+            <Layer {...signalStateLayerStyle} />
           </Source>
           <Source
             type="geojson"
@@ -1433,7 +758,7 @@ const MapTab = (props: MyProps) => {
                 : undefined
             }
           >
-            <Layer {...markerLayer} />
+            <Layer {...markerLayerStyle} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
