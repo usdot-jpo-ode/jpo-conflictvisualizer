@@ -27,6 +27,7 @@ import {
   selectBsmLayerStyle,
   selectConnectingLanesLabelsLayerStyle,
   selectConnectingLanesLayerStyle,
+  selectMapLegendColors,
   selectMapMessageLabelsLayerStyle,
   selectMapMessageLayerStyle,
   selectMarkerLayerStyle,
@@ -35,8 +36,19 @@ import {
   setBsmLegendColors,
 } from "./map-layer-style-slice";
 import { getBearingBetweenPoints, getTimeRange } from "./utilities/map-utils";
-import { pullInitialData } from "./map-slice";
-import { addConnections, createMarkerForNotification } from "./utilities/message-utils";
+import {
+  MAP_LAYERS,
+  pullInitialData,
+  renderIterative_Bsm,
+  renderIterative_Map,
+  renderIterative_Spat,
+  selectAllInteractiveLayerIds,
+} from "./map-slice";
+import {
+  addConnections,
+  createMarkerForNotification,
+  generateSignalStateFeatureCollection,
+} from "./utilities/message-utils";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
 const { publicRuntimeConfig } = getConfig();
@@ -118,6 +130,9 @@ const MapTab = (props: MyProps) => {
   const markerLayerStyle = useSelector(selectMarkerLayerStyle);
   const bsmLayerStyle = useSelector(selectBsmLayerStyle);
   const signalStateLayerStyle = useSelector(selectSignalStateLayerStyle);
+  const mapLegendColors = useSelector(selectMapLegendColors);
+
+  const allInteractiveLayerIds = useSelector(selectAllInteractiveLayerIds);
 
   const mapRef = React.useRef<any>(null);
 
@@ -227,129 +242,6 @@ const MapTab = (props: MyProps) => {
       intersectionId: mapData[0].properties.intersectionId,
       roadRegulatorId: -1,
     });
-  };
-
-  const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
-    const start = Date.now();
-    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
-    if (newMapData.length == 0) {
-      console.warn("Did not attempt to render map (iterative MAP), no new MAP messages available:", newMapData);
-      return currentMapData;
-    }
-
-    const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt);
-    let oldIndex = 0;
-    for (let i = 0; i < currentMapData.length; i++) {
-      if ((currentMapData[i].properties.odeReceivedAt as unknown as number) < currTimestamp - OLDEST_DATA_TO_KEEP) {
-        oldIndex = i;
-      } else {
-        break;
-      }
-    }
-    const currentMapDataLocal = currentMapData.slice(oldIndex, currentMapData.length).concat(newMapData);
-
-    // ######################### MAP Data #########################
-    const latestMapMessage: ProcessedMap = currentMapDataLocal.at(-1)!;
-
-    // ######################### SPAT Signal Groups #########################
-    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    setMapData(latestMapMessage);
-    setMapSpatTimes((prevValue) => ({
-      ...prevValue,
-      mapTime: currTimestamp,
-    }));
-    setMapSignalGroups(mapSignalGroupsLocal);
-    const previousMapMessage: ProcessedMap | undefined = currentMapData.at(-1);
-    if (
-      latestMapMessage != null &&
-      (latestMapMessage.properties.refPoint.latitude != previousMapMessage?.properties.refPoint.latitude ||
-        latestMapMessage.properties.refPoint.longitude != previousMapMessage?.properties.refPoint.longitude)
-    ) {
-      setViewState({
-        latitude: latestMapMessage?.properties.refPoint.latitude,
-        longitude: latestMapMessage?.properties.refPoint.longitude,
-        zoom: 19,
-      });
-    }
-    console.log("MAP RENDER TIME:", Date.now() - start, "ms");
-    return currentMapDataLocal;
-  };
-
-  // New iterative spat data is available. Add to current data, remove old data, and update base map data
-  const renderIterative_Spat = (currentSpatSignalGroups: SpatSignalGroups, newSpatData: ProcessedSpat[]) => {
-    const start = Date.now();
-    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
-    if (newSpatData.length == 0) {
-      console.warn("Did not attempt to render map (iterative SPAT), no new SPAT messages available:", newSpatData);
-      return currentSpatSignalGroups;
-    }
-    // Inject and filter spat data
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.odeReceivedAt);
-    let oldIndex = 0;
-    const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
-      key,
-      sigGroup: currentSpatSignalGroups[key],
-    }));
-    for (let i = 0; i < currentSpatSignalGroupsArr.length; i++) {
-      if (Number(currentSpatSignalGroupsArr[i].key) < currTimestamp - OLDEST_DATA_TO_KEEP) {
-        oldIndex = i;
-      } else {
-        break;
-      }
-    }
-    const newSpatSignalGroups = parseSpatSignalGroups(newSpatData);
-    const newSpatSignalGroupsArr = Object.keys(newSpatSignalGroups).map((key) => ({
-      key,
-      sigGroup: newSpatSignalGroups[key],
-    }));
-    const filteredSpatSignalGroupsArr = currentSpatSignalGroupsArr
-      .slice(oldIndex, currentSpatSignalGroupsArr.length)
-      .concat(newSpatSignalGroupsArr);
-    const currentSpatSignalGroupsLocal = filteredSpatSignalGroupsArr.reduce((acc, curr) => {
-      acc[curr.key] = curr.sigGroup;
-      return acc;
-    }, {} as SpatSignalGroups);
-
-    setSpatSignalGroups(currentSpatSignalGroupsLocal);
-    console.log("SPAT RENDER TIME:", Date.now() - start, "ms");
-    return currentSpatSignalGroupsLocal;
-  };
-
-  // New iterative spat data is available. Add to current data, remove old data, and update base map data
-  const renderIterative_Bsm = (currentBsmData: BsmFeatureCollection, newBsmData: OdeBsmData[]) => {
-    const start = Date.now();
-    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
-    if (newBsmData.length == 0) {
-      console.warn("Did not attempt to render map (iterative SPAT), no new SPAT messages available:", newBsmData);
-      return currentBsmData;
-    }
-    // Inject and filter spat data
-    const currTimestamp = new Date(newBsmData.at(-1)!.metadata.odeReceivedAt as string).getTime() / 1000;
-    let oldIndex = 0;
-    for (let i = 0; i < currentBsmData.features.length; i++) {
-      if (Number(currentBsmData.features[i].properties.odeReceivedAt) < currTimestamp - OLDEST_DATA_TO_KEEP) {
-        oldIndex = i;
-      } else {
-        break;
-      }
-    }
-    const newBsmGeojson = parseBsmToGeojson(newBsmData);
-    const currentBsmGeojson = {
-      ...currentBsmData,
-      features: currentBsmData.features.slice(oldIndex, currentBsmData.features.length).concat(newBsmGeojson.features),
-    };
-
-    const uniqueIds = new Set(currentBsmGeojson.features.map((bsm) => bsm.properties?.id));
-    // generate equally spaced unique colors for each uniqueId
-    const colors = generateColorDictionary(uniqueIds);
-    dispatch(setBsmLegendColors(colors));
-    // add color to each feature
-    const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    dispatch(setBsmCircleColor(bsmLayerStyle));
-    setBsmData(currentBsmGeojson);
-    console.log("BSM RENDER TIME:", Date.now() - start, "ms");
-    return currentBsmGeojson;
   };
 
   useEffect(() => {
@@ -533,7 +425,7 @@ const MapTab = (props: MyProps) => {
           const spatMessage: ProcessedSpat = JSON.parse(mes.body);
           console.debug("Received SPaT message " + (Date.now() - spatTime) + " ms");
           spatTime = Date.now();
-          setCurrentSpatData((prevValue) => renderIterative_Spat(prevValue, [spatMessage]));
+          dispatch(renderIterative_Spat([spatMessage]));
           maybeUpdateLiveSliderValue();
         });
 
@@ -541,7 +433,7 @@ const MapTab = (props: MyProps) => {
           const mapMessage: ProcessedMap = JSON.parse(mes.body);
           console.debug("Received MAP message " + (Date.now() - mapTime) + " ms");
           mapTime = Date.now();
-          setCurrentMapData((prevValue) => renderIterative_Map(prevValue, [mapMessage]));
+          dispatch(renderIterative_Map([mapMessage]));
           maybeUpdateLiveSliderValue();
         });
 
@@ -549,7 +441,7 @@ const MapTab = (props: MyProps) => {
           const bsmData: OdeBsmData = JSON.parse(mes.body);
           console.debug("Received BSM message " + (Date.now() - bsmTime) + " ms");
           bsmTime = Date.now();
-          setCurrentBsmData((prevValue) => renderIterative_Bsm(prevValue, [bsmData]));
+          dispatch(renderIterative_Bsm([bsmData]));
           maybeUpdateLiveSliderValue();
         });
       },
@@ -700,14 +592,14 @@ const MapTab = (props: MyProps) => {
           cursor={cursor}
           onMouseMove={(e: mapboxgl.MapLayerMouseEvent) => {
             const feature = e.features?.[0];
-            if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
+            if (feature && allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
               setHoveredFeature({ clickedLocation: e.lngLat, feature });
             }
           }}
           onMouseEnter={(e: mapboxgl.MapLayerMouseEvent) => {
             setCursor("pointer");
             const feature = e.features?.[0];
-            if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
+            if (feature && allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
               setHoveredFeature({ clickedLocation: e.lngLat, feature });
             } else {
               setHoveredFeature(undefined);

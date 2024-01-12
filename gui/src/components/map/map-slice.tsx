@@ -287,16 +287,10 @@ export const renderIterative_Map = createAsyncThunk(
   async (newMapData: ProcessedMap[], { getState, dispatch }) => {
     const currentState = getState() as RootState;
     const queryParams = selectQueryParams(currentState);
-    const sourceData = selectSourceData(currentState);
-    const sourceDataType = selectSourceDataType(currentState);
     const currentMapData: ProcessedMap[] = selectCurrentMapData(currentState);
 
     const start = Date.now();
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
-    if (newMapData.length == 0) {
-      console.warn("Did not attempt to render map (iterative MAP), no new MAP messages available:", newMapData);
-      return currentMapData;
-    }
 
     const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt);
     let oldIndex = 0;
@@ -324,7 +318,85 @@ export const renderIterative_Map = createAsyncThunk(
     };
   },
   {
-    condition: (newMapData: ProcessedSpat[], { getState }) => newMapData.length != 0,
+    condition: (newMapData: ProcessedMap[], { getState }) => newMapData.length != 0,
+  }
+);
+
+export const renderIterative_Spat = createAsyncThunk(
+  "map/renderIterative_Spat",
+  async (newSpatData: ProcessedSpat[], { getState, dispatch }) => {
+    const currentState = getState() as RootState;
+    const queryParams = selectQueryParams(currentState);
+    const currentSpatSignalGroups: ProcessedSpat[] = selectCurrentSpatData(currentState);
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
+    // Inject and filter spat data
+    const currTimestamp = Date.parse(newSpatData.at(-1)!.odeReceivedAt);
+    let oldIndex = 0;
+    const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
+      key,
+      sigGroup: currentSpatSignalGroups[key],
+    }));
+    for (let i = 0; i < currentSpatSignalGroupsArr.length; i++) {
+      if (Number(currentSpatSignalGroupsArr[i].key) < currTimestamp - OLDEST_DATA_TO_KEEP) {
+        oldIndex = i;
+      } else {
+        break;
+      }
+    }
+    const newSpatSignalGroups = parseSpatSignalGroups(newSpatData);
+    const newSpatSignalGroupsArr = Object.keys(newSpatSignalGroups).map((key) => ({
+      key,
+      sigGroup: newSpatSignalGroups[key],
+    }));
+    const filteredSpatSignalGroupsArr = currentSpatSignalGroupsArr
+      .slice(oldIndex, currentSpatSignalGroupsArr.length)
+      .concat(newSpatSignalGroupsArr);
+    const currentSpatSignalGroupsLocal = filteredSpatSignalGroupsArr.reduce((acc, curr) => {
+      acc[curr.key] = curr.sigGroup;
+      return acc;
+    }, {} as SpatSignalGroups);
+    return currentSpatSignalGroupsLocal;
+  },
+  {
+    condition: (newSpatData: ProcessedSpat[], { getState }) => newSpatData.length != 0,
+  }
+);
+
+export const renderIterative_Bsm = createAsyncThunk(
+  "map/renderIterative_Bsm",
+  async (newBsmData: OdeBsmData[], { getState, dispatch }) => {
+    const currentState = getState() as RootState;
+    const queryParams = selectQueryParams(currentState);
+    const currentBsmData: BsmFeatureCollection = selectCurrentBsmData(currentState);
+
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
+    // Inject and filter spat data
+    const currTimestamp = new Date(newBsmData.at(-1)!.metadata.odeReceivedAt as string).getTime() / 1000;
+    let oldIndex = 0;
+    for (let i = 0; i < currentBsmData.features.length; i++) {
+      if (Number(currentBsmData.features[i].properties.odeReceivedAt) < currTimestamp - OLDEST_DATA_TO_KEEP) {
+        oldIndex = i;
+      } else {
+        break;
+      }
+    }
+    const newBsmGeojson = parseBsmToGeojson(newBsmData);
+    const currentBsmGeojson = {
+      ...currentBsmData,
+      features: currentBsmData.features.slice(oldIndex, currentBsmData.features.length).concat(newBsmGeojson.features),
+    };
+
+    const uniqueIds = new Set(currentBsmGeojson.features.map((bsm) => bsm.properties?.id));
+    // generate equally spaced unique colors for each uniqueId
+    const colors = generateColorDictionary(uniqueIds);
+    dispatch(setBsmLegendColors(colors));
+    // add color to each feature
+    const bsmLayerStyle = generateMapboxStyleExpression(colors);
+    dispatch(setBsmCircleColor(bsmLayerStyle));
+    return currentBsmGeojson;
+  },
+  {
+    condition: (newBsmData: OdeBsmData[], { getState }) => newBsmData.length != 0,
   }
 );
 
@@ -470,18 +542,14 @@ export const mapSlice = createSlice({
         renderIterative_Map.fulfilled,
         (
           state,
-          action: PayloadAction<
-            | {
-                currentMapData: ProcessedMap[];
-                connectingLanes: ConnectingLanesFeatureCollection;
-                mapData: ProcessedMap;
-                mapTime: number;
-                mapSignalGroups: SpatSignalGroups;
-              }
-            | unknown
-          >
+          action: PayloadAction<{
+            currentMapData: ProcessedMap[];
+            connectingLanes: ConnectingLanesFeatureCollection;
+            mapData: ProcessedMap;
+            mapTime: number;
+            mapSignalGroups: SignalStateFeatureCollection;
+          }>
         ) => {
-          if (!action.payload) return;
           state.value.currentMapData = action.payload.currentMapData;
           const previousMapMessage: ProcessedMap | undefined = action.payload.currentMapData.at(-1);
           if (
@@ -499,7 +567,13 @@ export const mapSlice = createSlice({
           state.value.mapSignalGroups = action.payload.mapSignalGroups;
           state.value.mapSpatTimes = { ...state.value.mapSpatTimes, mapTime: action.payload.mapTime };
         }
-      );
+      )
+      .addCase(renderIterative_Spat.fulfilled, (state, action: PayloadAction<SpatSignalGroups>) => {
+        state.value.spatSignalGroups = action.payload;
+      })
+      .addCase(renderIterative_Bsm.fulfilled, (state, action: PayloadAction<BsmFeatureCollection>) => {
+        state.value.currentBsmData = action.payload;
+      });
   },
 });
 
