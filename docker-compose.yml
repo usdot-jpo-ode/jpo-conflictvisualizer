@@ -15,6 +15,7 @@ services:
         GUI_SERVER_URL: ${GUI_SERVER_URL}
         AUTH_SERVER_URL: ${AUTH_SERVER_URL}
         API_SERVER_URL: ${API_SERVER_URL}
+        API_WS_URL: ${API_WS_URL}
     restart: always
     ports:
       - "3000:3000"

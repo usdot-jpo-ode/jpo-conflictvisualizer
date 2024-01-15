@@ -12,14 +12,15 @@ const Map = () => {
   const router = useRouter();
   const { id } = router.query;
   const [notification, setNotification] = useState<MessageMonitor.Notification | undefined>();
-  const { intersectionId } = useDashboardContext();
+  const { intersectionId, roadRegulatorId } = useDashboardContext();
   const { data: session } = useSession();
 
   const updateNotifications = () => {
     if (session?.accessToken && intersectionId) {
       NotificationApi.getActiveNotifications({
         token: session?.accessToken,
-        intersection_id: intersectionId.toString(),
+        intersectionId,
+        roadRegulatorId,
         key: id as string,
       }).then((notifications) => {
         const notif = notifications?.pop();
@@ -56,6 +57,7 @@ const Map = () => {
             sourceData={notification}
             sourceDataType={notification !== undefined ? "notification" : undefined}
             intersectionId={intersectionId}
+            roadRegulatorId={roadRegulatorId}
             loadOnNull={false}
           />
         </Container>

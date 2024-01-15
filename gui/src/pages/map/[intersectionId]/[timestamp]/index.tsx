@@ -43,6 +43,7 @@ const Map = () => {
             sourceData={timestampInt !== undefined ? { timestamp: timestampInt } : undefined}
             sourceDataType={timestampInt !== undefined ? "timestamp" : undefined}
             intersectionId={intersectionIdInt}
+            roadRegulatorId={-1}
           />
         </Container>
       </Box>

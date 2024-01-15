@@ -8,22 +8,25 @@ export type ReportMetadata = {
   reportStartTime: Date;
   reportStopTime: Date;
   reportContents: string[];
-}
+};
 
 class ReportsApi {
   async generateReport({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: number;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime: Date;
     endTime: Date;
   }): Promise<Blob | undefined> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id.toString();
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 
@@ -40,17 +43,20 @@ class ReportsApi {
 
   async listReports({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: number;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime: Date;
     endTime: Date;
   }): Promise<ReportMetadata[] | undefined> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id.toString();
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     queryParams["latest"] = "false";
@@ -65,13 +71,7 @@ class ReportsApi {
     return pdfReport;
   }
 
-  async downloadReport({
-    token,
-    reportName,
-  }: {
-    token: string;
-    reportName: string;
-  }): Promise<Blob | undefined> {
+  async downloadReport({ token, reportName }: { token: string; reportName: string }): Promise<Blob | undefined> {
     const queryParams: Record<string, string> = {};
     queryParams["report_name"] = reportName;
 

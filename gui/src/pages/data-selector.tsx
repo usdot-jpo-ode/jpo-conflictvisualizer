@@ -105,7 +105,14 @@ const DataSelectorPage = () => {
         const eventPromises: Promise<MessageMonitor.Event[]>[] = [];
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const promise = EventsApi.getEvents(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          const promise = EventsApi.getEvents(
+            session?.accessToken,
+            eventType,
+            intersectionId,
+            roadRegulatorId,
+            startDate,
+            endTime
+          );
           eventPromises.push(promise);
         }
         const allEventsPromise = Promise.all(eventPromises);
@@ -138,7 +145,7 @@ const DataSelectorPage = () => {
             session?.accessToken,
             assessmentType,
             intersectionId,
-            undefined,
+            roadRegulatorId,
             startDate,
             endTime
           );
@@ -188,7 +195,8 @@ const DataSelectorPage = () => {
     setGraphData(
       await GraphsApi.getGraphData({
         token: session?.accessToken,
-        intersection_id: intersectionId,
+        intersectionId: intersectionId,
+        roadRegulatorId: roadRegulatorId,
         startTime: startDate,
         endTime: endTime,
         event_types: eventTypes,
@@ -294,7 +302,7 @@ const DataSelectorPage = () => {
           py: 8,
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth={false}>
           <Box
             sx={{
               alignItems: "center",

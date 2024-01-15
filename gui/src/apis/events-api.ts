@@ -27,18 +27,19 @@ class EventsApi {
     token: string,
     eventType: string,
     intersectionId: number,
+    roadRegulatorId: number,
     startTime: Date,
     endTime: Date,
-    roadRegulatorId?: string,
     { latest = false }: { latest?: boolean } = {}
   ): Promise<MessageMonitor.Event[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
+      road_regulator_id: roadRegulatorId.toString(),
       start_time_utc_millis: startTime.getTime().toString(),
       end_time_utc_millis: endTime.getTime().toString(),
       latest: latest.toString(),
     };
-    if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;
+    // if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;
 
     const response = await authApiHelper.invokeApi({
       path: `/events/${eventType}`,
@@ -52,16 +53,17 @@ class EventsApi {
   async getAllEvents(
     token: string,
     intersectionId: number,
+    roadRegulatorId: number,
     startTime: Date,
-    endTime: Date,
-    roadRegulatorId?: string
+    endTime: Date
   ): Promise<MessageMonitor.Event[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
+      road_regulator_id: roadRegulatorId.toString(),
       start_time_utc_millis: startTime.getTime().toString(),
       end_time_utc_millis: endTime.getTime().toString(),
     };
-    if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;
+    // if (roadRegulatorId) queryParams["road_regulator_id"] = roadRegulatorId;
 
     const events: MessageMonitor.Event[] = [];
     for (const eventTypeObj of EVENT_TYPES) {

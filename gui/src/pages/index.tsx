@@ -35,32 +35,32 @@ const Page = () => {
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_assessment",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as StopLineStopAssessment
       );
       setSignalStateEventAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_event_assessment",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as SignalStateEventAssessment
       );
       setConnectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "connection_of_travel",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as ConnectionOfTravelAssessment
       );
       setLaneDirectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "lane_direction_of_travel",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as LaneDirectionOfTravelAssessment
       );
     } else {

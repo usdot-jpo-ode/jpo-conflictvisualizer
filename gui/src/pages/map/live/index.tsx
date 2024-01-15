@@ -1,9 +1,9 @@
 import Head from "next/head";
 import { Box, Container, Grid } from "@mui/material";
-import { DashboardLayout } from "../../components/dashboard-layout";
+import { DashboardLayout } from "../../../components/dashboard-layout";
 import React from "react";
-import MapTab from "../../components/map/map-component";
-import { useDashboardContext } from "../../contexts/dashboard-context";
+import MapTab from "../../../components/map/map-component";
+import { useDashboardContext } from "../../../contexts/dashboard-context";
 
 const Map = () => {
   const currentDate = new Date();
