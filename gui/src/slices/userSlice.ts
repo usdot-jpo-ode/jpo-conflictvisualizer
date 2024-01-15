@@ -4,6 +4,7 @@ import { RootState } from "../store";
 import Keycloak from "keycloak-js";
 import getConfig from "next/config";
 import userManagementApi from "../apis/user-management-api";
+import { HYDRATE } from "next-redux-wrapper";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -17,6 +18,7 @@ const parseJwt = (token: string | undefined): ParsedJWT | undefined => {
 };
 
 const authToken = LocalStorageManager.getAuthToken();
+console.log("LocalStorageManager authToken", authToken);
 let parsedAuthToken = parseJwt(authToken);
 parsedAuthToken = UserManager.isLoginActive(parsedAuthToken) ? parsedAuthToken : undefined;
 
@@ -86,12 +88,21 @@ export const userSlice = createSlice({
       state.value.refreshToken = action.payload;
     },
     initKeycloakClient: (state, action: PayloadAction<Keycloak>) => {
-        state.value.keycloakClient = action.payload;
-        state.value.keycloakClient.clientSecret = `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`;
+      // if (!state.value.keycloakClient) {
+      state.value.keycloakClient = action.payload;
+      // state.value.keycloakClient.clientSecret = `${publicRuntimeConfig.KEYCLOAK_CLIENT_SECRET}`;
+      // }
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(HYDRATE, (state, action: any) => {
+        console.log("HYDRATE", state, action.payload);
+        return {
+          ...state,
+          ...action.payload.subject,
+        };
+      })
       .addCase(getUserEmailPreference.pending, (state) => {
         state.loading = true;
       })

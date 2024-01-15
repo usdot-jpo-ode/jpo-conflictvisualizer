@@ -1,15 +1,26 @@
 import { AnyAction, createAsyncThunk, createSlice, PayloadAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
 import { selectAuthToken } from "../../slices/userSlice";
-import { CompatClient } from "@stomp/stompjs";
+import { Client, CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import MessageMonitorApi from "../../apis/mm-api";
 import EventsApi from "../../apis/events-api";
 import NotificationApi from "../../apis/notification-api";
 import toast from "react-hot-toast";
-import { parseBsmToGeojson, parseMapSignalGroups, parseSpatSignalGroups } from "./utilities/message-utils";
+import {
+  generateSignalStateFeatureCollection,
+  parseBsmToGeojson,
+  parseMapSignalGroups,
+  parseSpatSignalGroups,
+} from "./utilities/message-utils";
 import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 import { setBsmCircleColor, setBsmLegendColors } from "./map-layer-style-slice";
 import { getTimeRange } from "./utilities/map-utils";
+import { ViewState } from "react-map-gl";
+import getConfig from "next/config";
+import JSZip from "jszip";
+import FileSaver from "file-saver";
+
+const { publicRuntimeConfig } = getConfig();
 
 export type MAP_LAYERS =
   | "mapMessage"
@@ -48,6 +59,12 @@ export type MAP_PROPS = {
   loadOnNull?: boolean;
 };
 
+interface MinimalClient {
+  connect: (headers: unknown, connectCallback: () => void, errorCallback?: (error: string) => void) => void;
+  subscribe: (destination: string, callback: (message: IMessage) => void) => void;
+  disconnect: (disconnectCallback: () => void) => void;
+}
+
 const initialState = {
   layersVisible: {
     mapMessage: false,
@@ -66,7 +83,7 @@ const initialState = {
     vehicleId: undefined,
     intersectionId: undefined,
     roadRegulatorId: undefined,
-  },
+  } as MAP_QUERY_PARAMS,
   sourceData: undefined as MAP_PROPS["sourceData"] | undefined,
   sourceDataType: undefined as MAP_PROPS["sourceDataType"] | undefined,
   intersectionId: undefined as MAP_PROPS["intersectionId"] | undefined,
@@ -74,9 +91,9 @@ const initialState = {
   loadOnNull: undefined as MAP_PROPS["loadOnNull"] | undefined,
   mapData: undefined as ProcessedMap | undefined,
   mapSignalGroups: undefined as SignalStateFeatureCollection | undefined,
-  signalStateData: undefined as ProcessedMap | undefined,
+  signalStateData: undefined as SignalStateFeatureCollection | undefined,
   spatSignalGroups: undefined as SpatSignalGroups | undefined,
-  currentSignalGroups: undefined as SpatSignalGroup | undefined,
+  currentSignalGroups: undefined as SpatSignalGroup[] | undefined,
   currentBsms: {
     type: "FeatureCollection" as "FeatureCollection",
     features: [],
@@ -97,6 +114,11 @@ const initialState = {
   },
   timeWindowSeconds: 60,
   sliderValue: 0,
+  sliderTimeValue: {
+    start: new Date(),
+    end: new Date(),
+  },
+  lastSliderUpdate: undefined as number | undefined,
   renderTimeInterval: [0, 0],
   hoveredFeature: undefined as any,
   selectedFeature: undefined as any,
@@ -108,7 +130,7 @@ const initialState = {
   importedMessageData: undefined as IMPORTED_MAP_MESSAGE_DATA | undefined,
   cursor: "default",
   loadInitialDataTimeoutId: undefined as NodeJS.Timeout | undefined,
-  wsClient: undefined as CompatClient | undefined,
+  wsClient: undefined as MinimalClient | undefined,
   liveDataActive: false,
   currentMapData: [] as ProcessedMap[],
   currentSpatData: [] as ProcessedSpat[],
@@ -116,6 +138,13 @@ const initialState = {
     type: "FeatureCollection",
     features: [],
   } as BsmFeatureCollection,
+};
+
+const getNewSliderTimeValue = (startDate: Date, sliderValue: number, timeWindowSeconds: number) => {
+  return {
+    start: new Date((startDate.getTime() / 1000 + sliderValue - timeWindowSeconds) * 1000),
+    end: new Date((startDate.getTime() / 1000 + sliderValue) * 1000),
+  };
 };
 
 export const pullInitialData = createAsyncThunk(
@@ -458,16 +487,419 @@ export const getSurroundingNotifications = createAsyncThunk(
   }
 );
 
+export const initializeLiveStreaming = createAsyncThunk(
+  "map/initializeLiveStreaming",
+  async (args: { token: string; roadRegulatorId: number; intersectionId: number }, { getState, dispatch }) => {
+    const { token, roadRegulatorId, intersectionId } = args;
+    // Connect to WebSocket when component mounts
+    dispatch(onTimeQueryChanged({ eventTime: new Date(), timeBefore: 10, timeAfter: 0, timeWindowSeconds: 2 }));
+
+    let protocols = ["v10.stomp", "v11.stomp"];
+    protocols.push(token);
+    const url = `${publicRuntimeConfig.API_WS_URL}/stomp`;
+    console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
+
+    // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
+    let client = Stomp.client(url, protocols);
+    client.debug = () => {};
+
+    // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
+    let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
+    let mapTopic = `/live/${roadRegulatorId}/${intersectionId}/map`;
+    let bsmTopic = `/live/${roadRegulatorId}/${intersectionId}/bsm`; // TODO: Filter by road regulator ID
+    let spatTime = Date.now();
+    let mapTime = Date.now();
+    let bsmTime = Date.now();
+    client.connect(
+      {
+        // "username": "test",
+        // "password": "test",
+        // Token: token,
+      },
+      () => {
+        client.subscribe(spatTopic, function (mes: IMessage) {
+          const spatMessage: ProcessedSpat = JSON.parse(mes.body);
+          console.debug("Received SPaT message " + (Date.now() - spatTime) + " ms");
+          spatTime = Date.now();
+          dispatch(renderIterative_Spat([spatMessage]));
+          dispatch(maybeUpdateSliderValue());
+        });
+
+        client.subscribe(mapTopic, function (mes: IMessage) {
+          const mapMessage: ProcessedMap = JSON.parse(mes.body);
+          console.debug("Received MAP message " + (Date.now() - mapTime) + " ms");
+          mapTime = Date.now();
+          dispatch(renderIterative_Map([mapMessage]));
+          dispatch(maybeUpdateSliderValue());
+        });
+
+        client.subscribe(bsmTopic, function (mes: IMessage) {
+          const bsmData: OdeBsmData = JSON.parse(mes.body);
+          console.debug("Received BSM message " + (Date.now() - bsmTime) + " ms");
+          bsmTime = Date.now();
+          dispatch(renderIterative_Bsm([bsmData]));
+          dispatch(maybeUpdateSliderValue());
+        });
+      },
+      (error) => {
+        console.error("ERROR connecting to live data Websockets", error);
+      }
+    );
+  }
+);
+
+const compareQueryParams = (oldParams: MAP_QUERY_PARAMS, newParams: MAP_QUERY_PARAMS) => {
+  return (
+    oldParams.startDate.getTime() != newParams.startDate.getTime() ||
+    oldParams.endDate.getTime() != newParams.endDate.getTime() ||
+    oldParams.eventDate.getTime() != newParams.eventDate.getTime() ||
+    oldParams.vehicleId != newParams.vehicleId ||
+    oldParams.intersectionId != newParams.intersectionId ||
+    oldParams.roadRegulatorId != newParams.roadRegulatorId
+  );
+};
+
+const generateRenderTimeInterval = (startDate: Date, sliderValue: number, timeWindowSeconds: number) => {
+  const startTime = startDate.getTime() / 1000;
+
+  const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
+  const filteredEndTime = startTime + sliderValue;
+
+  return [filteredStartTime, filteredEndTime];
+};
+
+const _updateQueryParams = ({
+  state,
+  startDate,
+  endDate,
+  eventDate,
+  vehicleId,
+  intersectionId,
+  roadRegulatorId,
+  resetTimeWindow,
+  updateSlider,
+}: {
+  state: RootState["map"];
+  startDate?: Date;
+  endDate?: Date;
+  eventDate?: Date;
+  vehicleId?: string;
+  intersectionId?: number;
+  roadRegulatorId?: number;
+  resetTimeWindow?: boolean;
+  updateSlider?: boolean;
+}) => {
+  const newQueryParams = {
+    startDate: startDate ?? state.value.queryParams.startDate,
+    endDate: endDate ?? state.value.queryParams.endDate,
+    eventDate: eventDate ?? state.value.queryParams.eventDate,
+    vehicleId: vehicleId ?? state.value.queryParams.vehicleId,
+    intersectionId: intersectionId ?? state.value.queryParams.intersectionId,
+    roadRegulatorId: roadRegulatorId ?? state.value.queryParams.roadRegulatorId,
+  };
+  if (compareQueryParams(state.value.queryParams, newQueryParams)) {
+    state.value.queryParams = newQueryParams;
+    state.value.sliderTimeValue = getNewSliderTimeValue(
+      state.value.queryParams.startDate,
+      state.value.sliderValue,
+      state.value.timeWindowSeconds
+    );
+    if (resetTimeWindow) state.value.timeWindowSeconds = 60;
+    if (updateSlider) state.value.sliderValue = getTimeRange(newQueryParams.startDate, newQueryParams.endDate);
+  }
+};
+
+const _downloadData = (rawData: Object, queryParams: MAP_QUERY_PARAMS) => {
+  var zip = new JSZip();
+  zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData["map"]));
+  zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData["spat"]));
+  zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData["bsm"]));
+  zip.file(
+    `intersection_${queryParams.intersectionId}_Notification_data.json`,
+    JSON.stringify(rawData["notification"])
+  );
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
+  });
+};
+
+export const downloadMapData = createAsyncThunk(
+  "map/downloadMapData",
+  async (_, { getState }) => {
+    const currentState = getState() as RootState;
+    const rawData = selectRawData(currentState)!;
+    const queryParams = selectQueryParams(currentState);
+
+    return _downloadData(rawData, queryParams);
+  },
+  {
+    condition: (_, { getState }) =>
+      selectAuthToken(getState() as RootState) != undefined &&
+      selectQueryParams(getState() as RootState).intersectionId != undefined &&
+      selectQueryParams(getState() as RootState).roadRegulatorId != undefined,
+  }
+);
+
 export const mapSlice = createSlice({
   name: "map",
   initialState: {
     loading: false,
-    requestOut: false,
     value: initialState,
   },
   reducers: {
     setSurroundingEvents: (state, action: PayloadAction<MessageMonitor.Event[]>) => {
       state.value.surroundingEvents = action.payload;
+    },
+    maybeUpdateSliderValue: (state) => {
+      if (
+        state.value.liveDataActive &&
+        (!state.value.lastSliderUpdate || Date.now() - state.value.lastSliderUpdate > 1 * 1000)
+      ) {
+        _updateQueryParams({
+          state,
+          startDate: new Date(
+            Date.now() - (state.value.queryParams.endDate.getTime() - state.value.queryParams.startDate.getTime())
+          ),
+          endDate: new Date(Date.now()),
+          eventDate: new Date(Date.now()),
+          vehicleId: undefined,
+          intersectionId: state.value.queryParams.intersectionId,
+          roadRegulatorId: state.value.queryParams.roadRegulatorId,
+          updateSlider: true,
+        });
+      }
+    },
+    updateLiveSliderValue: (state) => {
+      const newQueryParams = {
+        startDate: new Date(
+          Date.now() - (state.value.queryParams.endDate.getTime() - state.value.queryParams.startDate.getTime())
+        ),
+        endDate: new Date(Date.now()),
+        eventDate: new Date(Date.now()),
+        vehicleId: undefined,
+        intersectionId: state.value.queryParams.intersectionId,
+        roadRegulatorId: state.value.queryParams.roadRegulatorId,
+      };
+      state.value.queryParams = newQueryParams;
+      state.value.sliderValue = getTimeRange(newQueryParams.startDate, newQueryParams.endDate);
+      state.value.renderTimeInterval = [
+        newQueryParams.startDate.getTime() / 1000,
+        newQueryParams.endDate.getTime() / 1000,
+      ];
+      state.value.sliderTimeValue = getNewSliderTimeValue(
+        state.value.queryParams.startDate,
+        state.value.sliderValue,
+        state.value.timeWindowSeconds
+      );
+    },
+    updateRenderedMapState: (state) => {
+      // ASSUMPTION: mapSignalGroups && spatSignalGroups
+
+      // retrieve filtered SPATs
+      let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
+      for (const datetime in state.value.spatSignalGroups) {
+        const datetimeNum = Number(datetime) / 1000;
+        if (datetimeNum >= state.value.renderTimeInterval[0] && datetimeNum <= state.value.renderTimeInterval[1]) {
+          if (
+            closestSignalGroup === null ||
+            Math.abs(datetimeNum - state.value.renderTimeInterval[1]) <
+              Math.abs(closestSignalGroup.datetime - state.value.renderTimeInterval[1])
+          ) {
+            closestSignalGroup = { datetime: datetimeNum, spat: state.value.spatSignalGroups[datetime] };
+          }
+        }
+      }
+      if (closestSignalGroup !== null) {
+        state.value.currentSignalGroups = closestSignalGroup.spat;
+        state.value.signalStateData = generateSignalStateFeatureCollection(
+          state.value.mapSignalGroups!,
+          closestSignalGroup.spat
+        );
+        state.value.mapSpatTimes = { ...state.value.mapSpatTimes, spatTime: closestSignalGroup.datetime };
+      } else {
+        state.value.currentSignalGroups = undefined;
+        state.value.signalStateData = undefined;
+      }
+
+      // retrieve filtered BSMs
+      const filteredBsms: BsmFeature[] = state.value.bsmData?.features?.filter(
+        (feature) =>
+          feature.properties?.odeReceivedAt >= state.value.renderTimeInterval[0] &&
+          feature.properties?.odeReceivedAt <= state.value.renderTimeInterval[1]
+      );
+      state.value.currentBsms = { ...state.value.bsmData, features: filteredBsms };
+
+      const filteredEvents: MessageMonitor.Event[] = state.value.surroundingEvents.filter(
+        (event) =>
+          event.eventGeneratedAt / 1000 >= state.value.renderTimeInterval[0] &&
+          event.eventGeneratedAt / 1000 <= state.value.renderTimeInterval[1]
+      );
+      state.value.filteredSurroundingEvents = filteredEvents;
+
+      const filteredNotifications: MessageMonitor.Notification[] = state.value.surroundingNotifications.filter(
+        (notification) =>
+          notification.notificationGeneratedAt / 1000 >= state.value.renderTimeInterval[0] &&
+          notification.notificationGeneratedAt / 1000 <= state.value.renderTimeInterval[1]
+      );
+      state.value.filteredSurroundingNotifications = filteredNotifications;
+    },
+    setViewState: (state, action: PayloadAction<ViewState>) => {
+      state.value.viewState = action.payload;
+    },
+    handleImportedMapMessageData: (
+      state,
+      action: PayloadAction<{
+        mapData: ProcessedMap[];
+        bsmData: OdeBsmData[];
+        spatData: ProcessedSpat[];
+        notificationData: any;
+      }>
+    ) => {
+      const { mapData, bsmData, spatData, notificationData } = action.payload;
+      const sortedSpatData = spatData.sort((x, y) => {
+        if (x.odeReceivedAt < y.odeReceivedAt) {
+          return 1;
+        }
+        if (x.odeReceivedAt > y.odeReceivedAt) {
+          return -1;
+        }
+        return 0;
+      });
+      const endTime = new Date(sortedSpatData[0].odeReceivedAt);
+      const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].odeReceivedAt);
+      state.value.importedMessageData = { mapData, bsmData, spatData, notificationData };
+      state.value.queryParams = {
+        startDate: startTime,
+        endDate: endTime,
+        eventDate: startTime,
+        intersectionId: mapData[0].properties.intersectionId,
+        roadRegulatorId: -1,
+      };
+      state.value.sliderTimeValue = getNewSliderTimeValue(
+        state.value.queryParams.startDate,
+        state.value.sliderValue,
+        state.value.timeWindowSeconds
+      );
+      state.value.timeWindowSeconds = 60;
+    },
+    updateQueryParams: (
+      state,
+      action: PayloadAction<{
+        startDate?: Date;
+        endDate?: Date;
+        eventDate?: Date;
+        vehicleId?: string;
+        intersectionId?: number;
+        roadRegulatorId?: number;
+        resetTimeWindow?: boolean;
+        updateSlider?: boolean;
+      }>
+    ) => {
+      _updateQueryParams({ state, ...action.payload });
+    },
+    onTimeQueryChanged: (
+      state,
+      action: PayloadAction<{
+        eventTime?: Date;
+        timeBefore?: number;
+        timeAfter?: number;
+        timeWindowSeconds?: number;
+      }>
+    ) => {
+      let { eventTime, timeBefore, timeAfter, timeWindowSeconds } = action.payload;
+      eventTime ??= new Date();
+      const updatedQueryParams = {
+        startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
+        endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
+        eventDate: eventTime,
+        intersectionId: state.value.queryParams.intersectionId,
+        roadRegulatorId: state.value.queryParams.roadRegulatorId,
+      };
+      if (compareQueryParams(state.value.queryParams, updatedQueryParams)) {
+        // Detected change in query params
+        state.value.queryParams = updatedQueryParams;
+        state.value.sliderTimeValue = getNewSliderTimeValue(
+          state.value.queryParams.startDate,
+          state.value.sliderValue,
+          state.value.timeWindowSeconds
+        );
+      } else {
+        // No change in query params
+      }
+      state.value.timeWindowSeconds = timeWindowSeconds ?? state.value.timeWindowSeconds;
+    },
+    setSliderValue: (state, action: PayloadAction<number | number[]>) => {
+      state.value.sliderValue = action.payload as number;
+      state.value.liveDataActive = false;
+    },
+    updateRenderTimeInterval: (state) => {
+      state.value.renderTimeInterval = generateRenderTimeInterval(
+        state.value.queryParams.startDate,
+        state.value.sliderValue,
+        state.value.timeWindowSeconds
+      );
+    },
+    onMapClick: (
+      state,
+      action: PayloadAction<{ event: mapboxgl.MapLayerMouseEvent; mapRef: React.MutableRefObject<any> }>
+    ) => {
+      const features = action.payload.mapRef.current.queryRenderedFeatures(action.payload.event.point, {
+        //   layers: allInteractiveLayerIds,
+      });
+      const feature = features?.[0];
+      if (feature && state.value.allInteractiveLayerIds.includes(feature.layer.id)) {
+        state.value.selectedFeature = { clickedLocation: action.payload.event.lngLat, feature };
+      } else {
+        state.value.selectedFeature = undefined;
+      }
+    },
+    onMapMouseMove: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+      const feature = action.payload.features?.[0];
+      if (feature && state.value.allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
+        state.value.hoveredFeature = { clickedLocation: action.payload.lngLat, feature };
+      }
+    },
+    onMapMouseEnter: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+      state.value.cursor = "pointer";
+      const feature = action.payload.features?.[0];
+      if (feature && state.value.allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
+        state.value.hoveredFeature = { clickedLocation: action.payload.lngLat, feature };
+      } else {
+        state.value.hoveredFeature = undefined;
+      }
+    },
+    onMapMouseLeave: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+      state.value.cursor = "";
+      state.value.hoveredFeature = undefined;
+    },
+    cleanUpLiveStreaming: (state) => {
+      if (state.value.wsClient) {
+        state.value.wsClient.disconnect(() => {
+          console.debug("Disconnected from STOMP endpoint");
+        });
+      }
+      state.value.wsClient = undefined;
+    },
+    setLoadInitialdataTimeoutId: (state, action: PayloadAction<NodeJS.Timeout>) => {
+      state.value.loadInitialDataTimeoutId = action.payload;
+    },
+    clearSelectedFeature: (state) => {
+      state.value.selectedFeature = undefined;
+    },
+    clearHoveredFeature: (state) => {
+      state.value.hoveredFeature = undefined;
+    },
+    setLaneLabelsVisible: (state, action: PayloadAction<boolean>) => {
+      state.value.laneLabelsVisible = action.payload;
+    },
+    setSigGroupLabelsVisible: (state, action: PayloadAction<boolean>) => {
+      state.value.sigGroupLabelsVisible = action.payload;
+    },
+    setShowPopupOnHover: (state, action: PayloadAction<boolean>) => {
+      state.value.showPopupOnHover = action.payload;
+    },
+    toggleLiveDataActive: (state) => {
+      state.value.liveDataActive = !state.value.liveDataActive;
     },
   },
   extraReducers: (builder) => {
@@ -536,6 +968,11 @@ export const mapSlice = createSlice({
           state.value.bsmData = action.payload.bsmData;
           state.value.rawData = action.payload.rawData;
           state.value.sliderValue = action.payload.sliderValue;
+          state.value.sliderTimeValue = getNewSliderTimeValue(
+            state.value.queryParams.startDate,
+            state.value.sliderValue,
+            state.value.timeWindowSeconds
+          );
         }
       )
       .addCase(
@@ -588,6 +1025,7 @@ export const selectIntersectionId = (state: RootState) => state.map.value.inters
 export const selectRoadRegulatorId = (state: RootState) => state.map.value.roadRegulatorId;
 export const selectLoadOnNull = (state: RootState) => state.map.value.loadOnNull;
 export const selectMapData = (state: RootState) => state.map.value.mapData;
+export const selectBsmData = (state: RootState) => state.map.value.bsmData;
 export const selectMapSignalGroups = (state: RootState) => state.map.value.mapSignalGroups;
 export const selectSignalStateData = (state: RootState) => state.map.value.signalStateData;
 export const selectSpatSignalGroups = (state: RootState) => state.map.value.spatSignalGroups;
@@ -612,27 +1050,35 @@ export const selectShowPopupOnHover = (state: RootState) => state.map.value.show
 export const selectImportedMessageData = (state: RootState) => state.map.value.importedMessageData;
 export const selectCursor = (state: RootState) => state.map.value.cursor;
 export const selectLoadInitialDataTimeoutId = (state: RootState) => state.map.value.loadInitialDataTimeoutId;
-export const selectWsClient = (state: RootState) => state.map.value.wsClient;
+// export const selectWsClient = (state: RootState) => state.map.value.wsClient;
 export const selectLiveDataActive = (state: RootState) => state.map.value.liveDataActive;
 export const selectCurrentMapData = (state: RootState) => state.map.value.currentMapData;
 export const selectCurrentSpatData = (state: RootState) => state.map.value.currentSpatData;
 export const selectCurrentBsmData = (state: RootState) => state.map.value.currentBsmData;
+export const selectSliderTimeValue = (state: RootState) => state.map.value.sliderTimeValue;
 
 export const {
-  selectRsu,
-  toggleMapDisplay,
-  clearBsm,
-  toggleSsmSrmDisplay,
-  setSelectedSrm,
-  toggleBsmPointSelect,
-  updateBsmPoints,
-  updateBsmDate,
-  triggerBsmDateError,
-  changeMessageType,
-  setBsmFilter,
-  setBsmFilterStep,
-  setBsmFilterOffset,
-  setLoading,
+  setSurroundingEvents,
+  maybeUpdateSliderValue,
+  updateRenderedMapState,
+  setViewState,
+  handleImportedMapMessageData,
+  updateQueryParams,
+  onTimeQueryChanged,
+  setSliderValue,
+  updateRenderTimeInterval,
+  onMapClick,
+  onMapMouseMove,
+  onMapMouseEnter,
+  onMapMouseLeave,
+  cleanUpLiveStreaming,
+  setLoadInitialdataTimeoutId,
+  clearSelectedFeature,
+  clearHoveredFeature,
+  setLaneLabelsVisible,
+  setSigGroupLabelsVisible,
+  setShowPopupOnHover,
+  toggleLiveDataActive,
 } = mapSlice.actions;
 
 export default mapSlice.reducer;

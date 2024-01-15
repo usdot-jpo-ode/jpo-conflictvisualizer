@@ -240,6 +240,7 @@ const initialState = {
 export const mapLayerStyleSlice = createSlice({
   name: "mapLayerStyle",
   initialState: {
+    loading: false,
     value: initialState,
   },
   reducers: {

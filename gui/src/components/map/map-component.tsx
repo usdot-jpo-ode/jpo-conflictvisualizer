@@ -38,11 +38,62 @@ import {
 import { getBearingBetweenPoints, getTimeRange } from "./utilities/map-utils";
 import {
   MAP_LAYERS,
+  cleanUpLiveStreaming,
+  clearHoveredFeature,
+  clearSelectedFeature,
+  initializeLiveStreaming,
+  maybeUpdateSliderValue,
+  onMapClick,
+  onMapMouseEnter,
+  onMapMouseLeave,
+  onMapMouseMove,
+  onTimeQueryChanged,
   pullInitialData,
   renderIterative_Bsm,
   renderIterative_Map,
   renderIterative_Spat,
   selectAllInteractiveLayerIds,
+  selectBsmData,
+  selectConnectingLanes,
+  selectCurrentBsmData,
+  selectCurrentBsms,
+  selectCurrentMapData,
+  selectCurrentSignalGroups,
+  selectCurrentSpatData,
+  selectCursor,
+  selectFilteredSurroundingEvents,
+  selectFilteredSurroundingNotifications,
+  selectHoveredFeature,
+  selectImportedMessageData,
+  selectIntersectionId,
+  selectLaneLabelsVisible,
+  selectLayersVisible,
+  selectLiveDataActive,
+  selectLoadInitialDataTimeoutId,
+  selectLoadOnNull,
+  selectMapData,
+  selectMapSignalGroups,
+  selectMapSpatTimes,
+  selectQueryParams,
+  selectRawData,
+  selectRenderTimeInterval,
+  selectRoadRegulatorId,
+  selectSelectedFeature,
+  selectShowPopupOnHover,
+  selectSigGroupLabelsVisible,
+  selectSignalStateData,
+  selectSliderValue,
+  selectSourceData,
+  selectSourceDataType,
+  selectSpatSignalGroups,
+  selectSurroundingNotifications,
+  selectTimeWindowSeconds,
+  selectViewState,
+  setLoadInitialdataTimeoutId,
+  setViewState,
+  updateQueryParams,
+  updateRenderTimeInterval,
+  updateRenderedMapState,
 } from "./map-slice";
 import {
   addConnections,
@@ -122,7 +173,6 @@ const MapTab = (props: MyProps) => {
   // userSlice
   const authToken = useSelector(selectAuthToken);
 
-  // mapLayerStyleSlice
   const mapMessageLayerStyle = useSelector(selectMapMessageLayerStyle);
   const mapMessageLabelsLayerStyle = useSelector(selectMapMessageLabelsLayerStyle);
   const connectingLanesLayerStyle = useSelector(selectConnectingLanesLayerStyle);
@@ -130,149 +180,58 @@ const MapTab = (props: MyProps) => {
   const markerLayerStyle = useSelector(selectMarkerLayerStyle);
   const bsmLayerStyle = useSelector(selectBsmLayerStyle);
   const signalStateLayerStyle = useSelector(selectSignalStateLayerStyle);
-  const mapLegendColors = useSelector(selectMapLegendColors);
 
   const allInteractiveLayerIds = useSelector(selectAllInteractiveLayerIds);
+  const queryParams = useSelector(selectQueryParams);
+  const mapData = useSelector(selectMapData);
+  const bsmData = useSelector(selectBsmData);
+  const mapSignalGroups = useSelector(selectMapSignalGroups);
+  const signalStateData = useSelector(selectSignalStateData);
+  const spatSignalGroups = useSelector(selectSpatSignalGroups);
+  const currentSignalGroups = useSelector(selectCurrentSignalGroups);
+  const currentBsms = useSelector(selectCurrentBsms);
+  const connectingLanes = useSelector(selectConnectingLanes);
+  const filteredSurroundingEvents = useSelector(selectFilteredSurroundingEvents);
+  const filteredSurroundingNotifications = useSelector(selectFilteredSurroundingNotifications);
+  const viewState = useSelector(selectViewState);
+  const timeWindowSeconds = useSelector(selectTimeWindowSeconds);
+  const sliderValue = useSelector(selectSliderValue);
+  const renderTimeInterval = useSelector(selectRenderTimeInterval);
+  const hoveredFeature = useSelector(selectHoveredFeature);
+  const selectedFeature = useSelector(selectSelectedFeature);
+  const sigGroupLabelsVisible = useSelector(selectSigGroupLabelsVisible);
+  const laneLabelsVisible = useSelector(selectLaneLabelsVisible);
+  const showPopupOnHover = useSelector(selectShowPopupOnHover);
+  const cursor = useSelector(selectCursor);
+  const loadInitialDataTimeoutId = useSelector(selectLoadInitialDataTimeoutId);
+  const liveDataActive = useSelector(selectLiveDataActive);
 
   const mapRef = React.useRef<any>(null);
-
-  const [queryParams, setQueryParams] = useState<{
-    startDate: Date;
-    endDate: Date;
-    eventDate: Date;
-    vehicleId?: string;
-    intersectionId?: number;
-    roadRegulatorId?: number;
-  }>({
-    ...generateQueryParams(props.sourceData, props.sourceDataType),
-    intersectionId: props.intersectionId,
-    roadRegulatorId: props.roadRegulatorId,
-  });
-
-  const [mapData, setMapData] = useState<ProcessedMap>();
-  const [mapSignalGroups, setMapSignalGroups] = useState<SignalStateFeatureCollection>();
-  const [signalStateData, setSignalStateData] = useState<SignalStateFeatureCollection>();
-  const [spatSignalGroups, setSpatSignalGroups] = useState<SpatSignalGroups>();
-  const [currentSignalGroups, setCurrentSignalGroups] = useState<SpatSignalGroup[]>();
-  const [currentBsms, setCurrentBsms] = useState<BsmFeatureCollection>({
-    type: "FeatureCollection" as "FeatureCollection",
-    features: [],
-  });
-  const [connectingLanes, setConnectingLanes] = useState<ConnectingLanesFeatureCollection>();
-  const [bsmData, setBsmData] = useState<BsmFeatureCollection>({
-    type: "FeatureCollection" as "FeatureCollection",
-    features: [],
-  });
-  const [surroundingEvents, setSurroundingEvents] = useState<MessageMonitor.Event[]>([]);
-  const [filteredSurroundingEvents, setFilteredSurroundingEvents] = useState<MessageMonitor.Event[]>([]);
-  const [surroundingNotifications, setSurroundingNotifications] = useState<MessageMonitor.Notification[]>([]);
-  const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
-    MessageMonitor.Notification[]
-  >([]);
-  //   const mapRef = useRef<mapboxgl.Map>();
-  const [viewState, setViewState] = useState({
-    latitude: 39.587905,
-    longitude: -105.0907089,
-    zoom: 19,
-  });
-  const [timeWindowSeconds, setTimeWindowSeconds] = useState<number>(60);
-  const [sliderValue, setSliderValue] = useState<number>(0);
-  const [renderTimeInterval, setRenderTimeInterval] = useState<number[]>([0, 0]);
-  const [hoveredFeature, setHoveredFeature] = useState<any>(undefined);
-  const [selectedFeature, setSelectedFeature] = useState<any>(undefined);
-  const [rawData, setRawData] = useState({});
-  const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
-  const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
-  const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
-  const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(false);
-  const [importedMessageData, setImportedMessageData] = useState<
-    | {
-        mapData: ProcessedMap[];
-        bsmData: OdeBsmData[];
-        spatData: ProcessedSpat[];
-        notificationData: any;
-      }
-    | undefined
-  >(undefined);
-  const [cursor, setCursor] = useState<string>("default");
-
-  const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
-  const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
-
-  const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
-  const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
-  const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
-  const [___, setCurrentBsmData] = useState<BsmFeatureCollection>({
-    type: "FeatureCollection",
-    features: [],
-  });
-  const [____, setLastSliderUpdate] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
-  const handleImportedMessageData = ({
-    mapData,
-    bsmData,
-    spatData,
-    notificationData,
-  }: {
-    mapData: ProcessedMap[];
-    bsmData: OdeBsmData[];
-    spatData: ProcessedSpat[];
-    notificationData: any;
-  }) => {
-    const sortedSpatData = spatData.sort((x, y) => {
-      if (x.odeReceivedAt < y.odeReceivedAt) {
-        return 1;
-      }
-      if (x.odeReceivedAt > y.odeReceivedAt) {
-        return -1;
-      }
-      return 0;
-    });
-    const endTime = new Date(sortedSpatData[0].odeReceivedAt);
-    const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].odeReceivedAt);
-    setImportedMessageData({ mapData, bsmData, spatData, notificationData });
-    setQueryParams({
-      startDate: startTime,
-      endDate: endTime,
-      eventDate: startTime,
-      intersectionId: mapData[0].properties.intersectionId,
-      roadRegulatorId: -1,
-    });
-  };
-
   useEffect(() => {
     if (props.intersectionId != queryParams.intersectionId || props.roadRegulatorId != queryParams.roadRegulatorId) {
-      const query_params = {
-        ...queryParams,
-        intersectionId: props.intersectionId,
-        roadRegulatorId: props.roadRegulatorId,
-      };
-      setQueryParams(query_params);
-      setTimeWindowSeconds(60);
+      dispatch(
+        updateQueryParams({
+          intersectionId: props.intersectionId,
+          roadRegulatorId: props.roadRegulatorId,
+        })
+      );
     }
   }, [props.intersectionId, props.roadRegulatorId]);
 
   useEffect(() => {
-    const newQueryParams = {
-      ...generateQueryParams(props.sourceData, props.sourceDataType),
-      intersectionId: props.intersectionId,
-      roadRegulatorId: props.roadRegulatorId,
-    };
-    if (
-      queryParams.startDate.getTime() != newQueryParams.startDate.getTime() ||
-      queryParams.endDate.getTime() != newQueryParams.endDate.getTime() ||
-      queryParams.eventDate.getTime() != newQueryParams.eventDate.getTime() ||
-      queryParams.vehicleId != newQueryParams.vehicleId ||
-      queryParams.intersectionId != newQueryParams.intersectionId ||
-      queryParams.roadRegulatorId != newQueryParams.roadRegulatorId
-    ) {
-      setQueryParams(newQueryParams);
-      setTimeWindowSeconds(60);
-    }
+    dispatch(
+      updateQueryParams({
+        ...generateQueryParams(props.sourceData, props.sourceDataType),
+        intersectionId: props.intersectionId,
+        roadRegulatorId: props.roadRegulatorId,
+        resetTimeWindow: true,
+      })
+    );
   }, [props.sourceData]);
 
   useEffect(() => {
@@ -282,7 +241,7 @@ const MapTab = (props: MyProps) => {
     if (loadInitialDataTimeoutId) {
       clearTimeout(loadInitialDataTimeoutId);
     }
-    setLoadInitialdataTimeoutId(setTimeout(() => dispatch(pullInitialData()), 500));
+    dispatch(setLoadInitialdataTimeoutId(setTimeout(() => dispatch(pullInitialData()), 500)));
   }, [queryParams]);
 
   useEffect(() => {
@@ -291,79 +250,23 @@ const MapTab = (props: MyProps) => {
       return;
     }
 
-    // retrieve filtered SPATs
-    let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
-    for (const datetime in spatSignalGroups) {
-      const datetimeNum = Number(datetime) / 1000;
-      if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
-        if (
-          closestSignalGroup === null ||
-          Math.abs(datetimeNum - renderTimeInterval[1]) < Math.abs(closestSignalGroup.datetime - renderTimeInterval[1])
-        ) {
-          closestSignalGroup = { datetime: datetimeNum, spat: spatSignalGroups[datetime] };
-        }
-      }
-    }
-    if (closestSignalGroup !== null) {
-      setCurrentSignalGroups(closestSignalGroup.spat);
-      setSignalStateData(generateSignalStateFeatureCollection(mapSignalGroups, closestSignalGroup.spat));
-      setMapSpatTimes((prevValue) => ({ ...prevValue, spatTime: closestSignalGroup!.datetime }));
-    } else {
-      setCurrentSignalGroups(undefined);
-      setSignalStateData(undefined);
-    }
-
-    // retrieve filtered BSMs
-    const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
-      (feature) =>
-        feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
-        feature.properties?.odeReceivedAt <= renderTimeInterval[1]
-    );
-    setCurrentBsms({ ...bsmData, features: filteredBsms });
-
-    const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
-      (event) =>
-        event.eventGeneratedAt / 1000 >= renderTimeInterval[0] && event.eventGeneratedAt / 1000 <= renderTimeInterval[1]
-    );
-    setFilteredSurroundingEvents(filteredEvents);
-
-    const filteredNotifications: MessageMonitor.Notification[] = surroundingNotifications.filter(
-      (notification) =>
-        notification.notificationGeneratedAt / 1000 >= renderTimeInterval[0] &&
-        notification.notificationGeneratedAt / 1000 <= renderTimeInterval[1]
-    );
-    setFilteredSurroundingNotifications(filteredNotifications);
+    dispatch(updateRenderedMapState());
   }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
-    const startTime = queryParams.startDate.getTime() / 1000;
-
-    const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
-    const filteredEndTime = startTime + sliderValue;
-
-    setRenderTimeInterval([filteredStartTime, filteredEndTime]);
+    dispatch(updateRenderTimeInterval());
   }, [sliderValue, queryParams, timeWindowSeconds]);
-
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
-    setSliderValue(newValue as number);
-    setLiveDataActive(false);
-  };
-
-  const maybeUpdateLiveSliderValue = () => {
-    setLastSliderUpdate((prevLastSliderUpdate) => {
-      if (liveDataActive && (!prevLastSliderUpdate || Date.now() - prevLastSliderUpdate > 1 * 1000)) {
-        return updateLiveSliderValue();
-      } else {
-        return undefined;
-      }
-    });
-  };
 
   useEffect(() => {
     if (liveDataActive) {
       if (authToken && props.roadRegulatorId && props.intersectionId) {
-        initializeLiveStreaming(authToken, props.roadRegulatorId, props.intersectionId);
-        onTimeQueryChanged(new Date(), 10, 0, 5);
+        dispatch(
+          initializeLiveStreaming({
+            token: authToken,
+            roadRegulatorId: props.roadRegulatorId,
+            intersectionId: props.intersectionId,
+          })
+        );
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -375,130 +278,9 @@ const MapTab = (props: MyProps) => {
         );
       }
     } else {
-      cleanUpLiveStreaming();
+      dispatch(cleanUpLiveStreaming());
     }
   }, [liveDataActive]);
-
-  const updateLiveSliderValue = () => {
-    const newQueryParams = {
-      startDate: new Date(Date.now() - (queryParams.endDate.getTime() - queryParams.startDate.getTime())),
-      endDate: new Date(Date.now()),
-      eventDate: new Date(Date.now()),
-      vehicleId: undefined,
-      intersectionId: queryParams.intersectionId,
-      roadRegulatorId: queryParams.roadRegulatorId,
-    };
-    setQueryParams(newQueryParams);
-    const sliderValue = getTimeRange(newQueryParams.startDate, newQueryParams.endDate);
-    setSliderValue(sliderValue);
-    return sliderValue;
-  };
-
-  const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
-    // Connect to WebSocket when component mounts
-    onTimeQueryChanged(new Date(), 10, 0, 2);
-
-    let protocols = ["v10.stomp", "v11.stomp"];
-    protocols.push(token);
-    const url = `${publicRuntimeConfig.API_WS_URL}/stomp`;
-    console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
-
-    // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
-    let client = Stomp.client(url, protocols);
-    client.debug = () => {};
-
-    // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
-    let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
-    let mapTopic = `/live/${roadRegulatorId}/${intersectionId}/map`;
-    let bsmTopic = `/live/${roadRegulatorId}/${intersectionId}/bsm`; // TODO: Filter by road regulator ID
-    let spatTime = Date.now();
-    let mapTime = Date.now();
-    let bsmTime = Date.now();
-    client.connect(
-      {
-        // "username": "test",
-        // "password": "test",
-        // Token: token,
-      },
-      () => {
-        client.subscribe(spatTopic, function (mes: IMessage) {
-          const spatMessage: ProcessedSpat = JSON.parse(mes.body);
-          console.debug("Received SPaT message " + (Date.now() - spatTime) + " ms");
-          spatTime = Date.now();
-          dispatch(renderIterative_Spat([spatMessage]));
-          maybeUpdateLiveSliderValue();
-        });
-
-        client.subscribe(mapTopic, function (mes: IMessage) {
-          const mapMessage: ProcessedMap = JSON.parse(mes.body);
-          console.debug("Received MAP message " + (Date.now() - mapTime) + " ms");
-          mapTime = Date.now();
-          dispatch(renderIterative_Map([mapMessage]));
-          maybeUpdateLiveSliderValue();
-        });
-
-        client.subscribe(bsmTopic, function (mes: IMessage) {
-          const bsmData: OdeBsmData = JSON.parse(mes.body);
-          console.debug("Received BSM message " + (Date.now() - bsmTime) + " ms");
-          bsmTime = Date.now();
-          dispatch(renderIterative_Bsm([bsmData]));
-          maybeUpdateLiveSliderValue();
-        });
-      },
-      (error) => {
-        console.error("ERROR connecting to live data Websockets", error);
-      }
-    );
-
-    setWsClient(client);
-  };
-
-  const cleanUpLiveStreaming = () => {
-    if (wsClient) {
-      wsClient.disconnect(() => {
-        console.debug("Disconnected from STOMP endpoint");
-      });
-    }
-    setWsClient(undefined);
-  };
-
-  const onTimeQueryChanged = (
-    eventTime: Date = new Date(),
-    timeBefore?: number,
-    timeAfter?: number,
-    timeWindowSeconds?: number
-  ) => {
-    const updatedQueryParams = {
-      startDate: new Date(eventTime.getTime() - (timeBefore ?? 0) * 1000),
-      endDate: new Date(eventTime.getTime() + (timeAfter ?? 0) * 1000),
-      eventDate: eventTime,
-      intersectionId: queryParams.intersectionId,
-      roadRegulatorId: queryParams.roadRegulatorId,
-    };
-    if (
-      queryParams.startDate.getTime() != updatedQueryParams.startDate.getTime() ||
-      queryParams.endDate.getTime() != updatedQueryParams.endDate.getTime() ||
-      queryParams.eventDate.getTime() != updatedQueryParams.eventDate.getTime()
-    ) {
-      // Detected change in query params
-      setQueryParams(updatedQueryParams);
-    } else {
-      // No change in query params
-    }
-    setTimeWindowSeconds((prevState) => timeWindowSeconds ?? prevState);
-  };
-
-  const onClickMap = (e) => {
-    const features = mapRef.current.queryRenderedFeatures(e.point, {
-      //   layers: allInteractiveLayerIds,
-    });
-    const feature = features?.[0];
-    if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
-      setSelectedFeature({ clickedLocation: e.lngLat, feature });
-    } else {
-      setSelectedFeature(undefined);
-    }
-  };
 
   return (
     <Container fluid={true} style={{ width: "100%", height: "100%", display: "flex" }}>
@@ -523,31 +305,7 @@ const MapTab = (props: MyProps) => {
         >
           <Box style={{ position: "relative" }}>
             <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}>
-              <ControlPanel
-                sx={{ flex: 0 }}
-                sliderValue={sliderValue}
-                sliderTimeValue={{
-                  start: new Date((queryParams.startDate.getTime() / 1000 + sliderValue - timeWindowSeconds) * 1000),
-                  end: new Date((queryParams.startDate.getTime() / 1000 + sliderValue) * 1000),
-                }}
-                setSlider={handleSliderChange}
-                downloadAllData={downloadAllData}
-                timeQueryParams={{ ...queryParams, timeWindowSeconds }}
-                onTimeQueryChanged={onTimeQueryChanged}
-                mapSpatTimes={mapSpatTimes}
-                max={getTimeRange(queryParams.startDate, queryParams.endDate)}
-                signalStateLayer={signalStateLayer}
-                setSignalStateLayer={setSignalStateLayer}
-                laneLabelsVisible={laneLabelsVisible}
-                setLaneLabelsVisible={setLaneLabelsVisible}
-                sigGroupLabelsVisible={sigGroupLabelsVisible}
-                setSigGroupLabelsVisible={setSigGroupLabelsVisible}
-                handleImportedMessageData={handleImportedMessageData}
-                showPopupOnHover={showPopupOnHover}
-                setShowPopupOnHover={setShowPopupOnHover}
-                liveDataActive={liveDataActive}
-                setLiveDataActive={setLiveDataActive}
-              />
+              <ControlPanel />
             </Paper>
           </Box>
         </div>
@@ -565,12 +323,7 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <MapLegend
-              bsmColors={mapLegendColors.bsmColors}
-              laneColors={mapLegendColors.laneColors}
-              travelConnectionColors={mapLegendColors.travelConnectionColors}
-              signalHeadIcons={mapLegendColors.signalHeadIcons}
-            />
+            <MapLegend />
           </Box>
         </div>
 
@@ -584,31 +337,15 @@ const MapTab = (props: MyProps) => {
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
           styleDiffing
           style={{ width: "100%", height: "100%" }}
-          onMove={(evt) => setViewState(evt.viewState)}
-          onClick={onClickMap}
+          onMove={(evt) => dispatch(setViewState(evt.viewState))}
+          onClick={(e) => dispatch(onMapClick({ event: e, mapRef }))}
           // onMouseDown={this.onMouseDown}
           // onMouseUp={this.onMouseUp}
           interactiveLayerIds={allInteractiveLayerIds}
           cursor={cursor}
-          onMouseMove={(e: mapboxgl.MapLayerMouseEvent) => {
-            const feature = e.features?.[0];
-            if (feature && allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
-              setHoveredFeature({ clickedLocation: e.lngLat, feature });
-            }
-          }}
-          onMouseEnter={(e: mapboxgl.MapLayerMouseEvent) => {
-            setCursor("pointer");
-            const feature = e.features?.[0];
-            if (feature && allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
-              setHoveredFeature({ clickedLocation: e.lngLat, feature });
-            } else {
-              setHoveredFeature(undefined);
-            }
-          }}
-          onMouseLeave={(e: mapboxgl.MapLayerMouseEvent) => {
-            setCursor("");
-            setHoveredFeature(undefined);
-          }}
+          onMouseMove={(e) => dispatch(onMapMouseMove(e))}
+          onMouseEnter={(e) => dispatch(onMapMouseEnter(e))}
+          onMouseLeave={(e) => dispatch(onMapMouseLeave(e))}
         >
           <Source
             type="geojson"
@@ -653,10 +390,10 @@ const MapTab = (props: MyProps) => {
             <Layer {...markerLayerStyle} />
           </Source>
           {selectedFeature && (
-            <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
+            <CustomPopup selectedFeature={selectedFeature} onClose={() => dispatch(clearSelectedFeature())} />
           )}
           {showPopupOnHover && hoveredFeature && !selectedFeature && (
-            <CustomPopup selectedFeature={hoveredFeature} onClose={() => setHoveredFeature(undefined)} />
+            <CustomPopup selectedFeature={hoveredFeature} onClose={() => dispatch(clearHoveredFeature())} />
           )}
         </Map>
         <SidePanel

@@ -23,6 +23,8 @@ import trafficLightIconYellowRed1 from "../../../public/icons/traffic-light-icon
 import trafficLightIconYellow1 from "../../../public/icons/traffic-light-icon-yellow-1.svg";
 import trafficLightIconGreen1 from "../../../public/icons/traffic-light-icon-green-1.svg";
 import ScrollBar from "react-perfect-scrollbar";
+import { selectMapLegendColors } from "./map-layer-style-slice";
+import { useSelector } from "react-redux";
 
 // "DARK": "/icons/traffic-light-icon-unknown",
 // "STOP_THEN_PROCEED": "/icons/traffic-light-icon-red-flashing",
@@ -73,15 +75,10 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-interface MapLegendPropsType {
-  bsmColors: { [key: string]: string };
-  laneColors: { [key: string]: string };
-  travelConnectionColors: { [key: string]: [string, number[]] };
-  signalHeadIcons: { [key: string]: string };
-}
+export const MapLegend = () => {
+  const mapLegendColors = useSelector(selectMapLegendColors);
 
-export const MapLegend = (props: MapLegendPropsType) => {
-  const { bsmColors, laneColors, travelConnectionColors, signalHeadIcons } = props;
+  const { bsmColors, travelConnectionColors, laneColors, signalHeadIcons } = mapLegendColors;
 
   const bsmColorsList: JSX.Element[] = [];
   for (const [key, value] of Object.entries(bsmColors)) {

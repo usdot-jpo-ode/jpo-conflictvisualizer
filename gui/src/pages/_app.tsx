@@ -13,6 +13,7 @@ import { Toaster } from "react-hot-toast";
 import "../theme/index.css";
 import { Provider } from "react-redux";
 import { setupStore } from "../store";
+import { AuthGuardKeycloak } from "../components/auth-guard-keycloak";
 
 registerChartJs();
 
@@ -37,7 +38,7 @@ const App = (props) => {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            {getLayout(<Component {...pageProps} />)}
+            <AuthGuardKeycloak content={getLayout(<Component {...pageProps} />)} />
           </ThemeProvider>
         </LocalizationProvider>
         <Toaster />
