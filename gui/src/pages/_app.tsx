@@ -12,7 +12,7 @@ import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
 import { Provider } from "react-redux";
-import { setupStore } from "../store";
+import { wrapper } from "../store";
 import { AuthGuardKeycloak } from "../components/auth-guard-keycloak";
 
 registerChartJs();
@@ -27,9 +27,10 @@ const App = (props) => {
   } = props;
 
   const getLayout = Component.getLayout ?? ((page) => page);
+  const { store } = wrapper.useWrappedStore({});
 
   return (
-    <Provider store={setupStore({})}>
+    <Provider store={store}>
       <CacheProvider value={emotionCache}>
         <Head>
           <title>Material Kit Pro</title>
