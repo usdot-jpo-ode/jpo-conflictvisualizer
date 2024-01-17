@@ -10,10 +10,11 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled, SxProps, Theme } from "@mui/material/styles";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
 import { LayerProps } from "react-map-gl";
+import ScrollBar from "react-perfect-scrollbar";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -77,6 +78,8 @@ interface ControlPanelProps {
   setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
   liveDataActive: boolean;
   setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
+  bsmTrailLength: number;
+  setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
 }
 
 function ControlPanel(props: ControlPanelProps) {
@@ -99,39 +102,155 @@ function ControlPanel(props: ControlPanelProps) {
     };
   };
 
-  const [shouldReRender, setShouldReRender] = useState(true);
-  const [dateParams, setDateParams] = useState<{
-    eventTime?: Date;
-    timeBefore?: number;
-    timeAfter?: number;
-    timeWindowSeconds?: number;
-  }>(getQueryParams(props.timeQueryParams));
+  const [shouldReRenderEventTime, setShouldReRenderEventTime] = useState(true);
+  const [shouldReRenderTimeBefore, setShouldReRenderTimeBefore] = useState(true);
+  const [shouldReRenderTimeAfter, setShouldReRenderTimeAfter] = useState(true);
+  const [shouldReRenderTimeWindowSeconds, setShouldReRenderTimeWindowSeconds] = useState(true);
+  const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(props.bsmTrailLength.toString());
+  const [oldDateParams, setOldDateParams] = useState(getQueryParams(props.timeQueryParams));
+  const [eventTime, setEventTime] = useState<dayjs.Dayjs | null>(
+    dayjs(getQueryParams(props.timeQueryParams).eventTime.toString())
+  );
+  const [timeBefore, setTimeBefore] = useState<string | undefined>(
+    getQueryParams(props.timeQueryParams).timeBefore.toString()
+  );
+  const [timeAfter, setTimeAfter] = useState<string | undefined>(
+    getQueryParams(props.timeQueryParams).timeAfter.toString()
+  );
+  const [timeWindowSeconds, setTimeWindowSeconds] = useState<string | undefined>(
+    getQueryParams(props.timeQueryParams).timeWindowSeconds.toString()
+  );
 
   useEffect(() => {
     const newDateParams = getQueryParams(props.timeQueryParams);
+    console.log("props.timeQueryParams, timeWindowSeconds", newDateParams.timeWindowSeconds);
     if (
-      newDateParams.eventTime.getTime() != dateParams.eventTime?.getTime() ||
-      newDateParams.timeWindowSeconds != dateParams.timeWindowSeconds
+      newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime() ||
+      eventTime == null ||
+      !eventTime.isValid() ||
+      newDateParams.eventTime.getTime() != eventTime?.toDate().getTime()
     ) {
-      setShouldReRender(false);
-      setDateParams(newDateParams);
+      setShouldReRenderEventTime(false);
+      setEventTime(dayjs(newDateParams.eventTime));
+    }
+    if (newDateParams.timeBefore != oldDateParams.timeBefore || newDateParams.timeBefore != getNumber(timeBefore)) {
+      setShouldReRenderTimeBefore(false);
+      setTimeBefore(newDateParams.timeBefore.toString());
+    }
+    if (newDateParams.timeAfter != oldDateParams.timeAfter || newDateParams.timeAfter != getNumber(timeAfter)) {
+      setShouldReRenderTimeAfter(false);
+      setTimeAfter(newDateParams.timeAfter.toString());
+    }
+    if (
+      newDateParams.timeWindowSeconds != oldDateParams.timeWindowSeconds ||
+      newDateParams.timeWindowSeconds != getNumber(timeWindowSeconds)
+    ) {
+      console.log(
+        "Setting time window seconds because it changed from timequeryparams to",
+        newDateParams.timeWindowSeconds
+      );
+      setShouldReRenderTimeWindowSeconds(false);
+      setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
     }
   }, [props.timeQueryParams]);
 
   useEffect(() => {
-    if (shouldReRender) {
+    if (shouldReRenderEventTime && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+      });
       props.onTimeQueryChanged(
-        dateParams.eventTime,
-        dateParams.timeBefore,
-        dateParams.timeAfter,
-        dateParams.timeWindowSeconds
+        eventTime!.toDate(),
+        getNumber(timeBefore),
+        getNumber(timeAfter),
+        getNumber(timeWindowSeconds)
       );
     } else {
-      setShouldReRender(true);
+      setShouldReRenderEventTime(true);
     }
-  }, [dateParams]);
+  }, [eventTime]);
 
-  const getNumber = (value: string): number | undefined => {
+  useEffect(() => {
+    if (shouldReRenderTimeBefore && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+      });
+      props.onTimeQueryChanged(
+        eventTime!.toDate(),
+        getNumber(timeBefore),
+        getNumber(timeAfter),
+        getNumber(timeWindowSeconds)
+      );
+    } else {
+      setShouldReRenderTimeBefore(true);
+    }
+  }, [timeBefore]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeAfter && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+      });
+      props.onTimeQueryChanged(
+        eventTime!.toDate(),
+        getNumber(timeBefore),
+        getNumber(timeAfter),
+        getNumber(timeWindowSeconds)
+      );
+    } else {
+      setShouldReRenderTimeAfter(true);
+    }
+  }, [timeAfter]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeWindowSeconds && isFormValid()) {
+      console.log("Setting setOldDateParams and onTimeQueryChanged for timeWindowSeconds to", timeWindowSeconds);
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+      });
+      props.onTimeQueryChanged(
+        eventTime!.toDate(),
+        getNumber(timeBefore),
+        getNumber(timeAfter),
+        getNumber(timeWindowSeconds)
+      );
+    } else {
+      setShouldReRenderTimeWindowSeconds(true);
+    }
+  }, [timeWindowSeconds]);
+
+  useEffect(() => {
+    if (getNumber(bsmTrailLengthLocal) != null) {
+      props.setBsmTrailLength(getNumber(bsmTrailLengthLocal)!);
+    } else {
+      setShouldReRenderTimeBefore(true);
+    }
+  }, [bsmTrailLengthLocal]);
+
+  const isFormValid = () => {
+    return (
+      eventTime != null &&
+      !eventTime.isValid() &&
+      getNumber(timeBefore) != null &&
+      getNumber(timeAfter) != null &&
+      getNumber(timeWindowSeconds) != null
+    );
+  };
+
+  const getNumber = (value: string | undefined): number | undefined => {
+    if (value == null) return undefined;
     const num = parseInt(value);
     if (isNaN(num)) {
       return undefined;
@@ -201,24 +320,21 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeBefore: getNumber(e.target.value) };
-                  });
+                  setTimeBefore(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeBefore}
+                value={timeBefore}
               />
               <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 4 }}>
                 <DateTimePicker
                   label="Event Date"
                   disabled={props.liveDataActive}
-                  value={dayjs(dateParams.eventTime ?? new Date())}
+                  value={dayjs(eventTime ?? new Date())}
                   onChange={(e) => {
-                    setDateParams((prevState) => {
-                      return { ...prevState, eventTime: e?.toDate() };
-                    });
+                    setEventTime(e);
+                    //?.toDate()!
                   }}
                   renderInput={(params) => <TextField {...params} />}
                 />
@@ -230,14 +346,12 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeAfter: getNumber(e.target.value) };
-                  });
+                  setTimeAfter(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeAfter}
+                value={timeAfter}
               />
               <TextField
                 // fullWidth
@@ -246,14 +360,12 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeWindowSeconds: getNumber(e.target.value) };
-                  });
+                  setTimeWindowSeconds(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeWindowSeconds}
+                value={timeWindowSeconds}
               />
             </Box>
             <Chip
@@ -323,7 +435,7 @@ function ControlPanel(props: ControlPanelProps) {
         <AccordionSummary>
           <Typography variant="h5">Visual Settings</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ overflowY: "auto" }}>
           <div
             className="control-panel"
             style={{
@@ -365,6 +477,19 @@ function ControlPanel(props: ControlPanelProps) {
               <Checkbox
                 checked={props.showPopupOnHover}
                 onChange={(event) => props.setShowPopupOnHover(event.target.checked)}
+              />
+            </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Max BSM Trail Length </h4>
+              <TextField
+                label="BSm Trail length"
+                name="bsmTrailLength"
+                type="number"
+                sx={{ mt: 1 }}
+                onChange={(e) => {
+                  setBsmTrailLengthLocal(e.target.value);
+                }}
+                value={bsmTrailLengthLocal}
               />
             </div>
           </div>
