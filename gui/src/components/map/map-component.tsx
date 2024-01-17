@@ -207,6 +207,16 @@ const MapTab = (props: MyProps) => {
   const liveDataActive = useSelector(selectLiveDataActive);
 
   const mapRef = React.useRef<any>(null);
+  const [rawData, setRawData] = useState<{
+    map?: ProcessedMap[];
+    spat?: ProcessedSpat[];
+    bsm?: BsmFeatureCollection;
+    notification?: MessageMonitor.Notification;
+    event?: MessageMonitor.Event;
+    assessment?: Assessment;
+  }>({});
+  const [bsmTrailLength, setBsmTrailLength] = useState<number>(5);
+  const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
@@ -220,6 +230,16 @@ const MapTab = (props: MyProps) => {
           roadRegulatorId: props.roadRegulatorId,
         })
       );
+      if (liveDataActive && authToken && props.roadRegulatorId && props.intersectionId) {
+        cleanUpLiveStreaming();
+        dispatch(
+          initializeLiveStreaming({
+            token: authToken,
+            roadRegulatorId: props.roadRegulatorId,
+            intersectionId: props.intersectionId,
+          })
+        );
+      }
     }
   }, [props.intersectionId, props.roadRegulatorId]);
 
@@ -232,6 +252,9 @@ const MapTab = (props: MyProps) => {
         resetTimeWindow: true,
       })
     );
+    if (!liveDataActive) {
+      dispatch(setTimeWindowSeconds(60));
+    }
   }, [props.sourceData]);
 
   useEffect(() => {
@@ -267,6 +290,7 @@ const MapTab = (props: MyProps) => {
             intersectionId: props.intersectionId,
           })
         );
+        if (bsmTrailLength > 15) setBsmTrailLength(5);
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -278,6 +302,7 @@ const MapTab = (props: MyProps) => {
         );
       }
     } else {
+      if (bsmTrailLength < 15) setBsmTrailLength(20);
       dispatch(cleanUpLiveStreaming());
     }
   }, [liveDataActive]);

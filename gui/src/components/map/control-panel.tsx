@@ -10,7 +10,7 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled, SxProps, Theme } from "@mui/material/styles";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
 import { LayerProps } from "react-map-gl";
@@ -21,7 +21,9 @@ import {
   downloadMapData,
   handleImportedMapMessageData,
   onTimeQueryChanged,
+  selectBsmTrailLength,
   selectSliderTimeValue,
+  setBsmTrailLength,
   setLaneLabelsVisible,
   setShowPopupOnHover,
   setSigGroupLabelsVisible,
@@ -152,6 +154,8 @@ interface ControlPanelProps {
   setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
   liveDataActive: boolean;
   setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
+  bsmTrailLength: number;
+  setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
 }
 
 function ControlPanel() {
@@ -200,6 +204,7 @@ function ControlPanel() {
   const currentSpatData = useSelector(selectCurrentSpatData);
   const currentBsmData = useSelector(selectCurrentBsmData);
   const sliderTimeValue = useSelector(selectSliderTimeValue);
+  const bsmTrailLength = useSelector(selectBsmTrailLength);
 
   const getQueryParams = ({
     startDate,
@@ -220,34 +225,163 @@ function ControlPanel() {
     };
   };
 
-  const [shouldReRender, setShouldReRender] = useState(true);
-  const [dateParams, setDateParams] = useState<{
-    eventTime?: Date;
-    timeBefore?: number;
-    timeAfter?: number;
-    timeWindowSeconds?: number;
-  }>(getQueryParams({ ...queryParams, timeWindowSeconds }));
+  const [shouldReRenderEventTime, setShouldReRenderEventTime] = useState(true);
+  const [shouldReRenderTimeBefore, setShouldReRenderTimeBefore] = useState(true);
+  const [shouldReRenderTimeAfter, setShouldReRenderTimeAfter] = useState(true);
+  const [shouldReRenderTimeWindowSeconds, setShouldReRenderTimeWindowSeconds] = useState(true);
+  const [shouldReRenderBsmTrail, setShouldReRenderBsmTrail] = useState(true);
+  const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(bsmTrailLength.toString());
+  const [prevBsmTrailLength, setPrevBsmTrailLength] = useState<number>(bsmTrailLength);
+  const [oldDateParams, setOldDateParams] = useState(getQueryParams({ ...queryParams, timeWindowSeconds }));
+  const [eventTime, setEventTime] = useState<dayjs.Dayjs | null>(
+    dayjs(getQueryParams({ ...queryParams, timeWindowSeconds }).eventTime.toString())
+  );
+  const [timeBefore, setTimeBefore] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeBefore.toString()
+  );
+  const [timeAfter, setTimeAfter] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeAfter.toString()
+  );
+  const [timeWindowSecondsLocal, setTimeWindowSeconds] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeWindowSeconds.toString()
+  );
 
   useEffect(() => {
     const newDateParams = getQueryParams({ ...queryParams, timeWindowSeconds });
-    if (
-      newDateParams.eventTime.getTime() != dateParams.eventTime?.getTime() ||
-      newDateParams.timeWindowSeconds != dateParams.timeWindowSeconds
-    ) {
-      setShouldReRender(false);
-      setDateParams(newDateParams);
+    if (newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime()) {
+      setShouldReRenderEventTime(false);
+      setEventTime(dayjs(newDateParams.eventTime));
+    }
+    if (newDateParams.timeBefore != oldDateParams.timeBefore) {
+      setShouldReRenderTimeBefore(false);
+      setTimeBefore(newDateParams.timeBefore.toString());
+    }
+    if (newDateParams.timeAfter != oldDateParams.timeAfter) {
+      setShouldReRenderTimeAfter(false);
+      setTimeAfter(newDateParams.timeAfter.toString());
+    }
+    if (newDateParams.timeWindowSeconds != oldDateParams.timeWindowSeconds) {
+      setShouldReRenderTimeWindowSeconds(false);
+      setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
     }
   }, [{ ...queryParams, timeWindowSeconds }]);
 
   useEffect(() => {
-    if (shouldReRender) {
-      dispatch(onTimeQueryChanged(dateParams));
-    } else {
-      setShouldReRender(true);
+    if (bsmTrailLength != prevBsmTrailLength) {
+      setShouldReRenderTimeAfter(false);
+      setPrevBsmTrailLength(bsmTrailLength);
+      setBsmTrailLengthLocal(bsmTrailLength.toString());
     }
-  }, [dateParams]);
+  }, [bsmTrailLength]);
 
-  const getNumber = (value: string): number | undefined => {
+  useEffect(() => {
+    if (shouldReRenderEventTime && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderEventTime(true);
+    }
+  }, [eventTime]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeBefore && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeBefore(true);
+    }
+  }, [timeBefore]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeAfter && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeAfter(true);
+    }
+  }, [timeAfter]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeWindowSeconds && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeWindowSeconds(true);
+    }
+  }, [timeWindowSeconds]);
+
+  useEffect(() => {
+    if (shouldReRenderBsmTrail && getNumber(bsmTrailLengthLocal) != null) {
+      dispatch(setBsmTrailLength(getNumber(bsmTrailLengthLocal)!));
+    } else {
+      setShouldReRenderBsmTrail(true);
+    }
+  }, [bsmTrailLengthLocal]);
+
+  const isFormValid = () => {
+    try {
+      const d = eventTime?.toDate().getTime()!;
+      return (
+        !isNaN(d) &&
+        getNumber(timeBefore) != null &&
+        getNumber(timeAfter) != null &&
+        getNumber(timeWindowSecondsLocal) != null
+      );
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const getNumber = (value: string | undefined): number | undefined => {
+    if (value == null) return undefined;
     const num = parseInt(value);
     if (isNaN(num)) {
       return undefined;
@@ -315,24 +449,21 @@ function ControlPanel() {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeBefore: getNumber(e.target.value) };
-                  });
+                  setTimeBefore(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeBefore}
+                value={timeBefore}
               />
               <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 4 }}>
                 <DateTimePicker
                   label="Event Date"
                   disabled={liveDataActive}
-                  value={dayjs(dateParams.eventTime ?? new Date())}
+                  value={dayjs(eventTime ?? new Date())}
                   onChange={(e) => {
-                    setDateParams((prevState) => {
-                      return { ...prevState, eventTime: e?.toDate() };
-                    });
+                    setEventTime(e);
+                    //?.toDate()!
                   }}
                   renderInput={(params) => <TextField {...params} />}
                 />
@@ -344,14 +475,12 @@ function ControlPanel() {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeAfter: getNumber(e.target.value) };
-                  });
+                  setTimeAfter(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeAfter}
+                value={timeAfter}
               />
               <TextField
                 // fullWidth
@@ -360,14 +489,12 @@ function ControlPanel() {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeWindowSeconds: getNumber(e.target.value) };
-                  });
+                  setTimeWindowSeconds(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeWindowSeconds}
+                value={timeWindowSeconds}
               />
             </Box>
             <Chip
@@ -433,7 +560,7 @@ function ControlPanel() {
         <AccordionSummary>
           <Typography variant="h5">Visual Settings</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ overflowY: "auto" }}>
           <div
             className="control-panel"
             style={{
@@ -474,6 +601,18 @@ function ControlPanel() {
               <Checkbox
                 checked={showPopupOnHover}
                 onChange={(event) => dispatch(setShowPopupOnHover(event.target.checked))}
+              />
+            </div>
+            <div>
+              <TextField
+                label="BSM Trail length"
+                name="bsmTrailLength"
+                type="number"
+                sx={{ mt: 1 }}
+                onChange={(e) => {
+                  setBsmTrailLengthLocal(e.target.value);
+                }}
+                value={bsmTrailLengthLocal}
               />
             </div>
           </div>
