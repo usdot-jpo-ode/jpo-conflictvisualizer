@@ -10,10 +10,87 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled, SxProps, Theme } from "@mui/material/styles";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
 import { LayerProps } from "react-map-gl";
+import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
+import { RootState } from "../../store";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  downloadMapData,
+  handleImportedMapMessageData,
+  onTimeQueryChanged,
+  selectBsmTrailLength,
+  selectSliderTimeValue,
+  setBsmTrailLength,
+  setLaneLabelsVisible,
+  setShowPopupOnHover,
+  setSigGroupLabelsVisible,
+  setSliderValue,
+  toggleLiveDataActive,
+} from "./map-slice";
+import {
+  MAP_LAYERS,
+  cleanUpLiveStreaming,
+  clearHoveredFeature,
+  clearSelectedFeature,
+  initializeLiveStreaming,
+  maybeUpdateSliderValue,
+  onMapClick,
+  onMapMouseEnter,
+  onMapMouseLeave,
+  onMapMouseMove,
+  pullInitialData,
+  renderIterative_Bsm,
+  renderIterative_Map,
+  renderIterative_Spat,
+  selectAllInteractiveLayerIds,
+  selectBsmData,
+  selectConnectingLanes,
+  selectCurrentBsmData,
+  selectCurrentBsms,
+  selectCurrentMapData,
+  selectCurrentSignalGroups,
+  selectCurrentSpatData,
+  selectCursor,
+  selectFilteredSurroundingEvents,
+  selectFilteredSurroundingNotifications,
+  selectHoveredFeature,
+  selectImportedMessageData,
+  selectIntersectionId,
+  selectLaneLabelsVisible,
+  selectLayersVisible,
+  selectLiveDataActive,
+  selectLoadInitialDataTimeoutId,
+  selectLoadOnNull,
+  selectMapData,
+  selectMapSignalGroups,
+  selectMapSpatTimes,
+  selectQueryParams,
+  selectRawData,
+  selectRenderTimeInterval,
+  selectRoadRegulatorId,
+  selectSelectedFeature,
+  selectShowPopupOnHover,
+  selectSigGroupLabelsVisible,
+  selectSignalStateData,
+  selectSliderValue,
+  selectSourceData,
+  selectSourceDataType,
+  selectSpatSignalGroups,
+  selectSurroundingNotifications,
+  selectTimeWindowSeconds,
+  selectViewState,
+  setLoadInitialdataTimeoutId,
+  setViewState,
+  updateQueryParams,
+  updateRenderTimeInterval,
+  updateRenderedMapState,
+} from "./map-slice";
+import { selectAuthToken } from "../../slices/userSlice";
+import { selectSignalStateLayerStyle, setSignalLayerLayout } from "./map-layer-style-slice";
+import { getTimeRange } from "./utilities/map-utils";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -77,9 +154,58 @@ interface ControlPanelProps {
   setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
   liveDataActive: boolean;
   setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
+  bsmTrailLength: number;
+  setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function ControlPanel(props: ControlPanelProps) {
+function ControlPanel() {
+  const dispatch: ThunkDispatch<RootState, void, AnyAction> = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
+  const signalStateLayerStyle = useSelector(selectSignalStateLayerStyle);
+
+  const layersVisible = useSelector(selectLayersVisible);
+  const allInteractiveLayerIds = useSelector(selectAllInteractiveLayerIds);
+  const queryParams = useSelector(selectQueryParams);
+  const sourceData = useSelector(selectSourceData);
+  const sourceDataType = useSelector(selectSourceDataType);
+  const intersectionId = useSelector(selectIntersectionId);
+  const roadRegulatorId = useSelector(selectRoadRegulatorId);
+  const loadOnNull = useSelector(selectLoadOnNull);
+  const mapData = useSelector(selectMapData);
+  const bsmData = useSelector(selectBsmData);
+  const mapSignalGroups = useSelector(selectMapSignalGroups);
+  const signalStateData = useSelector(selectSignalStateData);
+  const spatSignalGroups = useSelector(selectSpatSignalGroups);
+  const currentSignalGroups = useSelector(selectCurrentSignalGroups);
+  const currentBsms = useSelector(selectCurrentBsms);
+  const connectingLanes = useSelector(selectConnectingLanes);
+  const filteredSurroundingEvents = useSelector(selectFilteredSurroundingEvents);
+  const surroundingNotifications = useSelector(selectSurroundingNotifications);
+  const filteredSurroundingNotifications = useSelector(selectFilteredSurroundingNotifications);
+  const viewState = useSelector(selectViewState);
+  const timeWindowSeconds = useSelector(selectTimeWindowSeconds);
+  const sliderValue = useSelector(selectSliderValue);
+  const renderTimeInterval = useSelector(selectRenderTimeInterval);
+  const hoveredFeature = useSelector(selectHoveredFeature);
+  const selectedFeature = useSelector(selectSelectedFeature);
+  const rawData = useSelector(selectRawData);
+  const mapSpatTimes = useSelector(selectMapSpatTimes);
+  const sigGroupLabelsVisible = useSelector(selectSigGroupLabelsVisible);
+  const laneLabelsVisible = useSelector(selectLaneLabelsVisible);
+  const showPopupOnHover = useSelector(selectShowPopupOnHover);
+  const importedMessageData = useSelector(selectImportedMessageData);
+  const cursor = useSelector(selectCursor);
+  const loadInitialDataTimeoutId = useSelector(selectLoadInitialDataTimeoutId);
+  // const wsClient = useSelector(selectWsClient);
+  const liveDataActive = useSelector(selectLiveDataActive);
+  const currentMapData = useSelector(selectCurrentMapData);
+  const currentSpatData = useSelector(selectCurrentSpatData);
+  const currentBsmData = useSelector(selectCurrentBsmData);
+  const sliderTimeValue = useSelector(selectSliderTimeValue);
+  const bsmTrailLength = useSelector(selectBsmTrailLength);
+
   const getQueryParams = ({
     startDate,
     endDate,
@@ -99,39 +225,163 @@ function ControlPanel(props: ControlPanelProps) {
     };
   };
 
-  const [shouldReRender, setShouldReRender] = useState(true);
-  const [dateParams, setDateParams] = useState<{
-    eventTime?: Date;
-    timeBefore?: number;
-    timeAfter?: number;
-    timeWindowSeconds?: number;
-  }>(getQueryParams(props.timeQueryParams));
+  const [shouldReRenderEventTime, setShouldReRenderEventTime] = useState(true);
+  const [shouldReRenderTimeBefore, setShouldReRenderTimeBefore] = useState(true);
+  const [shouldReRenderTimeAfter, setShouldReRenderTimeAfter] = useState(true);
+  const [shouldReRenderTimeWindowSeconds, setShouldReRenderTimeWindowSeconds] = useState(true);
+  const [shouldReRenderBsmTrail, setShouldReRenderBsmTrail] = useState(true);
+  const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(bsmTrailLength.toString());
+  const [prevBsmTrailLength, setPrevBsmTrailLength] = useState<number>(bsmTrailLength);
+  const [oldDateParams, setOldDateParams] = useState(getQueryParams({ ...queryParams, timeWindowSeconds }));
+  const [eventTime, setEventTime] = useState<dayjs.Dayjs | null>(
+    dayjs(getQueryParams({ ...queryParams, timeWindowSeconds }).eventTime.toString())
+  );
+  const [timeBefore, setTimeBefore] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeBefore.toString()
+  );
+  const [timeAfter, setTimeAfter] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeAfter.toString()
+  );
+  const [timeWindowSecondsLocal, setTimeWindowSeconds] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeWindowSeconds.toString()
+  );
 
   useEffect(() => {
-    const newDateParams = getQueryParams(props.timeQueryParams);
-    if (
-      newDateParams.eventTime.getTime() != dateParams.eventTime?.getTime() ||
-      newDateParams.timeWindowSeconds != dateParams.timeWindowSeconds
-    ) {
-      setShouldReRender(false);
-      setDateParams(newDateParams);
+    const newDateParams = getQueryParams({ ...queryParams, timeWindowSeconds });
+    if (newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime()) {
+      setShouldReRenderEventTime(false);
+      setEventTime(dayjs(newDateParams.eventTime));
     }
-  }, [props.timeQueryParams]);
+    if (newDateParams.timeBefore != oldDateParams.timeBefore) {
+      setShouldReRenderTimeBefore(false);
+      setTimeBefore(newDateParams.timeBefore.toString());
+    }
+    if (newDateParams.timeAfter != oldDateParams.timeAfter) {
+      setShouldReRenderTimeAfter(false);
+      setTimeAfter(newDateParams.timeAfter.toString());
+    }
+    if (newDateParams.timeWindowSeconds != oldDateParams.timeWindowSeconds) {
+      setShouldReRenderTimeWindowSeconds(false);
+      setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
+    }
+  }, [{ ...queryParams, timeWindowSeconds }]);
 
   useEffect(() => {
-    if (shouldReRender) {
-      props.onTimeQueryChanged(
-        dateParams.eventTime,
-        dateParams.timeBefore,
-        dateParams.timeAfter,
-        dateParams.timeWindowSeconds
+    if (bsmTrailLength != prevBsmTrailLength) {
+      setShouldReRenderTimeAfter(false);
+      setPrevBsmTrailLength(bsmTrailLength);
+      setBsmTrailLengthLocal(bsmTrailLength.toString());
+    }
+  }, [bsmTrailLength]);
+
+  useEffect(() => {
+    if (shouldReRenderEventTime && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
       );
     } else {
-      setShouldReRender(true);
+      setShouldReRenderEventTime(true);
     }
-  }, [dateParams]);
+  }, [eventTime]);
 
-  const getNumber = (value: string): number | undefined => {
+  useEffect(() => {
+    if (shouldReRenderTimeBefore && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeBefore(true);
+    }
+  }, [timeBefore]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeAfter && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeAfter(true);
+    }
+  }, [timeAfter]);
+
+  useEffect(() => {
+    if (shouldReRenderTimeWindowSeconds && isFormValid()) {
+      setOldDateParams({
+        eventTime: eventTime!.toDate(),
+        timeBefore: getNumber(timeBefore)!,
+        timeAfter: getNumber(timeAfter)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
+      });
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
+      );
+    } else {
+      setShouldReRenderTimeWindowSeconds(true);
+    }
+  }, [timeWindowSeconds]);
+
+  useEffect(() => {
+    if (shouldReRenderBsmTrail && getNumber(bsmTrailLengthLocal) != null) {
+      dispatch(setBsmTrailLength(getNumber(bsmTrailLengthLocal)!));
+    } else {
+      setShouldReRenderBsmTrail(true);
+    }
+  }, [bsmTrailLengthLocal]);
+
+  const isFormValid = () => {
+    try {
+      const d = eventTime?.toDate().getTime()!;
+      return (
+        !isNaN(d) &&
+        getNumber(timeBefore) != null &&
+        getNumber(timeAfter) != null &&
+        getNumber(timeWindowSecondsLocal) != null
+      );
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const getNumber = (value: string | undefined): number | undefined => {
+    if (value == null) return undefined;
     const num = parseInt(value);
     if (isNaN(num)) {
       return undefined;
@@ -173,7 +423,7 @@ function ControlPanel(props: ControlPanelProps) {
           messageData.spatData = JSON.parse(data);
         }
       }
-      props.handleImportedMessageData(messageData);
+      dispatch(handleImportedMapMessageData(messageData));
     });
   };
 
@@ -187,9 +437,7 @@ function ControlPanel(props: ControlPanelProps) {
         <AccordionSummary>
           <Typography variant="h5">
             Time Query
-            {props.liveDataActive && (
-              <Chip label="Live Data Active" className="blink_me" sx={{ ml: 1 }} color="success" />
-            )}
+            {liveDataActive && <Chip label="Live Data Active" className="blink_me" sx={{ ml: 1 }} color="success" />}
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -201,24 +449,21 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeBefore: getNumber(e.target.value) };
-                  });
+                  setTimeBefore(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeBefore}
+                value={timeBefore}
               />
               <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 4 }}>
                 <DateTimePicker
                   label="Event Date"
-                  disabled={props.liveDataActive}
-                  value={dayjs(dateParams.eventTime ?? new Date())}
+                  disabled={liveDataActive}
+                  value={dayjs(eventTime ?? new Date())}
                   onChange={(e) => {
-                    setDateParams((prevState) => {
-                      return { ...prevState, eventTime: e?.toDate() };
-                    });
+                    setEventTime(e);
+                    //?.toDate()!
                   }}
                   renderInput={(params) => <TextField {...params} />}
                 />
@@ -230,14 +475,12 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeAfter: getNumber(e.target.value) };
-                  });
+                  setTimeAfter(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeAfter}
+                value={timeAfter}
               />
               <TextField
                 // fullWidth
@@ -246,24 +489,22 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setDateParams((prevState) => {
-                    return { ...prevState, timeWindowSeconds: getNumber(e.target.value) };
-                  });
+                  setTimeWindowSeconds(e.target.value);
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
                 }}
-                value={dateParams.timeWindowSeconds}
+                value={timeWindowSeconds}
               />
             </Box>
             <Chip
-              label={props.liveDataActive ? "Stop Live Data" : "Render Live Data"}
+              label={liveDataActive ? "Stop Live Data" : "Render Live Data"}
               sx={{ mt: 1 }}
               onClick={() => {
-                props.setLiveDataActive((prevValue) => !prevValue);
+                dispatch(toggleLiveDataActive());
               }}
-              color={props.liveDataActive ? "success" : "default"}
-              variant={props.liveDataActive ? undefined : "outlined"}
+              color={liveDataActive ? "success" : "default"}
+              variant={liveDataActive ? undefined : "outlined"}
             />
           </Box>
         </AccordionDetails>
@@ -281,23 +522,19 @@ function ControlPanel(props: ControlPanelProps) {
             }}
           >
             <h4>
-              Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
-              {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
+              Visualization Time: {format(sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
+              {format(sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
             </h4>
             <h4>
               MAP Message Time:{" "}
-              {props.mapSpatTimes.mapTime == 0
-                ? "No Data"
-                : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+              {mapSpatTimes.mapTime == 0 ? "No Data" : format(mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
 
             <h4>
               SPAT Message Time:{" "}
-              {props.mapSpatTimes.spatTime == 0
-                ? "No Data"
-                : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+              {mapSpatTimes.spatTime == 0 ? "No Data" : format(mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
-            <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
+            <Button sx={{ m: 1 }} variant="contained" onClick={() => dispatch(downloadMapData())}>
               Download All Message Data
             </Button>
             <h4>
@@ -323,7 +560,7 @@ function ControlPanel(props: ControlPanelProps) {
         <AccordionSummary>
           <Typography variant="h5">Visual Settings</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ overflowY: "auto" }}>
           <div
             className="control-panel"
             style={{
@@ -333,38 +570,49 @@ function ControlPanel(props: ControlPanelProps) {
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Rotate Signal Head Icons With Map </h4>
               <Checkbox
-                checked={props.signalStateLayer.layout["icon-rotation-alignment"] == "map"}
+                checked={signalStateLayerStyle?.layout?.["icon-rotation-alignment"] == "map"}
                 onChange={(event) =>
-                  props.setSignalStateLayer({
-                    ...props.signalStateLayer,
-                    layout: {
-                      ...props.signalStateLayer.layout,
+                  dispatch(
+                    setSignalLayerLayout({
+                      ...signalStateLayerStyle.layout,
                       "icon-rotation-alignment": event.target.checked ? "map" : "viewport",
                       "icon-rotate": event.target.checked ? ["get", "orientation"] : 0,
-                    },
-                  })
+                    })
+                  )
                 }
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Lane IDs </h4>
               <Checkbox
-                checked={props.laneLabelsVisible}
-                onChange={(event) => props.setLaneLabelsVisible(event.target.checked)}
+                checked={laneLabelsVisible}
+                onChange={(event) => dispatch(setLaneLabelsVisible(event.target.checked))}
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Signal Group IDs </h4>
               <Checkbox
-                checked={props.sigGroupLabelsVisible}
-                onChange={(event) => props.setSigGroupLabelsVisible(event.target.checked)}
+                checked={sigGroupLabelsVisible}
+                onChange={(event) => dispatch(setSigGroupLabelsVisible(event.target.checked))}
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Popup on Hover </h4>
               <Checkbox
-                checked={props.showPopupOnHover}
-                onChange={(event) => props.setShowPopupOnHover(event.target.checked)}
+                checked={showPopupOnHover}
+                onChange={(event) => dispatch(setShowPopupOnHover(event.target.checked))}
+              />
+            </div>
+            <div>
+              <TextField
+                label="BSM Trail length"
+                name="bsmTrailLength"
+                type="number"
+                sx={{ mt: 1 }}
+                onChange={(e) => {
+                  setBsmTrailLengthLocal(e.target.value);
+                }}
+                value={bsmTrailLengthLocal}
               />
             </div>
           </div>
@@ -373,10 +621,10 @@ function ControlPanel(props: ControlPanelProps) {
 
       <Slider
         sx={{ ml: 2, width: "calc(100% - 60px)" }}
-        value={props.sliderValue}
-        onChange={props.setSlider}
+        value={sliderValue}
+        onChange={(event: Event, value: number | number[], activeThumb: number) => dispatch(setSliderValue(value))}
         min={0}
-        max={props.max}
+        max={getTimeRange(queryParams.startDate, queryParams.endDate)}
         valueLabelDisplay="auto"
         disableSwap
       />

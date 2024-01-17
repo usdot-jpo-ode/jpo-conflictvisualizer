@@ -18,11 +18,14 @@ import {
   MenuItem,
 } from "@mui/material";
 import userManagementApi from "../../apis/user-management-api";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 export const UserCreateForm = (props) => {
-  const { data: session } = useSession();
   const { user }: { user: User } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -38,17 +41,17 @@ export const UserCreateForm = (props) => {
       last_name: Yup.string(),
     }),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken) {
+      if (!authToken) {
         toast.error("Not authenticated");
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: "Not Authenticated" });
         helpers.setSubmitting(false);
-        console.error("Did not attempt to create user. Access token:", Boolean(session?.accessToken));
+        console.error("Did not attempt to create user. Access token:", Boolean(authToken));
         return;
       }
       try {
         await userManagementApi.createUser({
-          token: session?.accessToken,
+          token: authToken,
           email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,

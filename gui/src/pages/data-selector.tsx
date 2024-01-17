@@ -11,13 +11,14 @@ import { DataSelectorEditForm } from "../components/data-selector/data-selector-
 import { EventDataTable } from "../components/data-selector/event-data-table";
 import { AssessmentDataTable } from "../components/data-selector/assessment-data-table";
 import { useDashboardContext } from "../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
 import { DataVisualizer } from "../components/data-selector/data-visualizer";
 import toast from "react-hot-toast";
 import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
 import { useQueryContext } from "../contexts/query-context";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../slices/userSlice";
 
 const DataSelectorPage = () => {
   //   const [type, setType] = useState("");
@@ -25,11 +26,14 @@ const DataSelectorPage = () => {
   //   const [assessments, setAssessments] = useState<Assessment[]>([]);
   //   const [graphData, setGraphData] = useState<Array<GraphArrayDataType>>([]);
   const { intersectionId } = useDashboardContext();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   //   const [openMapDialog, setOpenMapDialog] = useState(false);
   //   const [roadRegulatorIntersectionIds, setRoadRegulatorIntersectionIds] = useState<{
   //     [roadRegulatorId: number]: number[];
   //   }>({});
-  const { data: session } = useSession();
   const {
     type,
     events,
@@ -67,8 +71,8 @@ const DataSelectorPage = () => {
   };
 
   useEffect(() => {
-    if (session?.accessToken) {
-      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then((intersections) => {
+    if (authToken) {
+      MessageMonitorApi.getIntersections({ token: authToken }).then((intersections) => {
         const roadRegulatorIntersectionIds: { [roadRegulatorId: number]: number[] } = {};
         for (const intersection of intersections) {
           if (!roadRegulatorIntersectionIds[intersection.roadRegulatorID]) {
@@ -79,9 +83,9 @@ const DataSelectorPage = () => {
         setRoadRegulatorIntersectionIds(roadRegulatorIntersectionIds);
       });
     } else {
-      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(authToken));
     }
-  }, [session?.accessToken]);
+  }, [authToken]);
 
   const query = async ({
     type,
@@ -93,8 +97,8 @@ const DataSelectorPage = () => {
     assessmentTypes,
     bsmVehicleId,
   }) => {
-    if (!session?.accessToken) {
-      console.error("Did not attempt to query for data. Access token:", Boolean(session?.accessToken));
+    if (!authToken) {
+      console.error("Did not attempt to query for data. Access token:", Boolean(authToken));
       return;
     }
     setType(type);
@@ -106,7 +110,7 @@ const DataSelectorPage = () => {
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
           const promise = EventsApi.getEvents(
-            session?.accessToken,
+            authToken,
             eventType,
             intersectionId,
             roadRegulatorId,
@@ -142,7 +146,7 @@ const DataSelectorPage = () => {
         for (let i = 0; i < assessmentTypes.length; i++) {
           const assessmentType = assessmentTypes[i];
           const promise = AssessmentsApi.getAssessments(
-            session?.accessToken,
+            authToken,
             assessmentType,
             intersectionId,
             roadRegulatorId,
@@ -188,13 +192,13 @@ const DataSelectorPage = () => {
     endTime: Date;
     eventTypes: string[];
   }) => {
-    if (!session?.accessToken) {
-      console.error("Did not attempt to visualize data counts. Access token:", Boolean(session?.accessToken));
+    if (!authToken) {
+      console.error("Did not attempt to visualize data counts. Access token:", Boolean(authToken));
       return;
     }
     setGraphData(
       await GraphsApi.getGraphData({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId: intersectionId,
         roadRegulatorId: roadRegulatorId,
         startTime: startDate,
@@ -204,7 +208,7 @@ const DataSelectorPage = () => {
     );
     // setGraphData(
     //   await GraphsApi.getGraphData({
-    //     token: session?.accessToken,
+    //     token: authToken,
     //     intersection_id: intersectionId,
     //     data_type: type,
     //     startTime: startDate,

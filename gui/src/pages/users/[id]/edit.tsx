@@ -5,23 +5,27 @@ import { Box, Container, Typography } from "@mui/material";
 import keycloakApi from "../../../apis/keycloak-api";
 import { DashboardLayout } from "../../../components/dashboard-layout";
 import { UserEditForm } from "../../../components/users/user-edit-form";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../../slices/userSlice";
 
 const UserEdit = () => {
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   const [user, setUser] = useState<User | undefined>(undefined);
-  const { data: session } = useSession();
 
   const router = useRouter();
   const { id } = router.query;
 
   const getUser = async (userId: string) => {
     try {
-      if (session?.accessToken) {
-        const data = await keycloakApi.getUserInfo({ token: session?.accessToken, id: userId });
+      if (authToken) {
+        const data = await keycloakApi.getUserInfo({ token: authToken, id: userId });
 
         if (data) setUser(data);
       } else {
-        console.error("Did not attempt to get user info. Access token:", Boolean(session?.accessToken));
+        console.error("Did not attempt to get user info. Access token:", Boolean(authToken));
       }
     } catch (err) {
       console.error(err);

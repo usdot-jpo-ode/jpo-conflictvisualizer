@@ -21,8 +21,9 @@ import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import NotificationApi from "../../apis/notification-api";
 import React, { useEffect, useState, useRef } from "react";
-import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 const tabs = [
   {
@@ -65,6 +66,9 @@ const applyPagination = (parameters, page, rowsPerPage) =>
 
 export const NotificationsTable = (props: { simple: Boolean }) => {
   const { simple } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<MessageMonitor.Notification[]>([]);
   const [acceptedNotifications, setAcceptedNotifications] = useState<string[]>([]);
@@ -77,20 +81,19 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
     query: "",
     tab: currentTab,
   });
-  const { data: session } = useSession();
   const { intersectionId: dbIntersectionId, roadRegulatorId } = useDashboardContext();
 
   const updateNotifications = () => {
-    if (session?.accessToken && dbIntersectionId) {
+    if (authToken && dbIntersectionId) {
       NotificationApi.getActiveNotifications({
-        token: session?.accessToken,
+        token: authToken,
         intersectionId: dbIntersectionId,
         roadRegulatorId: roadRegulatorId,
       }).then((notifs) => setNotifications(notifs));
     } else {
       console.error(
         "Did not attempt to update notifications. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         dbIntersectionId
       );
@@ -98,12 +101,12 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
   };
 
   const dismissNotifications = (ids: string[]) => {
-    if (session?.accessToken && dbIntersectionId) {
-      NotificationApi.dismissNotifications({ token: session?.accessToken, ids });
+    if (authToken && dbIntersectionId) {
+      NotificationApi.dismissNotifications({ token: authToken, ids });
     } else {
       console.error(
         "Did not attempt to dismiss notifications. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         dbIntersectionId
       );

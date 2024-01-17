@@ -16,24 +16,27 @@ import {
 } from "@mui/material";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { ArrowDownward } from "@mui/icons-material";
-import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 interface ReportRowProps {
   report: ReportMetadata;
 }
 
 const ReportRow = (props: ReportRowProps) => {
-  const { data: session } = useSession();
   const { report } = props;
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
 
   const downloadReport = async (reportName: string) => {
-    if (!session?.accessToken) {
-      console.error("Did not attempt to download report. Access token:", session?.accessToken);
+    if (!authToken) {
+      console.error("Did not attempt to download report. Access token:", authToken);
       return;
     }
-    const promise = ReportsApi.downloadReport({ token: session?.accessToken, reportName });
+    const promise = ReportsApi.downloadReport({ token: authToken, reportName });
     toast.promise(promise, {
       loading: `Downloading Performance Report ${reportName}`,
       success: `Successfully Downloaded Performance Report ${reportName}`,

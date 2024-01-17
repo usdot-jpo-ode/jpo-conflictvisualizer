@@ -16,13 +16,13 @@ import {
   Typography,
 } from "@mui/material";
 import { configParamApi } from "../../apis/configuration-param-api";
-// import { AuthGuard } from '../../../components/authentication/auth-guard';
 import { DashboardLayout } from "../../components/dashboard-layout";
 import { ConfigParamListTable } from "../../components/configuration/configuration-list-table";
 import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import { useDashboardContext } from "../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 const tabs = [
   {
@@ -95,13 +95,16 @@ const applyPagination = (parameters, page, rowsPerPage) =>
 
 const Page = () => {
   const { intersectionId, roadRegulatorId } = useDashboardContext();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   const queryRef = useRef<TextFieldProps>(null);
   const [parameters, setParameters] = useState<Config[]>([]);
   const [currentTab, setCurrentTab] = useState("GENERAL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentDescription, setCurrentDescription] = useState("");
-  const { data: session } = useSession();
   const [filter, setFilter] = useState({
     query: "",
     tab: currentTab,
@@ -112,16 +115,16 @@ const Page = () => {
   }, [currentTab]);
 
   const getParameters = async () => {
-    if (session?.accessToken) {
+    if (authToken) {
       try {
-        const data = await configParamApi.getAllParameters(session?.accessToken, intersectionId, roadRegulatorId);
+        const data = await configParamApi.getAllParameters(authToken, intersectionId, roadRegulatorId);
 
         setParameters(data);
       } catch (err) {
         console.error(err);
       }
     } else {
-      console.error("Did not attempt to get configuration parameters. Access token:", Boolean(session?.accessToken));
+      console.error("Did not attempt to get configuration parameters. Access token:", Boolean(authToken));
     }
   };
 

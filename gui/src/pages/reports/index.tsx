@@ -8,9 +8,10 @@ import { FilterAlt } from "@mui/icons-material";
 import { ReportListFilters } from "../../components/reports/report-list-filters";
 import { ReportListTable } from "../../components/reports/report-list-table";
 import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
-import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { ReportGenerationDialog } from "../../components/reports/report-generation-dialog";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 const applyPagination = (logs, page, rowsPerPage) => logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -40,8 +41,10 @@ const LogsListInner = styled("div", { shouldForwardProp: (prop) => prop !== "ope
 
 const Page = () => {
   const rootRef = useRef(null);
-  const { data: session } = useSession();
   const { intersectionId, roadRegulatorId } = useDashboardContext();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
 
   const [group, setGroup] = useState(true);
   const [logs, setLogs] = useState<ReportMetadata[]>([]);
@@ -74,8 +77,8 @@ const Page = () => {
     intersectionId: number,
     roadRegulatorId: number
   ) => {
-    if (!session?.accessToken) {
-      console.error("Did not attempt to list reports. Access token:", session?.accessToken);
+    if (!authToken) {
+      console.error("Did not attempt to list reports. Access token:", authToken);
       setLoading(false);
       return;
     }
@@ -83,7 +86,7 @@ const Page = () => {
       setLoading(true);
       let data =
         (await ReportsApi.listReports({
-          token: session.accessToken,
+          token: authToken,
           intersectionId,
           roadRegulatorId,
           startTime: start_timestamp,
