@@ -80,6 +80,14 @@ interface ControlPanelProps {
   setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
   bsmTrailLength: number;
   setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
+  rawData: {
+    map?: ProcessedMap[];
+    spat?: ProcessedSpat[];
+    bsm?: BsmFeatureCollection;
+    notification?: MessageMonitor.Notification;
+    event?: MessageMonitor.Event;
+    assessment?: Assessment;
+  };
 }
 
 function ControlPanel(props: ControlPanelProps) {
@@ -409,7 +417,12 @@ function ControlPanel(props: ControlPanelProps) {
                 ? "No Data"
                 : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
-            <Button sx={{ m: 1 }} variant="contained" onClick={props.downloadAllData}>
+            <Button
+              sx={{ m: 1 }}
+              variant="contained"
+              disabled={props.rawData?.map == undefined}
+              onClick={props.downloadAllData}
+            >
               Download All Message Data
             </Button>
             <h4>

@@ -573,9 +573,15 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
+    console.log(
+      "parseSpatSignalGroups",
+      spats[0]!.utcTimeStamp,
+      spats[0]!.odeReceivedAt,
+      Date.parse(spats[0]!.odeReceivedAt)
+    );
     const timedSignalGroups: SpatSignalGroups = {};
     spats?.forEach((spat: ProcessedSpat) => {
-      timedSignalGroups[Date.parse(spat.utcTimeStamp)] = spat.states.map((state) => {
+      timedSignalGroups[spat.utcTimeStamp] = spat.states.map((state) => {
         return {
           signalGroup: state.signalGroup,
           state: state.stateTimeSpeed?.[0]?.eventState as SignalState,
@@ -650,17 +656,9 @@ const MapTab = (props: MyProps) => {
     spatData: ProcessedSpat[];
     notificationData: any;
   }) => {
-    const sortedSpatData = spatData.sort((x, y) => {
-      if (x.utcTimeStamp < y.utcTimeStamp) {
-        return 1;
-      }
-      if (x.utcTimeStamp > y.utcTimeStamp) {
-        return -1;
-      }
-      return 0;
-    });
-    const endTime = new Date(Date.parse(sortedSpatData[0].utcTimeStamp));
-    const startTime = new Date(Date.parse(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp));
+    const sortedSpatData = spatData.sort((x, y) => x.utcTimeStamp - y.utcTimeStamp);
+    const endTime = new Date(sortedSpatData[0].utcTimeStamp);
+    const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp);
     setImportedMessageData({ mapData, bsmData, spatData, notificationData });
     setQueryParams({
       startDate: startTime,
@@ -692,7 +690,7 @@ const MapTab = (props: MyProps) => {
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
-    if (!importedMessageData) {
+    if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
@@ -722,7 +720,14 @@ const MapTab = (props: MyProps) => {
         success: `Successfully got SPAT Data`,
         error: `Failed to get SPAT data. Please see console`,
       });
-      rawSpat = (await rawSpatPromise).sort((a, b) => Date.parse(a.utcTimeStamp) - Date.parse(b.utcTimeStamp));
+      // rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
+      const spat = (await rawSpatPromise)[0];
+      console.log("rawSpatPromise", spat.utcTimeStamp, spat.odeReceivedAt);
+      rawSpat = (await rawSpatPromise)
+        .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
+        .map((spat) => ({ ...spat, utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
+            ? spat.utcTimeStamp * 1000
+            : Date.parse(spat.utcTimeStamp as any as string)}));
 
       // ######################### Surrounding Events #########################
       const surroundingEventsPromise = EventsApi.getAllEvents(
@@ -755,7 +760,7 @@ const MapTab = (props: MyProps) => {
       surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
     } else {
       rawMap = importedMessageData.mapData;
-      rawSpat = importedMessageData.spatData.sort((a, b) => Date.parse(a.utcTimeStamp) - Date.parse(b.utcTimeStamp));
+      rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
       rawBsm = importedMessageData.bsmData;
     }
     if (!rawMap || rawMap.length == 0) {
@@ -846,7 +851,7 @@ const MapTab = (props: MyProps) => {
     const spatSignalGroupsLocal = parseSpatSignalGroups(currentSpatData);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
-    const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id));
+    const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
     // generate equally spaced unique colors for each uniqueId
     const colors = generateColorDictionary(uniqueIds);
     setMapLegendColors((prevValue) => ({
@@ -923,7 +928,7 @@ const MapTab = (props: MyProps) => {
         zoom: 19,
       });
     }
-    setRawData((prevValue) => ({ ...prevValue, mapData: currentMapDataLocal }));
+    setRawData((prevValue) => ({ ...prevValue, map: currentMapDataLocal }));
     console.debug("MAP RENDER TIME:", Date.now() - start, "ms");
     return currentMapDataLocal;
   };
@@ -938,7 +943,14 @@ const MapTab = (props: MyProps) => {
     }
     // Inject and filter spat data
     // 2024-01-09T00:24:28.354Z
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp);
+    newSpatData = newSpatData.map((spat) => ({
+      ...spat,
+      utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
+        ? spat.utcTimeStamp * 1000
+        : Date.parse(spat.utcTimeStamp as any as string),
+    }));
+    console.log("newSpatData", newSpatData.at(-1)!.utcTimeStamp);
+    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
 
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
@@ -970,7 +982,7 @@ const MapTab = (props: MyProps) => {
     // Update current processed spat data
     oldIndex = 0;
     for (let i = 0; i < currentProcessedSpatData.length; i++) {
-      if (Date.parse(currentProcessedSpatData[i].utcTimeStamp) < currTimestamp - OLDEST_DATA_TO_KEEP) {
+      if (currentProcessedSpatData[i].utcTimeStamp < currTimestamp - OLDEST_DATA_TO_KEEP) {
         oldIndex = i;
       } else {
         break;
@@ -1068,8 +1080,9 @@ const MapTab = (props: MyProps) => {
 
     // retrieve filtered SPATs
     let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
+    console.log("spatSignalGroups", renderTimeInterval[0], renderTimeInterval[1], spatSignalGroups);
     for (const datetime in spatSignalGroups) {
-      const datetimeNum = Number(datetime) / 1000;
+      const datetimeNum = Number(datetime) / 1000; // milliseconds to seconds
       if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
         if (
           closestSignalGroup === null ||
@@ -1095,11 +1108,8 @@ const MapTab = (props: MyProps) => {
         feature.properties?.odeReceivedAt <= renderTimeInterval[1]
     );
     const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
-    const lastBsms = sortedBsms.slice(0, bsmTrailLength); // Apply BSM trail length
-    setCurrentBsms({ ...bsmData, features: lastBsms });
-
     // Update BSM legend colors
-    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id));
+    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id).sort());
     const colors = generateColorDictionary(uniqueIds);
     setMapLegendColors((prevValue) => ({
       ...prevValue,
@@ -1107,6 +1117,20 @@ const MapTab = (props: MyProps) => {
     }));
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
     setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
+
+    const lastBsms: BsmFeature[] = [];
+    const bsmCounts: { [id: string]: number } = {};
+    for (let i = 0; i < sortedBsms.length; i++) {
+      const id = sortedBsms[i].properties?.id;
+      if (bsmCounts[id] == undefined) {
+        bsmCounts[id] = 0;
+      }
+      if (bsmCounts[id] < bsmTrailLength) {
+        lastBsms.push(sortedBsms[i]);
+        bsmCounts[id]++;
+      }
+    }
+    setCurrentBsms({ ...bsmData, features: lastBsms });
 
     const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
       (event) =>
@@ -1123,7 +1147,7 @@ const MapTab = (props: MyProps) => {
   }, [bsmData, mapSignalGroups, renderTimeInterval, spatSignalGroups]);
 
   useEffect(() => {
-    const startTime = queryParams.startDate.getTime() / 1000;
+    const startTime = queryParams.startDate.getTime() / 1000; // seconds
 
     const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
     const filteredEndTime = startTime + sliderValue;
@@ -1156,6 +1180,7 @@ const MapTab = (props: MyProps) => {
         initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
         onTimeQueryChanged(new Date(), 10, 0, 5);
         if (bsmTrailLength > 15) setBsmTrailLength(5);
+        setRawData({});
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -1269,20 +1294,16 @@ const MapTab = (props: MyProps) => {
 
   const downloadAllData = () => {
     var zip = new JSZip();
-    zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData.map));
-    zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData.spat));
-    zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData.bsm));
-    if (rawData.event)
-      zip.file(`intersection_${queryParams.intersectionId}_Event_data.json`, JSON.stringify(rawData.event));
+    zip.file(`intersection_${props.intersectionId}_MAP_data.json`, JSON.stringify(rawData.map));
+    zip.file(`intersection_${props.intersectionId}_SPAT_data.json`, JSON.stringify(rawData.spat));
+    zip.file(`intersection_${props.intersectionId}_BSM_data.json`, JSON.stringify(rawData.bsm));
+    if (rawData.event) zip.file(`intersection_${props.intersectionId}_Event_data.json`, JSON.stringify(rawData.event));
     if (rawData.assessment)
-      zip.file(`intersection_${queryParams.intersectionId}_Assessment_data.json`, JSON.stringify(rawData.assessment));
+      zip.file(`intersection_${props.intersectionId}_Assessment_data.json`, JSON.stringify(rawData.assessment));
     if (rawData.notification)
-      zip.file(
-        `intersection_${queryParams.intersectionId}_Notification_data.json`,
-        JSON.stringify(rawData.notification)
-      );
+      zip.file(`intersection_${props.intersectionId}_Notification_data.json`, JSON.stringify(rawData.notification));
     zip.generateAsync({ type: "blob" }).then(function (content) {
-      FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
+      FileSaver.saveAs(content, `intersection_${props.intersectionId}_data.zip`);
     });
   };
 
@@ -1373,6 +1394,7 @@ const MapTab = (props: MyProps) => {
                 setLiveDataActive={setLiveDataActive}
                 bsmTrailLength={bsmTrailLength}
                 setBsmTrailLength={setBsmTrailLength}
+                rawData={rawData}
               />
             </Paper>
           </Box>
