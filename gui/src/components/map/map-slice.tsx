@@ -59,6 +59,15 @@ export type MAP_PROPS = {
   loadOnNull?: boolean;
 };
 
+type RAW_MESSAGE_DATA_EXPORT = {
+  map?: ProcessedMap[];
+  spat?: ProcessedSpat[];
+  bsm?: BsmFeatureCollection;
+  notification?: MessageMonitor.Notification;
+  event?: MessageMonitor.Event;
+  assessment?: Assessment;
+};
+
 interface MinimalClient {
   connect: (headers: unknown, connectCallback: () => void, errorCallback?: (error: string) => void) => void;
   subscribe: (destination: string, callback: (message: IMessage) => void) => void;
@@ -122,7 +131,7 @@ const initialState = {
   renderTimeInterval: [0, 0],
   hoveredFeature: undefined as any,
   selectedFeature: undefined as any,
-  rawData: {},
+  rawData: {} as RAW_MESSAGE_DATA_EXPORT,
   mapSpatTimes: { mapTime: 0, spatTime: 0 },
   sigGroupLabelsVisible: false,
   laneLabelsVisible: false,
@@ -138,6 +147,7 @@ const initialState = {
     type: "FeatureCollection",
     features: [],
   } as BsmFeatureCollection,
+  bsmTrailLength: 20,
 };
 
 const getNewSliderTimeValue = (startDate: Date, sliderValue: number, timeWindowSeconds: number) => {
@@ -189,13 +199,13 @@ export const pullInitialData = createAsyncThunk(
         success: `Successfully got SPAT Data`,
         error: `Failed to get SPAT data. Please see console`,
       });
-      rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
+      rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.utcTimeStamp) - Number(b.utcTimeStamp));
 
       dispatch(getSurroundingEvents());
       dispatch(getSurroundingNotifications());
     } else {
       rawMap = importedMessageData.mapData;
-      rawSpat = importedMessageData.spatData.sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
+      rawSpat = importedMessageData.spatData.sort((a, b) => Number(a.utcTimeStamp) - Number(b.utcTimeStamp));
       rawBsm = importedMessageData.bsmData;
     }
     if (!rawMap || rawMap.length == 0) {
@@ -283,11 +293,11 @@ export const renderEntireMap = createAsyncThunk(
     rawData["spat"] = currentSpatData;
     rawData["bsm"] = currentBsmData;
     if (sourceDataType == "notification") {
-      rawData["notification"] = sourceData;
+      rawData["notification"] = sourceData as MessageMonitor.Notification;
     } else if (sourceDataType == "event") {
-      rawData["event"] = sourceData;
+      rawData["event"] = sourceData as MessageMonitor.Event;
     } else if (sourceDataType == "assessment") {
-      rawData["assessment"] = sourceData;
+      rawData["assessment"] = sourceData as Assessment;
     }
     return {
       connectingLanes: latestMapMessage.connectingLanesFeatureCollection,
@@ -321,7 +331,7 @@ export const renderIterative_Map = createAsyncThunk(
     const start = Date.now();
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
 
-    const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt);
+    const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt) / 1000;
     let oldIndex = 0;
     for (let i = 0; i < currentMapData.length; i++) {
       if ((currentMapData[i].properties.odeReceivedAt as unknown as number) < currTimestamp - OLDEST_DATA_TO_KEEP) {
@@ -337,7 +347,8 @@ export const renderIterative_Map = createAsyncThunk(
 
     // ######################### SPAT Signal Groups #########################
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    console.log("MAP RENDER TIME:", Date.now() - start, "ms");
+    console.debug("MAP RENDER TIME:", Date.now() - start, "ms");
+    dispatch(setRawData({ map: currentMapDataLocal }));
     return {
       currentMapData: currentMapDataLocal,
       connectingLanes: latestMapMessage.connectingLanesFeatureCollection,
@@ -359,7 +370,7 @@ export const renderIterative_Spat = createAsyncThunk(
     const currentSpatSignalGroups: ProcessedSpat[] = selectCurrentSpatData(currentState);
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
     // Inject and filter spat data
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.odeReceivedAt);
+    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp);
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
       key,
@@ -384,6 +395,23 @@ export const renderIterative_Spat = createAsyncThunk(
       acc[curr.key] = curr.sigGroup;
       return acc;
     }, {} as SpatSignalGroups);
+
+    // Update current processed spat data
+    oldIndex = 0;
+    for (let i = 0; i < currentProcessedSpatData.length; i++) {
+      if (Date.parse(currentProcessedSpatData[i].utcTimeStamp) < currTimestamp - OLDEST_DATA_TO_KEEP) {
+        oldIndex = i;
+      } else {
+        break;
+      }
+    }
+    const currentProcessedSpatDataLocal = currentProcessedSpatData
+      .slice(oldIndex, currentProcessedSpatData.length)
+      .concat(newSpatData);
+    setCurrentProcessedSpatData(currentProcessedSpatDataLocal);
+    dispatch(setRawData({ spat: currentProcessedSpatDataLocal }));
+    console.debug("SPAT RENDER TIME:", Date.now() - start, "ms");
+
     return currentSpatSignalGroupsLocal;
   },
   {
@@ -422,6 +450,7 @@ export const renderIterative_Bsm = createAsyncThunk(
     // add color to each feature
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
     dispatch(setBsmCircleColor(bsmLayerStyle));
+    dispatch(setRawData({ bsm: currentBsmGeojson }));
     return currentBsmGeojson;
   },
   {
@@ -548,6 +577,93 @@ export const initializeLiveStreaming = createAsyncThunk(
   }
 );
 
+export const updateRenderedMapState = createAsyncThunk(
+  "map/updateRenderedMapState",
+  async (_, { getState, dispatch }) => {
+    const currentState = getState() as RootState;
+    const authToken = selectAuthToken(currentState)!;
+    const queryParams = selectQueryParams(currentState);
+    const spatSignalGroups = selectSpatSignalGroups(currentState);
+    const mapSignalGroups = selectMapSignalGroups(currentState);
+    const renderTimeInterval = selectRenderTimeInterval(currentState);
+    const bsmData = selectBsmData(currentState);
+    const bsmTrailLength = selectBsmTrailLength(currentState);
+    const surroundingEvents = selectSurroundingEvents(currentState);
+    const surroundingNotifications = selectSurroundingNotifications(currentState);
+
+    // ASSUMPTION: mapSignalGroups && spatSignalGroups
+
+    let currentSignalGroups: SpatSignalGroup[] | undefined;
+    let signalStateData: SignalStateFeatureCollection | undefined;
+    let spatTime: number | undefined;
+
+    // retrieve filtered SPATs
+    let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
+    for (const datetime in spatSignalGroups) {
+      const datetimeNum = Number(datetime) / 1000;
+      if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
+        if (
+          closestSignalGroup === null ||
+          Math.abs(datetimeNum - renderTimeInterval[1]) < Math.abs(closestSignalGroup.datetime - renderTimeInterval[1])
+        ) {
+          closestSignalGroup = { datetime: datetimeNum, spat: spatSignalGroups[datetime] };
+        }
+      }
+    }
+    if (closestSignalGroup !== null) {
+      currentSignalGroups = closestSignalGroup.spat;
+      signalStateData = generateSignalStateFeatureCollection(mapSignalGroups!, closestSignalGroup.spat);
+      spatTime = closestSignalGroup.datetime;
+    }
+
+    // retrieve filtered BSMs
+    const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
+      (feature) =>
+        feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
+        feature.properties?.odeReceivedAt <= renderTimeInterval[1]
+    );
+    const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
+    const lastBsms = sortedBsms.slice(0, bsmTrailLength); // Apply BSM trail length
+    const currentBsms = { ...bsmData, features: lastBsms };
+
+    // Update BSM legend colors
+    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id));
+    const colors = generateColorDictionary(uniqueIds);
+
+    dispatch(setBsmLegendColors(colors));
+    const bsmLayerStyle = generateMapboxStyleExpression(colors);
+    dispatch(setBsmCircleColor(bsmLayerStyle));
+
+    const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
+      (event) =>
+        event.eventGeneratedAt / 1000 >= renderTimeInterval[0] && event.eventGeneratedAt / 1000 <= renderTimeInterval[1]
+    );
+
+    const filteredNotifications: MessageMonitor.Notification[] = surroundingNotifications.filter(
+      (notification) =>
+        notification.notificationGeneratedAt / 1000 >= renderTimeInterval[0] &&
+        notification.notificationGeneratedAt / 1000 <= renderTimeInterval[1]
+    );
+
+    return {
+      currentSignalGroups: closestSignalGroup?.spat,
+      signalStateData: closestSignalGroup
+        ? generateSignalStateFeatureCollection(mapSignalGroups!, closestSignalGroup?.spat)
+        : undefined,
+      spatTime: closestSignalGroup?.datetime,
+      currentBsms,
+      filteredSurroundingEvents: filteredEvents,
+      filteredSurroundingNotifications: filteredNotifications,
+    };
+  },
+  {
+    condition: (_, { getState }) =>
+      selectAuthToken(getState() as RootState) != undefined &&
+      selectQueryParams(getState() as RootState).intersectionId != undefined &&
+      selectQueryParams(getState() as RootState).roadRegulatorId != undefined,
+  }
+);
+
 const compareQueryParams = (oldParams: MAP_QUERY_PARAMS, newParams: MAP_QUERY_PARAMS) => {
   return (
     oldParams.startDate.getTime() != newParams.startDate.getTime() ||
@@ -609,15 +725,18 @@ const _updateQueryParams = ({
   }
 };
 
-const _downloadData = (rawData: Object, queryParams: MAP_QUERY_PARAMS) => {
+const _downloadData = (rawData: RAW_MESSAGE_DATA_EXPORT, queryParams: MAP_QUERY_PARAMS) => {
   var zip = new JSZip();
-  zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData["map"]));
-  zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData["spat"]));
-  zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData["bsm"]));
-  zip.file(
-    `intersection_${queryParams.intersectionId}_Notification_data.json`,
-    JSON.stringify(rawData["notification"])
-  );
+  zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData.map));
+  zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData.spat));
+  zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData.bsm));
+  if (rawData.event)
+    zip.file(`intersection_${queryParams.intersectionId}_Event_data.json`, JSON.stringify(rawData.event));
+  if (rawData.assessment)
+    zip.file(`intersection_${queryParams.intersectionId}_Assessment_data.json`, JSON.stringify(rawData.assessment));
+  if (rawData.notification)
+    zip.file(`intersection_${queryParams.intersectionId}_Notification_data.json`, JSON.stringify(rawData.notification));
+
   zip.generateAsync({ type: "blob" }).then(function (content) {
     FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
   });
@@ -692,57 +811,6 @@ export const mapSlice = createSlice({
         state.value.timeWindowSeconds
       );
     },
-    updateRenderedMapState: (state) => {
-      // ASSUMPTION: mapSignalGroups && spatSignalGroups
-
-      // retrieve filtered SPATs
-      let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
-      for (const datetime in state.value.spatSignalGroups) {
-        const datetimeNum = Number(datetime) / 1000;
-        if (datetimeNum >= state.value.renderTimeInterval[0] && datetimeNum <= state.value.renderTimeInterval[1]) {
-          if (
-            closestSignalGroup === null ||
-            Math.abs(datetimeNum - state.value.renderTimeInterval[1]) <
-              Math.abs(closestSignalGroup.datetime - state.value.renderTimeInterval[1])
-          ) {
-            closestSignalGroup = { datetime: datetimeNum, spat: state.value.spatSignalGroups[datetime] };
-          }
-        }
-      }
-      if (closestSignalGroup !== null) {
-        state.value.currentSignalGroups = closestSignalGroup.spat;
-        state.value.signalStateData = generateSignalStateFeatureCollection(
-          state.value.mapSignalGroups!,
-          closestSignalGroup.spat
-        );
-        state.value.mapSpatTimes = { ...state.value.mapSpatTimes, spatTime: closestSignalGroup.datetime };
-      } else {
-        state.value.currentSignalGroups = undefined;
-        state.value.signalStateData = undefined;
-      }
-
-      // retrieve filtered BSMs
-      const filteredBsms: BsmFeature[] = state.value.bsmData?.features?.filter(
-        (feature) =>
-          feature.properties?.odeReceivedAt >= state.value.renderTimeInterval[0] &&
-          feature.properties?.odeReceivedAt <= state.value.renderTimeInterval[1]
-      );
-      state.value.currentBsms = { ...state.value.bsmData, features: filteredBsms };
-
-      const filteredEvents: MessageMonitor.Event[] = state.value.surroundingEvents.filter(
-        (event) =>
-          event.eventGeneratedAt / 1000 >= state.value.renderTimeInterval[0] &&
-          event.eventGeneratedAt / 1000 <= state.value.renderTimeInterval[1]
-      );
-      state.value.filteredSurroundingEvents = filteredEvents;
-
-      const filteredNotifications: MessageMonitor.Notification[] = state.value.surroundingNotifications.filter(
-        (notification) =>
-          notification.notificationGeneratedAt / 1000 >= state.value.renderTimeInterval[0] &&
-          notification.notificationGeneratedAt / 1000 <= state.value.renderTimeInterval[1]
-      );
-      state.value.filteredSurroundingNotifications = filteredNotifications;
-    },
     setViewState: (state, action: PayloadAction<ViewState>) => {
       state.value.viewState = action.payload;
     },
@@ -757,16 +825,16 @@ export const mapSlice = createSlice({
     ) => {
       const { mapData, bsmData, spatData, notificationData } = action.payload;
       const sortedSpatData = spatData.sort((x, y) => {
-        if (x.odeReceivedAt < y.odeReceivedAt) {
+        if (x.utcTimeStamp < y.utcTimeStamp) {
           return 1;
         }
-        if (x.odeReceivedAt > y.odeReceivedAt) {
+        if (x.utcTimeStamp > y.utcTimeStamp) {
           return -1;
         }
         return 0;
       });
-      const endTime = new Date(sortedSpatData[0].odeReceivedAt);
-      const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].odeReceivedAt);
+      const endTime = new Date(Date.parse(sortedSpatData[0].utcTimeStamp));
+      const startTime = new Date(Date.parse(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp));
       state.value.importedMessageData = { mapData, bsmData, spatData, notificationData };
       state.value.queryParams = {
         startDate: startTime,
@@ -877,6 +945,7 @@ export const mapSlice = createSlice({
         state.value.wsClient.disconnect(() => {
           console.debug("Disconnected from STOMP endpoint");
         });
+        state.value.timeWindowSeconds = 60;
       }
       state.value.wsClient = undefined;
     },
@@ -900,6 +969,20 @@ export const mapSlice = createSlice({
     },
     toggleLiveDataActive: (state) => {
       state.value.liveDataActive = !state.value.liveDataActive;
+    },
+    setBsmTrailLength: (state, action: PayloadAction<number>) => {
+      state.value.bsmTrailLength = action.payload;
+    },
+    setTimeWindowSeconds: (state, action: PayloadAction<number>) => {
+      state.value.bsmTrailLength = action.payload;
+    },
+    setRawData: (state, action: PayloadAction<RAW_MESSAGE_DATA_EXPORT>) => {
+      state.value.rawData.map = action.payload.map ?? state.value.rawData.map;
+      state.value.rawData.spat = action.payload.spat ?? state.value.rawData.spat;
+      state.value.rawData.bsm = action.payload.bsm ?? state.value.rawData.bsm;
+      state.value.rawData.notification = action.payload.notification ?? state.value.rawData.notification;
+      state.value.rawData.event = action.payload.event ?? state.value.rawData.event;
+      state.value.rawData.assessment = action.payload.assessment ?? state.value.rawData.assessment;
     },
   },
   extraReducers: (builder) => {
@@ -1010,7 +1093,31 @@ export const mapSlice = createSlice({
       })
       .addCase(renderIterative_Bsm.fulfilled, (state, action: PayloadAction<BsmFeatureCollection>) => {
         state.value.currentBsmData = action.payload;
-      });
+      })
+      .addCase(
+        updateRenderedMapState.fulfilled,
+        (
+          state,
+          action: PayloadAction<{
+            currentSignalGroups: SpatSignalGroup[] | undefined;
+            signalStateData: SignalStateFeatureCollection | undefined;
+            spatTime: number | undefined;
+            currentBsms: BsmFeatureCollection;
+            filteredSurroundingEvents: MessageMonitor.Event[];
+            filteredSurroundingNotifications: MessageMonitor.Notification[];
+          }>
+        ) => {
+          state.value.currentSignalGroups = action.payload.currentSignalGroups ?? state.value.currentSignalGroups;
+          state.value.signalStateData = action.payload.signalStateData ?? state.value.signalStateData;
+          state.value.mapSpatTimes = {
+            ...state.value.mapSpatTimes,
+            spatTime: action.payload.spatTime ?? state.value.mapSpatTimes.spatTime,
+          };
+          state.value.currentBsms = action.payload.currentBsms;
+          state.value.filteredSurroundingEvents = action.payload.filteredSurroundingEvents;
+          state.value.filteredSurroundingNotifications = action.payload.filteredSurroundingNotifications;
+        }
+      );
   },
 });
 
@@ -1032,6 +1139,7 @@ export const selectSpatSignalGroups = (state: RootState) => state.map.value.spat
 export const selectCurrentSignalGroups = (state: RootState) => state.map.value.currentSignalGroups;
 export const selectCurrentBsms = (state: RootState) => state.map.value.currentBsms;
 export const selectConnectingLanes = (state: RootState) => state.map.value.connectingLanes;
+export const selectSurroundingEvents = (state: RootState) => state.map.value.surroundingEvents;
 export const selectFilteredSurroundingEvents = (state: RootState) => state.map.value.filteredSurroundingEvents;
 export const selectSurroundingNotifications = (state: RootState) => state.map.value.surroundingNotifications;
 export const selectFilteredSurroundingNotifications = (state: RootState) =>
@@ -1056,11 +1164,11 @@ export const selectCurrentMapData = (state: RootState) => state.map.value.curren
 export const selectCurrentSpatData = (state: RootState) => state.map.value.currentSpatData;
 export const selectCurrentBsmData = (state: RootState) => state.map.value.currentBsmData;
 export const selectSliderTimeValue = (state: RootState) => state.map.value.sliderTimeValue;
+export const selectBsmTrailLength = (state: RootState) => state.map.value.bsmTrailLength;
 
 export const {
   setSurroundingEvents,
   maybeUpdateSliderValue,
-  updateRenderedMapState,
   setViewState,
   handleImportedMapMessageData,
   updateQueryParams,
@@ -1079,6 +1187,8 @@ export const {
   setSigGroupLabelsVisible,
   setShowPopupOnHover,
   toggleLiveDataActive,
+  setBsmTrailLength,
+  setRawData,
 } = mapSlice.actions;
 
 export default mapSlice.reducer;

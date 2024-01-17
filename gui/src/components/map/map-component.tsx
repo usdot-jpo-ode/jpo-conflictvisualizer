@@ -252,9 +252,6 @@ const MapTab = (props: MyProps) => {
         resetTimeWindow: true,
       })
     );
-    if (!liveDataActive) {
-      dispatch(setTimeWindowSeconds(60));
-    }
   }, [props.sourceData]);
 
   useEffect(() => {
