@@ -573,12 +573,6 @@ const MapTab = (props: MyProps) => {
   };
 
   const parseSpatSignalGroups = (spats: ProcessedSpat[]): SpatSignalGroups => {
-    console.log(
-      "parseSpatSignalGroups",
-      spats[0]!.utcTimeStamp,
-      spats[0]!.odeReceivedAt,
-      Date.parse(spats[0]!.odeReceivedAt)
-    );
     const timedSignalGroups: SpatSignalGroups = {};
     spats?.forEach((spat: ProcessedSpat) => {
       timedSignalGroups[spat.utcTimeStamp] = spat.states.map((state) => {
@@ -720,14 +714,14 @@ const MapTab = (props: MyProps) => {
         success: `Successfully got SPAT Data`,
         error: `Failed to get SPAT data. Please see console`,
       });
-      // rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.odeReceivedAt) - Number(b.odeReceivedAt));
-      const spat = (await rawSpatPromise)[0];
-      console.log("rawSpatPromise", spat.utcTimeStamp, spat.odeReceivedAt);
       rawSpat = (await rawSpatPromise)
         .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
-        .map((spat) => ({ ...spat, utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
+        .map((spat) => ({
+          ...spat,
+          utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
             ? spat.utcTimeStamp * 1000
-            : Date.parse(spat.utcTimeStamp as any as string)}));
+            : Date.parse(spat.utcTimeStamp as any as string),
+        }));
 
       // ######################### Surrounding Events #########################
       const surroundingEventsPromise = EventsApi.getAllEvents(
@@ -949,7 +943,6 @@ const MapTab = (props: MyProps) => {
         ? spat.utcTimeStamp * 1000
         : Date.parse(spat.utcTimeStamp as any as string),
     }));
-    console.log("newSpatData", newSpatData.at(-1)!.utcTimeStamp);
     const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
 
     let oldIndex = 0;
@@ -1080,7 +1073,6 @@ const MapTab = (props: MyProps) => {
 
     // retrieve filtered SPATs
     let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
-    console.log("spatSignalGroups", renderTimeInterval[0], renderTimeInterval[1], spatSignalGroups);
     for (const datetime in spatSignalGroups) {
       const datetimeNum = Number(datetime) / 1000; // milliseconds to seconds
       if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
