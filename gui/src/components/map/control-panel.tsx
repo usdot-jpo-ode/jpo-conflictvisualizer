@@ -106,7 +106,9 @@ function ControlPanel(props: ControlPanelProps) {
   const [shouldReRenderTimeBefore, setShouldReRenderTimeBefore] = useState(true);
   const [shouldReRenderTimeAfter, setShouldReRenderTimeAfter] = useState(true);
   const [shouldReRenderTimeWindowSeconds, setShouldReRenderTimeWindowSeconds] = useState(true);
+  const [shouldReRenderBsmTrail, setShouldReRenderBsmTrail] = useState(true);
   const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(props.bsmTrailLength.toString());
+  const [prevBsmTrailLength, setPrevBsmTrailLength] = useState<number>(props.bsmTrailLength);
   const [oldDateParams, setOldDateParams] = useState(getQueryParams(props.timeQueryParams));
   const [eventTime, setEventTime] = useState<dayjs.Dayjs | null>(
     dayjs(getQueryParams(props.timeQueryParams).eventTime.toString())
@@ -140,6 +142,14 @@ function ControlPanel(props: ControlPanelProps) {
       setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
     }
   }, [props.timeQueryParams]);
+
+  useEffect(() => {
+    if (props.bsmTrailLength != prevBsmTrailLength) {
+      setShouldReRenderTimeAfter(false);
+      setPrevBsmTrailLength(props.bsmTrailLength);
+      setBsmTrailLengthLocal(props.bsmTrailLength.toString());
+    }
+  }, [props.bsmTrailLength]);
 
   useEffect(() => {
     if (shouldReRenderEventTime && isFormValid()) {
@@ -218,8 +228,10 @@ function ControlPanel(props: ControlPanelProps) {
   }, [timeWindowSeconds]);
 
   useEffect(() => {
-    if (getNumber(bsmTrailLengthLocal) != null) {
+    if (shouldReRenderBsmTrail && getNumber(bsmTrailLengthLocal) != null) {
       props.setBsmTrailLength(getNumber(bsmTrailLengthLocal)!);
+    } else {
+      setShouldReRenderBsmTrail(true);
     }
   }, [bsmTrailLengthLocal]);
 

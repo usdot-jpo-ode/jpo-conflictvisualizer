@@ -1155,6 +1155,7 @@ const MapTab = (props: MyProps) => {
       if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
         initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
         onTimeQueryChanged(new Date(), 10, 0, 5);
+        if (bsmTrailLength > 15) setBsmTrailLength(5);
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -1166,6 +1167,7 @@ const MapTab = (props: MyProps) => {
         );
       }
     } else {
+      if (bsmTrailLength < 15) setBsmTrailLength(20);
       cleanUpLiveStreaming();
     }
   }, [liveDataActive]);
