@@ -924,7 +924,7 @@ const MapTab = (props: MyProps) => {
       });
     }
     setRawData((prevValue) => ({ ...prevValue, mapData: currentMapDataLocal }));
-    console.log("MAP RENDER TIME:", Date.now() - start, "ms");
+    console.debug("MAP RENDER TIME:", Date.now() - start, "ms");
     return currentMapDataLocal;
   };
 
@@ -1095,8 +1095,8 @@ const MapTab = (props: MyProps) => {
         feature.properties?.odeReceivedAt <= renderTimeInterval[1]
     );
     const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
-    const lastFiveBsms = sortedBsms.slice(0, 5);
-    setCurrentBsms({ ...bsmData, features: lastFiveBsms });
+    const lastBsms = sortedBsms.slice(0, bsmTrailLength); // Apply BSM trail length
+    setCurrentBsms({ ...bsmData, features: lastBsms });
 
     // Update BSM legend colors
     const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id));

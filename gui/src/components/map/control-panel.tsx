@@ -123,32 +123,19 @@ function ControlPanel(props: ControlPanelProps) {
 
   useEffect(() => {
     const newDateParams = getQueryParams(props.timeQueryParams);
-    console.log("props.timeQueryParams, timeWindowSeconds", newDateParams.timeWindowSeconds);
-    if (
-      newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime() ||
-      eventTime == null ||
-      !eventTime.isValid() ||
-      newDateParams.eventTime.getTime() != eventTime?.toDate().getTime()
-    ) {
+    if (newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime()) {
       setShouldReRenderEventTime(false);
       setEventTime(dayjs(newDateParams.eventTime));
     }
-    if (newDateParams.timeBefore != oldDateParams.timeBefore || newDateParams.timeBefore != getNumber(timeBefore)) {
+    if (newDateParams.timeBefore != oldDateParams.timeBefore) {
       setShouldReRenderTimeBefore(false);
       setTimeBefore(newDateParams.timeBefore.toString());
     }
-    if (newDateParams.timeAfter != oldDateParams.timeAfter || newDateParams.timeAfter != getNumber(timeAfter)) {
+    if (newDateParams.timeAfter != oldDateParams.timeAfter) {
       setShouldReRenderTimeAfter(false);
       setTimeAfter(newDateParams.timeAfter.toString());
     }
-    if (
-      newDateParams.timeWindowSeconds != oldDateParams.timeWindowSeconds ||
-      newDateParams.timeWindowSeconds != getNumber(timeWindowSeconds)
-    ) {
-      console.log(
-        "Setting time window seconds because it changed from timequeryparams to",
-        newDateParams.timeWindowSeconds
-      );
+    if (newDateParams.timeWindowSeconds != oldDateParams.timeWindowSeconds) {
       setShouldReRenderTimeWindowSeconds(false);
       setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
     }
@@ -213,7 +200,6 @@ function ControlPanel(props: ControlPanelProps) {
 
   useEffect(() => {
     if (shouldReRenderTimeWindowSeconds && isFormValid()) {
-      console.log("Setting setOldDateParams and onTimeQueryChanged for timeWindowSeconds to", timeWindowSeconds);
       setOldDateParams({
         eventTime: eventTime!.toDate(),
         timeBefore: getNumber(timeBefore)!,
@@ -234,19 +220,21 @@ function ControlPanel(props: ControlPanelProps) {
   useEffect(() => {
     if (getNumber(bsmTrailLengthLocal) != null) {
       props.setBsmTrailLength(getNumber(bsmTrailLengthLocal)!);
-    } else {
-      setShouldReRenderTimeBefore(true);
     }
   }, [bsmTrailLengthLocal]);
 
   const isFormValid = () => {
-    return (
-      eventTime != null &&
-      !eventTime.isValid() &&
-      getNumber(timeBefore) != null &&
-      getNumber(timeAfter) != null &&
-      getNumber(timeWindowSeconds) != null
-    );
+    try {
+      const d = eventTime?.toDate().getTime()!;
+      return (
+        !isNaN(d) &&
+        getNumber(timeBefore) != null &&
+        getNumber(timeAfter) != null &&
+        getNumber(timeWindowSeconds) != null
+      );
+    } catch (e) {
+      return false;
+    }
   };
 
   const getNumber = (value: string | undefined): number | undefined => {
@@ -480,9 +468,8 @@ function ControlPanel(props: ControlPanelProps) {
               />
             </div>
             <div>
-              <h4 style={{ float: "left", marginTop: "10px" }}>Max BSM Trail Length </h4>
               <TextField
-                label="BSm Trail length"
+                label="BSM Trail length"
                 name="bsmTrailLength"
                 type="number"
                 sx={{ mt: 1 }}
