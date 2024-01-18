@@ -45,7 +45,7 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 interface SidePanelProps {
   laneInfo: ConnectingLanesFeatureCollection | undefined;
   signalGroups: SpatSignalGroup[] | undefined;
-  bsms: BsmFeatureCollection;
+  bsms: BsmUiFeatureCollection;
   events: MessageMonitor.Event[];
   notifications: MessageMonitor.Notification[];
   sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
@@ -53,23 +53,7 @@ interface SidePanelProps {
 }
 
 export const SidePanel = (props: SidePanelProps) => {
-  const {
-    laneInfo,
-    signalGroups,
-    bsms,
-    events,
-    notifications,
-    sourceData,
-    sourceDataType,
-  }: {
-    laneInfo: ConnectingLanesFeatureCollection | undefined;
-    signalGroups: SpatSignalGroup[] | undefined;
-    bsms: BsmFeatureCollection;
-    events: MessageMonitor.Event[];
-    notifications: MessageMonitor.Notification[];
-    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
-    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
-  } = props;
+  const { laneInfo, signalGroups, bsms, events, notifications, sourceData, sourceDataType } = props;
 
   const [open, setOpen] = useState(false);
 

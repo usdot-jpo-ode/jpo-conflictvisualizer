@@ -19,6 +19,7 @@ import { ViewState } from "react-map-gl";
 import getConfig from "next/config";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
+import { features } from "process";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -106,7 +107,7 @@ const initialState = {
   currentBsms: {
     type: "FeatureCollection" as "FeatureCollection",
     features: [],
-  } as BsmFeatureCollection,
+  } as BsmUiFeatureCollection,
   connectingLanes: undefined as ConnectingLanesFeatureCollection | undefined,
   bsmData: {
     type: "FeatureCollection" as "FeatureCollection",
@@ -600,7 +601,7 @@ export const updateRenderedMapState = createAsyncThunk(
     // retrieve filtered SPATs
     let closestSignalGroup: { spat: SpatSignalGroup[]; datetime: number } | null = null;
     for (const datetime in spatSignalGroups) {
-      const datetimeNum = Number(datetime) / 1000;
+      const datetimeNum = Number(datetime) / 1000; // milliseconds to seconds
       if (datetimeNum >= renderTimeInterval[0] && datetimeNum <= renderTimeInterval[1]) {
         if (
           closestSignalGroup === null ||
@@ -909,7 +910,10 @@ export const mapSlice = createSlice({
     },
     onMapClick: (
       state,
-      action: PayloadAction<{ event: mapboxgl.MapLayerMouseEvent; mapRef: React.MutableRefObject<any> }>
+      action: PayloadAction<{
+        event: { point: mapboxgl.Point; lngLat: mapboxgl.LngLat };
+        mapRef: React.MutableRefObject<any>;
+      }>
     ) => {
       const features = action.payload.mapRef.current.queryRenderedFeatures(action.payload.event.point, {
         //   layers: allInteractiveLayerIds,
@@ -921,13 +925,19 @@ export const mapSlice = createSlice({
         state.value.selectedFeature = undefined;
       }
     },
-    onMapMouseMove: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+    onMapMouseMove: (
+      state,
+      action: PayloadAction<{ features: mapboxgl.MapboxGeoJSONFeature[] | undefined; lngLat: mapboxgl.LngLat }>
+    ) => {
       const feature = action.payload.features?.[0];
       if (feature && state.value.allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
         state.value.hoveredFeature = { clickedLocation: action.payload.lngLat, feature };
       }
     },
-    onMapMouseEnter: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+    onMapMouseEnter: (
+      state,
+      action: PayloadAction<{ features: mapboxgl.MapboxGeoJSONFeature[] | undefined; lngLat: mapboxgl.LngLat }>
+    ) => {
       state.value.cursor = "pointer";
       const feature = action.payload.features?.[0];
       if (feature && state.value.allInteractiveLayerIds.includes(feature.layer.id as MAP_LAYERS)) {
@@ -936,7 +946,7 @@ export const mapSlice = createSlice({
         state.value.hoveredFeature = undefined;
       }
     },
-    onMapMouseLeave: (state, action: PayloadAction<mapboxgl.MapLayerMouseEvent>) => {
+    onMapMouseLeave: (state) => {
       state.value.cursor = "";
       state.value.hoveredFeature = undefined;
     },
@@ -983,6 +993,13 @@ export const mapSlice = createSlice({
       state.value.rawData.notification = action.payload.notification ?? state.value.rawData.notification;
       state.value.rawData.event = action.payload.event ?? state.value.rawData.event;
       state.value.rawData.assessment = action.payload.assessment ?? state.value.rawData.assessment;
+    },
+    setMapProps: (state, action: PayloadAction<MAP_PROPS>) => {
+      state.value.sourceData = action.payload.sourceData;
+      state.value.sourceDataType = action.payload.sourceDataType;
+      state.value.intersectionId = action.payload.intersectionId;
+      state.value.roadRegulatorId = action.payload.roadRegulatorId;
+      state.value.loadOnNull = action.payload.loadOnNull;
     },
   },
   extraReducers: (builder) => {
@@ -1189,6 +1206,7 @@ export const {
   toggleLiveDataActive,
   setBsmTrailLength,
   setRawData,
+  setMapProps,
 } = mapSlice.actions;
 
 export default mapSlice.reducer;

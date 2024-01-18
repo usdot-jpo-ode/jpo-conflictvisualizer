@@ -134,7 +134,7 @@ export const createMarkerForNotification = (
 export const addConnections = (
   connectingLanes: ConnectingLanesFeatureCollection,
   signalGroups: SpatSignalGroup[]
-): ConnectingLanesFeatureCollectionWithSignalState => {
+): ConnectingLanesUiFeatureCollection => {
   return {
     ...connectingLanes,
     features: connectingLanes.features.map((feature) => ({

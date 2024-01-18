@@ -13,6 +13,12 @@ export const makeStore = (preloadedState) => {
       mapLayerStyle: mapLayerStyleReducer,
     },
     preloadedState,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        thunk: true,
+        serializableCheck: false,
+        immutableCheck: false,
+      }),
   });
 };
 
@@ -21,16 +27,6 @@ const reducers = {
   [mapSlice.name]: mapSlice.reducer,
   [mapLayerStyleSlice.name]: mapLayerStyleSlice.reducer,
 };
-
-const reducer = combineReducers(reducers);
-
-// const makeStore: MakeStore<any> = ({ reduxWrapperMiddleware }) =>
-//   configureStore({
-//     reducer,
-//     devTools: true,
-//     middleware: (getDefaultMiddleware) =>
-//       [...getDefaultMiddleware(), null, reduxWrapperMiddleware].filter(Boolean) as any,
-//   });
 
 type AppStore = ReturnType<typeof makeStore>;
 export type AppState = ReturnType<AppStore["getState"]>;

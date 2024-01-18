@@ -90,6 +90,7 @@ import {
   selectTimeWindowSeconds,
   selectViewState,
   setLoadInitialdataTimeoutId,
+  setMapProps,
   setViewState,
   updateQueryParams,
   updateRenderTimeInterval,
@@ -223,6 +224,10 @@ const MapTab = (props: MyProps) => {
   }, [selectedFeature]);
 
   useEffect(() => {
+    dispatch(setMapProps(props));
+  }, [props]);
+
+  useEffect(() => {
     if (props.intersectionId != queryParams.intersectionId || props.roadRegulatorId != queryParams.roadRegulatorId) {
       dispatch(
         updateQueryParams({
@@ -261,7 +266,8 @@ const MapTab = (props: MyProps) => {
     if (loadInitialDataTimeoutId) {
       clearTimeout(loadInitialDataTimeoutId);
     }
-    dispatch(setLoadInitialdataTimeoutId(setTimeout(() => dispatch(pullInitialData()), 500)));
+    const timeoutId = setTimeout(() => dispatch(pullInitialData()), 500);
+    dispatch(setLoadInitialdataTimeoutId(timeoutId));
   }, [queryParams]);
 
   useEffect(() => {
@@ -360,14 +366,12 @@ const MapTab = (props: MyProps) => {
           styleDiffing
           style={{ width: "100%", height: "100%" }}
           onMove={(evt) => dispatch(setViewState(evt.viewState))}
-          onClick={(e) => dispatch(onMapClick({ event: e, mapRef }))}
-          // onMouseDown={this.onMouseDown}
-          // onMouseUp={this.onMouseUp}
+          onClick={(e) => dispatch(onMapClick({ event: { point: e.point, lngLat: e.lngLat }, mapRef }))}
           interactiveLayerIds={allInteractiveLayerIds}
           cursor={cursor}
-          onMouseMove={(e) => dispatch(onMapMouseMove(e))}
-          onMouseEnter={(e) => dispatch(onMapMouseEnter(e))}
-          onMouseLeave={(e) => dispatch(onMapMouseLeave(e))}
+          onMouseMove={(e) => dispatch(onMapMouseMove({ features: e.features, lngLat: e.lngLat }))}
+          onMouseEnter={(e) => dispatch(onMapMouseEnter({ features: e.features, lngLat: e.lngLat }))}
+          onMouseLeave={(e) => dispatch(onMapMouseLeave())}
         >
           <Source
             type="geojson"
@@ -384,9 +388,6 @@ const MapTab = (props: MyProps) => {
             }
           >
             <Layer {...connectingLanesLabelsLayerStyle} />
-          </Source>
-          <Source type="geojson" data={currentBsms}>
-            <Layer {...bsmLayerStyle} />
           </Source>
           <Source type="geojson" data={mapData?.mapFeatureCollection}>
             <Layer {...mapMessageLayerStyle} />
@@ -410,6 +411,9 @@ const MapTab = (props: MyProps) => {
             }
           >
             <Layer {...markerLayerStyle} />
+          </Source>
+          <Source type="geojson" data={currentBsms}>
+            <Layer {...bsmLayerStyle} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => dispatch(clearSelectedFeature())} />
