@@ -1450,6 +1450,12 @@ const MapTab = (props: MyProps) => {
             setHoveredFeature(undefined);
           }}
         >
+          <Source type="geojson" data={mapData?.mapFeatureCollection}>
+            <Layer {...mapMessageLayer} />
+          </Source>
+          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
+            <Layer {...mapMessageLabelsLayer} />
+          </Source>
           <Source
             type="geojson"
             data={connectingLanes && currentSignalGroups && addConnections(connectingLanes, currentSignalGroups)}
@@ -1466,18 +1472,6 @@ const MapTab = (props: MyProps) => {
           >
             <Layer {...connectingLanesLabelsLayer} />
           </Source>
-          <Source type="geojson" data={currentBsms}>
-            <Layer {...bsmLayerStyle} />
-          </Source>
-          <Source type="geojson" data={mapData?.mapFeatureCollection}>
-            <Layer {...mapMessageLayer} />
-          </Source>
-          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
-            <Layer {...mapMessageLabelsLayer} />
-          </Source>
-          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
-            <Layer {...signalStateLayer} />
-          </Source>
           <Source
             type="geojson"
             data={
@@ -1491,6 +1485,12 @@ const MapTab = (props: MyProps) => {
             }
           >
             <Layer {...markerLayer} />
+          </Source>
+          <Source type="geojson" data={currentBsms}>
+            <Layer {...bsmLayerStyle} />
+          </Source>
+          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
+            <Layer {...signalStateLayer} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
