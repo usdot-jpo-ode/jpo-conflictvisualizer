@@ -3,6 +3,9 @@ name: Docker build
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push: # This is temp step to check the docker build during setup. This needs to be removed while mering to develop
+    branches:
+      - "feature/gha" 
 
 jobs:
   build-and-push:
