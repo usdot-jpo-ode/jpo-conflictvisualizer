@@ -625,11 +625,8 @@ const MapTab = (props: MyProps) => {
         var ingressCoords = ingressLane.geometry.coordinates;
         var egressCoords = egressLane.geometry.coordinates;
 
-        var normalizedIngressLeadupPt = turf.along(ingressLane, 0.002)
-        var normalizedEgressLeadupPt = turf.along(egressLane, 0.002)
-
-        var ingressBearing = turf.bearing(normalizedIngressLeadupPt, ingressCoords[0]);
-        var egressBearing = turf.bearing(normalizedEgressLeadupPt, egressCoords[0]);
+        var ingressBearing = turf.bearing(ingressCoords[1], ingressCoords[0]);
+        var egressBearing = turf.bearing(egressCoords[1], egressCoords[0]);
 
         //project the ingress/egress lanes through the intersection to the edge of the bbox
         var ingressLine = turf.lineString([ingressCoords[0], turf.destination(ingressCoords[0], 0.05, ingressBearing).geometry.coordinates]);
@@ -659,7 +656,8 @@ const MapTab = (props: MyProps) => {
         //If the ingress and egress lanes are going in generally opposite directions and didn't intersect, use the U-turn calculations 
         else if (Math.abs(ingressBearing - egressBearing) < 45){
         //this formula was found experimentally to give a round curve and allow parallel curving lanes to not intersect
-        var leadupLength = (turf.distance(ingressCoords[0], egressCoords[0]) * -7 + 0.045);
+        var leadupLength = (Math.min(turf.distance(ingressCoords[0], egressCoords[0]) * -7 + 0.045, -0.02));
+
         var normalizedIngressPoint = turf.destination(ingressCoords[0], leadupLength, ingressBearing);
         var normalizedEgressPoint = turf.destination(egressCoords[0], leadupLength, egressBearing);
         var connectingLaneLine = turf.lineString([
