@@ -12,6 +12,10 @@ jobs:
     strategy:
       matrix:
         component: ['api', 'keycloak']
+    env:
+      # Attempt to sanitize branch name for Docker tag, fallback to SHA if branch name is not available
+      CLEAN_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      DOCKER_TAG: ${{ (github.head_ref || github.ref_name) == '' && github.sha || (github.head_ref || github.ref_name) }}        
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,10 +34,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Sanitize Reference Name for Docker Tag
+        run: echo "DOCKER_TAG=$(echo $DOCKER_TAG | sed 's|/|-|g' | sed 's|[^a-zA-Z0-9_.-]|-|g')" >> $GITHUB_ENV
+
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.component }}
           file: ./${{ matrix.component }}/Dockerfile
           push: true
-          tags: usdotjpoode/jpo-conflictvisualizer-${{ matrix.component }}:${{ github.ref_name }}
+          tags: usdotjpoode/jpo-conflictvisualizer-${{ matrix.component }}:${{ env.DOCKER_TAG }}
