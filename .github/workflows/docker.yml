@@ -3,6 +3,9 @@ name: Docker build
 on:
   pull_request:
       types: [opened, synchronize, reopened]
+  push: # this is only for temp we need to remove this push when merging back to develop 
+    branches:
+      - "feature/gha" 
 
 jobs:
   build-and-push:
