@@ -790,7 +790,6 @@ const MapTab = (props: MyProps) => {
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    console.log("MAP SIGNAL GROUPS", mapSignalGroupsLocal);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
