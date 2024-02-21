@@ -6,6 +6,7 @@ on:
       - "develop"
       - "master"
       - "release/*"
+      - "feature/gha"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
