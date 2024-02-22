@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        component: ['api', 'keycloak']
+        component: ['api', 'gui' , 'keycloak']
     env:
       # Attempt to sanitize branch name for Docker tag, fallback to SHA if branch name is not available
       CLEAN_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -23,7 +23,6 @@ jobs:
         with:
             submodules: 'recursive'
       - run: |
-          ls -ls && pwd
           cp sample.env ./gui/.env
           npm install --save-dev eslint
       - name: Set up Docker Buildx
