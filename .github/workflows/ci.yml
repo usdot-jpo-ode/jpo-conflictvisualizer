@@ -34,6 +34,9 @@ jobs:
           cd ../jpo-conflictmonitor
           mvn clean install -DskipTests
           cd $GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api
-          mvn -e -X clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -Dsonar.projectKey=usdot-jpo-ode_jpo-conflictvisualizer -Dsonar.projectName=jpo-conflictvisualizer -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.organization=usdot-jpo-ode -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=$GITHUB_REF_NAME
+          mvn -e -X clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -Dsonar.projectKey=usdot-jpo-ode_jpo-conflictvisualizer -Dsonar.projectName=jpo-conflictvisualizer -Dsonar.java.binaries=/home/runner/work/jpo-conflictvisualizer/jpo-conflictvisualizer/api/jpo-conflictvisualizer-api/target/classes -Dsonar.coverage.jacoco.xmlReportPaths=/home/runner/work/jpo-conflictvisualizer/jpo-conflictvisualizer/api/jpo-conflictvisualizer-api/target/site/jacoco/jacoco.xml -Dsonar.organization=usdot-jpo-ode -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=$GITHUB_REF_NAME
+      - name: Find jacoco.xml
+        shell: bash
+        run: |
           find "$GITHUB_WORKSPACE" -name "jacoco.xml"
-          
+          find "$GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api" -name "jacoco.xml"
