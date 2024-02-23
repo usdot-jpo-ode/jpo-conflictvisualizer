@@ -7,7 +7,7 @@ on:
 
 jobs:
   # Defines a job to build (and optionally push) Docker images which we dont push the images in this workflow to avoid multiple builds on Docker hub 
-  build-and-push:
+  build:
     # Specifies that the job runs on the latest version of Ubuntu
     runs-on: ubuntu-latest
     
@@ -45,7 +45,7 @@ jobs:
         run: echo "DOCKER_TAG=$(echo $DOCKER_TAG | sed 's|/|-|g' | sed 's|[^a-zA-Z0-9_.-]|-|g')" >> $GITHUB_ENV
 
       # Step 5: Builds the Docker image but does not push it to DockerHub
-      - name: Build and Push
+      - name: Build
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.component }} # Specifies the directory as the Docker context
