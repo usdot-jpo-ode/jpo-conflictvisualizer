@@ -1,37 +1,58 @@
 name: CI
 
+# Trigger the workflow on pull requests or pushes to the 'develop' and 'master' branches
 on: 
   pull_request:
     types: [opened, reopened, synchronize]
   push:
-    branches: [develop, master, feature/gha]
+    branches: [develop, master]
 
 jobs:
   build:
+    # Use the latest Ubuntu runner
     runs-on: ubuntu-latest
+    
     steps:
+      # Step 1: Check out the repository code, including submodules
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: recursive 
+          submodules: recursive # Ensures submodules are also checked out
 
+      # Step 2: Set up JDK 21 using Temurin distribution
       - name: Set up JDK
         uses: actions/setup-java@v4 
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: 'temurin' 
 
+      # Step 3: Build and run SonarQube analysis without executing tests
+      # This step involves navigating through project directories and using Maven for building each submodule project before conflict-visualizer repo 
       - name: Build and Run Sonar Analysis
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Use SONAR_TOKEN from GitHub secrets
         run: |
+          # Navigate to the jpo-ode project directory and build
           cd $GITHUB_WORKSPACE/api/jpo-conflictmonitor/jpo-geojsonconverter/jpo-ode
           mvn install -DskipTests
+          
+          # Navigate to the jpo-geojsonconverter project directory and build
           cd ../jpo-geojsonconverter
           mvn install -DskipTests
+  
           cd $GITHUB_WORKSPACE/api/jpo-conflictmonitor/test-message-sender
           mvn clean install -DskipTests
+          # Navigate to the jpo-conflictmonitor project directory and build
           cd ../jpo-conflictmonitor
           mvn clean install -DskipTests
+          
+          # Final step: Run SonarQube analysis on the jpo-conflictvisualizer-api
           cd $GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api
-          mvn -e -X clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -Dsonar.projectKey=usdot-jpo-ode_jpo-conflictvisualizer -Dsonar.projectName=jpo-conflictvisualizer -Dsonar.java.binaries=$GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api/target/classes -Dsonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api/target/site/jacoco/jacoco.xml -Dsonar.organization=usdot-jpo-ode -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=$GITHUB_REF_NAME
+          mvn -e -X clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
+            -Dsonar.projectKey=usdot-jpo-ode_jpo-conflictvisualizer \
+            -Dsonar.projectName=jpo-conflictvisualizer \
+            -Dsonar.java.binaries=$GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api/target/classes \
+            -Dsonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/api/jpo-conflictvisualizer-api/target/site/jacoco/jacoco.xml \
+            -Dsonar.organization=usdot-jpo-ode \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.branch.name=$GITHUB_REF_NAME # Use the branch name dynamically for Sonar analysis
