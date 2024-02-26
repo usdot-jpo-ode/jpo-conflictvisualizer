@@ -82,16 +82,20 @@ export const NotificationsTableResults = ({
       case "IntersectionReferenceAlignmentNotification":
         const intersectionReferenceAlignmentNotification = notification as IntersectionReferenceAlignmentNotification;
         const intersectionReferenceAlignmentEvent = intersectionReferenceAlignmentNotification.event;
+        const mapArr = Array.from(intersectionReferenceAlignmentEvent.mapRegulatorIntersectionIds) ?? [];
+        const spatArr = Array.from(intersectionReferenceAlignmentEvent.spatRegulatorIntersectionIds) ?? [];
         return (
           <Typography>
-            {`Source ID: ${intersectionReferenceAlignmentEvent.sourceID}`}
+            {`- Intersection IDs, MAP: ${mapArr.map((v) => v.intersectionId)}, SPAT: ${spatArr.map(
+              (v) => v.intersectionId
+            )}`}
             <br />
-            {`- Intersection IDs, MAP: ${intersectionReferenceAlignmentEvent.mapIntersectionIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatIntersectionIds}`}
-            <br />
-            {`- Road Regulator IDs, MAP: ${intersectionReferenceAlignmentEvent.mapRoadRegulatorIds}, SPAT: ${intersectionReferenceAlignmentEvent.spatRoadRegulatorIds}`}
+            {`- Road Regulator IDs, MAP: ${mapArr.map((v) => v.roadRegulatorId)}, SPAT: ${spatArr.map(
+              (v) => v.roadRegulatorId
+            )}`}
           </Typography>
         );
-      case "LaneDirectionOfTravelNotification":
+      case "LaneDirectionOfTravelAssessmentNotification":
         const laneDirTravelNotification = notification as LaneDirectionOfTravelNotification;
         const laneDirTravelAssessmentGroups = laneDirTravelNotification.assessment.laneDirectionOfTravelAssessmentGroup;
         return (
@@ -169,7 +173,7 @@ export const NotificationsTableResults = ({
   return (
     <Card>
       <PerfectScrollbar>
-        <Box sx={{ minWidth: 1050 }}>
+        <Box sx={{ minWidth: 1050, overflowX: "auto" }}>
           <Table>
             <TableHead>
               <TableRow>

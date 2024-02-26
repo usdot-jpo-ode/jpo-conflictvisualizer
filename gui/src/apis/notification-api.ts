@@ -14,19 +14,22 @@ const NOTIFICATION_TYPES: string[] = [
 class NotificationApi {
   async getActiveNotifications({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
     key,
   }: {
     token: string;
-    intersection_id: string;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime?: Date;
     endTime?: Date;
     key?: string;
   }): Promise<MessageMonitor.Notification[]> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
     if (key) queryParams["key"] = key;
@@ -64,17 +67,20 @@ class NotificationApi {
 
   async getAllNotifications({
     token,
-    intersection_id,
+    intersectionId,
+    roadRegulatorId,
     startTime,
     endTime,
   }: {
     token: string;
-    intersection_id: string;
+    intersectionId: number;
+    roadRegulatorId: number;
     startTime?: Date;
     endTime?: Date;
   }): Promise<MessageMonitor.Notification[]> {
     const queryParams: Record<string, string> = {};
-    queryParams["intersection_id"] = intersection_id;
+    queryParams["intersection_id"] = intersectionId.toString();
+    queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
 

@@ -57,11 +57,17 @@ const tabs = [
   },
 ];
 
-const applyFilters = (parameters, filter) =>
+const applyFilters = (
+  parameters: Config[],
+  filter: {
+    query: string;
+    tab: string;
+  }
+) =>
   parameters.filter((parameter) => {
     if (filter.query) {
       let queryMatched = false;
-      const properties = ["name", "category", "description"];
+      const properties = ["key", "category", "description"];
       properties.forEach((property) => {
         if (parameter[property]?.toLowerCase().includes(filter.query.toLowerCase())) {
           queryMatched = true;
@@ -108,11 +114,7 @@ const Page = () => {
   const getParameters = async () => {
     if (session?.accessToken) {
       try {
-        const data = await configParamApi.getAllParameters(
-          session?.accessToken,
-          (intersectionId ?? -1).toString(),
-          (roadRegulatorId ?? -1).toString()
-        );
+        const data = await configParamApi.getAllParameters(session?.accessToken, intersectionId, roadRegulatorId);
 
         setParameters(data);
       } catch (err) {
@@ -162,8 +164,6 @@ const Page = () => {
   // Usually query is done on backend with indexing solutions
   const filteredParameters = applyFilters(parameters, filter);
   const paginatedParameters = applyPagination(filteredParameters, page, rowsPerPage);
-
-  console.log("Parameters", paginatedParameters);
 
   return (
     <>

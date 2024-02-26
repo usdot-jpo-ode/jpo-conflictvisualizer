@@ -78,13 +78,14 @@ export const NotificationsTable = (props: { simple: Boolean }) => {
     tab: currentTab,
   });
   const { data: session } = useSession();
-  const { intersectionId: dbIntersectionId } = useDashboardContext();
+  const { intersectionId: dbIntersectionId, roadRegulatorId } = useDashboardContext();
 
   const updateNotifications = () => {
     if (session?.accessToken && dbIntersectionId) {
       NotificationApi.getActiveNotifications({
         token: session?.accessToken,
-        intersection_id: dbIntersectionId.toString(),
+        intersectionId: dbIntersectionId,
+        roadRegulatorId: roadRegulatorId,
       }).then((notifs) => setNotifications(notifs));
     } else {
       console.error(

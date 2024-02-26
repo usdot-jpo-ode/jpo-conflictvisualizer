@@ -16,6 +16,8 @@ import { DataVisualizer } from "../components/data-selector/data-visualizer";
 import toast from "react-hot-toast";
 import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
 import { useQueryContext } from "../contexts/query-context";
+import JSZip from "jszip";
+import FileSaver from "file-saver";
 
 const DataSelectorPage = () => {
   //   const [type, setType] = useState("");
@@ -103,7 +105,14 @@ const DataSelectorPage = () => {
         const eventPromises: Promise<MessageMonitor.Event[]>[] = [];
         for (let i = 0; i < eventTypes.length; i++) {
           const eventType = eventTypes[i];
-          const promise = EventsApi.getEvents(session?.accessToken, eventType, intersectionId, startDate, endTime);
+          const promise = EventsApi.getEvents(
+            session?.accessToken,
+            eventType,
+            intersectionId,
+            roadRegulatorId,
+            startDate,
+            endTime
+          );
           eventPromises.push(promise);
         }
         const allEventsPromise = Promise.all(eventPromises);
@@ -136,7 +145,7 @@ const DataSelectorPage = () => {
             session?.accessToken,
             assessmentType,
             intersectionId,
-            undefined,
+            roadRegulatorId,
             startDate,
             endTime
           );
@@ -186,7 +195,8 @@ const DataSelectorPage = () => {
     setGraphData(
       await GraphsApi.getGraphData({
         token: session?.accessToken,
-        intersection_id: intersectionId,
+        intersectionId: intersectionId,
+        roadRegulatorId: roadRegulatorId,
         startTime: startDate,
         endTime: endTime,
         event_types: eventTypes,
@@ -239,9 +249,14 @@ const DataSelectorPage = () => {
       }
       csvRows[event.eventType].push(Object.values(event).map(sanitizeCsvString).join(","));
     }
+
+    var zip = new JSZip();
     for (const eventType in csvRows) {
-      downloadFile(csvRows[eventType].join("\n"), `cimms_events_${eventType}_export`, "csv");
+      zip.file(`cimms_events_${eventType}_export.csv`, csvRows[eventType].join("\n"));
     }
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, `cimms_events_export.zip`);
+    });
   };
 
   const downloadAssessmentCsvFiles = (data: Assessment[]) => {
@@ -264,9 +279,14 @@ const DataSelectorPage = () => {
       //   }
       csvRows[event.assessmentType].push(Object.values(event).map(sanitizeCsvString).join(","));
     }
+
+    var zip = new JSZip();
     for (const assessmentType in csvRows) {
-      downloadFile(csvRows[assessmentType].join("\n"), `cimms_assessments_${assessmentType}_export`, "csv");
+      zip.file(`cimms_assessments_${assessmentType}_export.csv`, csvRows[assessmentType].join("\n"));
     }
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, `cimms_assessments_export.zip`);
+    });
   };
 
   return (
@@ -282,7 +302,7 @@ const DataSelectorPage = () => {
           py: 8,
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth={false}>
           <Box
             sx={{
               alignItems: "center",

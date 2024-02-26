@@ -5,7 +5,7 @@ import NotificationApi from "../apis/notification-api";
 import { ConnectionOfTravelAssessmentCard } from "../components/assessments/connection-of-travel-assessment";
 import { LaneDirectionOfTravelAssessmentCard } from "../components/assessments/lane-direction-of-travel-assessment";
 import { SignalStateEventAssessmentCard } from "../components/assessments/signal-state-event-assessment";
-import { SignalStateAssessmentCard } from "../components/assessments/signal-state-assessment";
+import { StopLineStopAssessmentCard } from "../components/assessments/stop-line-stop-assessment";
 import { NotificationsTable } from "../components/notifications/notifications-table";
 import React, { useEffect, useState, useRef } from "react";
 import { useDashboardContext } from "../contexts/dashboard-context";
@@ -79,7 +79,7 @@ const Page = () => {
   });
   const { intersectionId, roadRegulatorId } = useDashboardContext();
   // create hooks, and methods for each assessment type:
-  const [signalStateAssessment, setSignalStateAssessment] = useState<StopLineStopAssessment | undefined>(undefined);
+  const [stopLineStopAssessment, setStopLineStopAssessment] = useState<StopLineStopAssessment | undefined>(undefined);
   // create hooks, and methods for each assessment type:
   const [signalStateEventAssessment, setSignalStateEventAssessment] = useState<SignalStateEventAssessment | undefined>(
     undefined
@@ -94,36 +94,36 @@ const Page = () => {
 
   const getAssessments = async () => {
     if (intersectionId && session?.accessToken) {
-      setSignalStateAssessment(
+      setStopLineStopAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_assessment",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as StopLineStopAssessment
       );
       setSignalStateEventAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "signal_state_event_assessment",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as SignalStateEventAssessment
       );
       setConnectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "connection_of_travel",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as ConnectionOfTravelAssessment
       );
       setLaneDirectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
           session?.accessToken,
           "lane_direction_of_travel",
-          intersectionId.toString(),
-          roadRegulatorId?.toString()
+          intersectionId,
+          roadRegulatorId
         )) as LaneDirectionOfTravelAssessment
       );
     } else {
@@ -141,7 +141,8 @@ const Page = () => {
       setNotifications(
         NotificationApi.getActiveNotifications({
           token: session?.accessToken,
-          intersection_id: intersectionId.toString(),
+          intersectionId,
+          roadRegulatorId,
         })
       );
     } else {
@@ -188,19 +189,19 @@ const Page = () => {
       >
         <Container maxWidth={false}>
           <Grid container spacing={3}>
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} small={false} />
+            <Grid item>
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
+            <Grid item>
               <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
+            <Grid item>
+              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
+            </Grid>
+            <Grid item>
               <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
             </Grid>
-            <Grid item xl={3} lg={3} sm={6} xs={12}>
-              <SignalStateAssessmentCard assessment={signalStateAssessment} />
-            </Grid>
-            <Grid item lg={12} md={12} xl={12} xs={12}>
+            <Grid item>
               <NotificationsTable simple={true} />
             </Grid>
           </Grid>

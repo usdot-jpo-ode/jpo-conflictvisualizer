@@ -19,12 +19,7 @@ const ConfigParamRemove = () => {
   const getParameter = async (key: string) => {
     if (session?.accessToken) {
       try {
-        const data = await configParamApi.getParameter(
-          session?.accessToken,
-          key,
-          (roadRegulatorId ?? -1).toString(),
-          (intersectionId ?? -1).toString()
-        );
+        const data = await configParamApi.getParameter(session?.accessToken, key, intersectionId, roadRegulatorId);
 
         setParameter(data);
       } catch (err) {

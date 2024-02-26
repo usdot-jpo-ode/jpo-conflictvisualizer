@@ -34,7 +34,8 @@ type SignalStateFeature = {
 type SignalStateProperties = {
   signalGroup: number;
   intersectionId?: number;
-  color: string;
+  signalState: SignalState;
+  orientation: number;
 };
 
 type PointGemetry = {

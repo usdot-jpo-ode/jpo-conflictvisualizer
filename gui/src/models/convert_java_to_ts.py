@@ -1,7 +1,7 @@
 import re
 import os
 
-matching_expr = r"    [a-zA-Z@ ]*?(?:private|public) (?:final)? ?(?:static)? ?([a-zA-Z0-9_<>]*?) ([a-zA-Z_]*).*?;"
+matching_expr = r"^    (?:[a-zA-Z@]+? )*(?:private )?(?:public )?(?:final )?(?:static )?([a-zA-Z0-9_<>]+?) ([a-zA-Z_]+).*?;"
 matching_expr_extends = r"public class (.*?) extends (.*?)\{"
 matching_expr_interface = r"public interface (.*?)\{"
 
@@ -84,7 +84,13 @@ for file_path in files:
             extension = f"MessageMonitor.{extension_match[0][1]} & " if extension_match else ""
         else:
             extension = f"{extension_match[0][1]} & " if extension_match else ""
-    matches = re.findall(matching_expr, file_contents)
+            
+    matches = []
+    lines = file_contents.split('\n')
+    for l in lines:
+        match = re.search(matching_expr, l)
+        if match: matches.append(match.groups())
+        
     print(matches)
     lines = []
     for var in matches:

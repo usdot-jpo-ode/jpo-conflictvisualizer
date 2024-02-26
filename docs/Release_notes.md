@@ -1,5 +1,20 @@
 ## JPO COnflict Visualizer Release Notes
 
+## Version 1.2.0
+
+### **Summary**
+
+
+Enhancements in this release:
+
+- Added STOMP websocket support to Conflict Visualizer API
+- Added Live Message Viewer (CV-TV) to Conflict Visualizer
+- Converted Configuration Endpoints to call Conflict Monitor API
+- Improved Legends to include better intersection descriptions
+- Fixed bugs preventing report generation
+- Added Page to view previously generated reports
+
+
 ## Version 1.0.0
 
 ### **Summary**

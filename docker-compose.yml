@@ -15,6 +15,7 @@ services:
         GUI_SERVER_URL: ${GUI_SERVER_URL}
         AUTH_SERVER_URL: ${AUTH_SERVER_URL}
         API_SERVER_URL: ${API_SERVER_URL}
+        API_WS_URL: ${API_WS_URL}
     restart: always
     ports:
       - "3000:3000"
@@ -62,6 +63,7 @@ services:
       DB_HOST_IP: ${DB_HOST_IP}
       DB_HOST_PORT: ${DB_HOST_PORT}
       SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
+      CM_SERVER_URL: ${CM_SERVER_URL}
       load: "false"
       #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
@@ -69,6 +71,9 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    depends_on:
+      keycloak:
+        condition: service_started
 
 volumes:
   keycloak:
