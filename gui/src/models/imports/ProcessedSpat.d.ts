@@ -9,7 +9,7 @@ type ProcessedSpat = {
   validationMessages: ProcessedValidationMessage[];
   revision: number;
   status: IntersectionStatusObject;
-  utcTimeStamp: string;
+  utcTimeStamp: number;
   enabledLanes: number[];
   states: MovementState[];
 };
