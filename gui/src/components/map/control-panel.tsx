@@ -292,9 +292,9 @@ function ControlPanel(props: ControlPanelProps) {
         } else if (relativePath.endsWith("_BSM_data.json")) {
           const data = await zipEntry.async("string");
           messageData.bsmData = JSON.parse(data);
-        } else if (relativePath.endsWith("_Notification_data.json")) {
-          const data = await zipEntry.async("string");
-          messageData.notificationData = JSON.parse(data);
+          // } else if (relativePath.endsWith("_Notification_data.json")) {
+          //   const data = await zipEntry.async("string");
+          //   messageData.notificationData = JSON.parse(data);
         } else if (relativePath.endsWith("_SPAT_data.json")) {
           const data = await zipEntry.async("string");
           messageData.spatData = JSON.parse(data);
@@ -335,18 +335,20 @@ function ControlPanel(props: ControlPanelProps) {
                 }}
                 value={timeBefore}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ mt: 4 }}>
-                <DateTimePicker
-                  label="Event Date"
-                  disabled={props.liveDataActive}
-                  value={dayjs(eventTime ?? new Date())}
-                  onChange={(e) => {
-                    setEventTime(e);
-                    //?.toDate()!
-                  }}
-                  renderInput={(params) => <TextField {...params} />}
-                />
-              </LocalizationProvider>
+              <div style={{ marginTop: "9px", display: "inline-flex" }}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    label="Event Date"
+                    disabled={props.liveDataActive}
+                    value={dayjs(eventTime ?? new Date())}
+                    onChange={(e) => {
+                      setEventTime(e);
+                      //?.toDate()!
+                    }}
+                    renderInput={(params) => <TextField {...params} />}
+                  />
+                </LocalizationProvider>
+              </div>
               <TextField
                 // fullWidth
                 label="Time After Event"
@@ -475,14 +477,18 @@ function ControlPanel(props: ControlPanelProps) {
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Lane IDs </h4>
               <Checkbox
                 checked={props.laneLabelsVisible}
-                onChange={(event) => props.setLaneLabelsVisible(event.target.checked)}
+                onChange={(event) => {
+                  props.setLaneLabelsVisible(event.target.checked);
+                }}
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Signal Group IDs </h4>
               <Checkbox
                 checked={props.sigGroupLabelsVisible}
-                onChange={(event) => props.setSigGroupLabelsVisible(event.target.checked)}
+                onChange={(event) => {
+                  props.setSigGroupLabelsVisible(event.target.checked);
+                }}
               />
             </div>
             <div>
