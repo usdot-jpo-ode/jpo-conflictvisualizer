@@ -1,0 +1,74 @@
+version: "3"
+services:
+  conflictvisualizer-gui:
+    build:
+      context: gui
+      dockerfile: Dockerfile
+      args:
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        NEXTAUTH_URL: ${NEXTAUTH_URL}
+        KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+        KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+        KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+        MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+        MAPBOX_STYLE_URL: ${MAPBOX_STYLE_URL}
+        GUI_SERVER_URL: ${GUI_SERVER_URL}
+        AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+        API_SERVER_URL: ${API_SERVER_URL}
+        API_WS_URL: ${API_WS_URL}
+    restart: always
+    ports:
+      - "3000:3000"
+    image: jpo-conflictvisualizer-gui:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  keycloak:
+    image: usdotjpoode/jpo-conflictvisualizer-keycloak
+    container_name: jpo-conflictvisualizer-keycloak
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      GUI_SERVER_URL: ${GUI_SERVER_URL}
+      API_SERVER_URL: ${API_SERVER_URL}
+    command:
+      - start-dev
+      - --log-level=INFO
+      - --import-realm
+      - --proxy edge
+    volumes:
+      - keycloak:/opt/keycloak/data/
+      - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
+    ports:
+      - "8084:8080"
+
+  conflictvisualizer-api:
+    ports:
+      - "8081:8081"
+    image: usdotjpoode/jpo-conflictvisualizer-api:release_1.2.0
+    restart: always
+    environment:
+      AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      DB_HOST_IP: ${DB_HOST_IP}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
+      CM_SERVER_URL: ${CM_SERVER_URL}
+      load: "false"
+      #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
+      #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      keycloak:
+        condition: service_started
+
+volumes:
+  keycloak:
