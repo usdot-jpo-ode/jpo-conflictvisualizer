@@ -121,7 +121,7 @@ The below section provides additional instruction on how to setup the conflict v
 
 The conflict visualizer API requires the following dependencies be installed to run locally
 
-- Java 11
+- Java 21
 - Maven
 
 Additionally there are other dependencies installed through maven.
@@ -163,6 +163,31 @@ npm run dev
 ### 3. Running Smtp4dev
 
 An Smtp4dev server can be used locally to test the Email capabilities of the conflict monitor API and GUI: [smtp4dev](https://github.com/rnwood/smtp4dev). Once running, this server can be connected to the api and GUI.
+
+## Release Environment
+
+While the above steps outline the procedures for building the entire Conflict Visualizer and API from Source, the Conflict Visualizer can also be built using prebuilt docker images released on dockerhub. These images can either be run individually, or can be run in a configuration using the release-compose.yml docker compose file.
+
+### Pulling Images Individually
+Keycloak
+```
+docker pull usdotjpoode/jpo-conflictvisualizer-keycloak
+```
+
+Conflict Visualizer API
+```
+docker pull usdotjpoode/jpo-conflictvisualizer-api
+```
+
+*There is currently no release build for the conflictvisualizer UI. However, since the visualizer doesn't depend on other ode components, it can be built without pulling ode submodules if needed.
+
+## Building with Release Compose
+To build with the release-compose file. First setup the .env file described [here](#5.-Setup-Docker-Environment-Variables)
+
+After configuring the Environment Variables, bring the conflict monitor up using the following
+```
+docker-compose -f release-compose.yml up --build -d 
+```
 
 ## Current State of the Project
 
