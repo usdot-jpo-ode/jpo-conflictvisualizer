@@ -415,6 +415,7 @@ const MapTab = (props: MyProps) => {
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
+  const [playbackModeActive, setPlaybackModeActive] = useState<boolean>(false);
   const [___, setCurrentBsmData] = useState<BsmFeatureCollection>({
     type: "FeatureCollection",
     features: [],
@@ -899,6 +900,29 @@ const MapTab = (props: MyProps) => {
       )
     );
   };
+  // Increment sliderValue by 1 every second when playbackModeActive is true
+  useEffect(() => {
+    if (playbackModeActive) {
+      const interval = setInterval(() => {
+        setSliderValue(prevSliderValue => prevSliderValue + 1);
+      }, 1000);
+
+      // Clear interval on component unmount
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [playbackModeActive]);  
+
+
+  useEffect(() => {
+    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate)
+     if (sliderValue >= (endTime)) {
+      setSliderValue(endTime);
+      setPlaybackModeActive(false);
+      }
+}, [sliderValue]);
+
 
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
     const start = Date.now();
@@ -1446,6 +1470,8 @@ const MapTab = (props: MyProps) => {
                 setLiveDataActive={setLiveDataActive}
                 bsmTrailLength={bsmTrailLength}
                 setBsmTrailLength={setBsmTrailLength}
+                playbackModeActive={playbackModeActive}
+                setPlaybackModeActive={setPlaybackModeActive}
                 rawData={rawData}
               />
             </Paper>
