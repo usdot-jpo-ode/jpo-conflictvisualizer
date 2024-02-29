@@ -132,9 +132,10 @@ export const DashboardNavbar = (props: Props) => {
                 {intersections.map((intersection) => {
                   return (
                     <MenuItem value={intersection?.intersectionID} key={intersection?.intersectionID}>
-                      {intersection?.intersectionID ?? "" + intersection?.intersectionName
-                        ? ": " + intersection?.intersectionName
-                        : ""}
+                      {intersection?.intersectionID == -1
+                        ? "No Intersection"
+                        : intersection?.intersectionID +
+                          (intersection?.intersectionName ? ": " + intersection?.intersectionName : "")}
                     </MenuItem>
                   );
                 })}
