@@ -375,7 +375,10 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setTimeWindowSeconds(e.target.value);
+                  if(e.target.value === "" || Number.isInteger(Number(e.target.value)))
+                  {
+                    setTimeWindowSeconds(e.target.value);
+                  }
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,

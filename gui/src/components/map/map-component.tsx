@@ -951,13 +951,14 @@ const MapTab = (props: MyProps) => {
     if (playbackModeActive) {
       const interval = setInterval(() => {
         setSliderValue(prevSliderValue => prevSliderValue + 1);
-      }, 1000);
 
+      }, 100);
       // Clear interval on component unmount
       return () => {
         clearInterval(interval);
       };
     }
+    return () => {};
   }, [playbackModeActive]);  
 
 
@@ -1232,14 +1233,14 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     const startTime = queryParams.startDate.getTime() / 1000; // seconds
 
-    const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
-    const filteredEndTime = startTime + sliderValue;
+    const filteredStartTime = startTime + (sliderValue / 10) - timeWindowSeconds;
+    const filteredEndTime = startTime + (sliderValue / 10);
 
     setRenderTimeInterval([filteredStartTime, filteredEndTime]);
   }, [sliderValue, queryParams, timeWindowSeconds]);
 
   const getTimeRange = (startDate: Date, endDate: Date) => {
-    return (endDate.getTime() - startDate.getTime()) / 1000;
+    return (endDate.getTime() - startDate.getTime()) / 100;
   };
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
@@ -1455,8 +1456,8 @@ const MapTab = (props: MyProps) => {
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}
                 sliderTimeValue={{
-                  start: new Date((queryParams.startDate.getTime() / 1000 + sliderValue - timeWindowSeconds) * 1000),
-                  end: new Date((queryParams.startDate.getTime() / 1000 + sliderValue) * 1000),
+                  start: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10) - timeWindowSeconds) * 1000),
+                  end: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10)) * 1000),
                 }}
                 setSlider={handleSliderChange}
                 downloadAllData={downloadAllData}
