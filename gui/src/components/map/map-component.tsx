@@ -20,6 +20,7 @@ import { MapLegend } from "./map-legend";
 import toast from "react-hot-toast";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
+import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
@@ -27,11 +28,6 @@ import { set } from "date-fns";
 const { publicRuntimeConfig } = getConfig();
 
 const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
-
-const emptyGeoJSON: GeoJSON.FeatureCollection = {
-  type: "FeatureCollection",
-  features: [],
-};
 
 const mapMessageLayer: LineLayer = {
   id: "mapMessage",
@@ -394,7 +390,7 @@ const MapTab = (props: MyProps) => {
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
   const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(false);
-  const [bsmTrailLength, setBsmTrailLength] = useState<number>(20);
+  const [bsmTrailLength, setBsmTrailLength] = useState<number>(5);
   const [importedMessageData, setImportedMessageData] = useState<
     | {
         mapData: ProcessedMap[];
@@ -409,7 +405,6 @@ const MapTab = (props: MyProps) => {
   const [loadInitialDataTimeoutId, setLoadInitialdataTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const { data: session } = useSession();
   const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
-  const [wsClientTimer, setWsClientTimer] = useState<NodeJS.Timer | undefined>(undefined);
 
   const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
@@ -452,29 +447,14 @@ const MapTab = (props: MyProps) => {
     const features: SignalStateFeature[] = [];
 
     mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
-      if (
-        !mapFeature.properties.ingressApproach ||
-        !mapFeature.properties.connectsTo ||
-        mapFeature.properties.connectsTo.length == 0
-      ) {
+      if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
         return;
       }
       const coords = mapFeature.geometry.coordinates.slice(0, 2);
-      let signalGroup = mapFeature.properties.connectsTo[0].signalGroup;
-      if (mapFeature.properties.connectsTo.length >= 1) {
-        for (const connection of mapFeature.properties.connectsTo) {
-          if (connection.signalGroup != null) {
-            signalGroup = connection.signalGroup;
-          }
-        }
-      }
-      if (signalGroup == null) {
-        return;
-      }
       features.push({
         type: "Feature",
         properties: {
-          signalGroup: signalGroup,
+          signalGroup: mapFeature.properties.connectsTo[0].signalGroup,
           intersectionId: mapMessage.properties.intersectionId,
           orientation: getBearingBetweenPoints(coords[1], coords[0]),
           signalState: "UNAVAILABLE",
@@ -628,8 +608,74 @@ const MapTab = (props: MyProps) => {
 
   const addConnections = (
     connectingLanes: ConnectingLanesFeatureCollection,
-    signalGroups: SpatSignalGroup[]
+    signalGroups: SpatSignalGroup[],
+    mapFeatures: MapFeatureCollection
   ): ConnectingLanesFeatureCollectionWithSignalState => {
+
+    //bounding box representing the edges of the intersection
+    var bbox = turf.bbox(connectingLanes);
+
+    //for each connecting lane, fetch its ingress and egress lanes
+    connectingLanes.features?.forEach((connectionFeature: ConnectingLanesFeature) => {
+      var ingressLaneId = connectionFeature.properties.ingressLaneId;
+      var egressLaneId = connectionFeature.properties.egressLaneId;
+      var ingressLane = mapFeatures.features.find(feature => feature.id === ingressLaneId)
+      var egressLane = mapFeatures.features.find(feature => feature.id === egressLaneId)
+
+      if (ingressLane && egressLane) {
+        var ingressCoords = ingressLane.geometry.coordinates;
+        var egressCoords = egressLane.geometry.coordinates;
+
+        var ingressBearing = turf.bearing(ingressCoords[1], ingressCoords[0]);
+        var egressBearing = turf.bearing(egressCoords[1], egressCoords[0]);
+
+        //project the ingress/egress lanes through the intersection to the edge of the bbox
+        var ingressLine = turf.lineString([ingressCoords[0], turf.destination(ingressCoords[0], 0.05, ingressBearing).geometry.coordinates]);
+        var egressLine = turf.lineString([egressCoords[0], turf.destination(egressCoords[0], 0.05, egressBearing).geometry.coordinates]);
+        var clippedIngress = turf.bboxClip(ingressLine, bbox);
+        var clippedEgress = turf.bboxClip(egressLine, bbox);
+        
+        //find the intersection point of the projected lanes, if it exists
+        var intersect = turf.lineIntersect(clippedIngress.geometry, clippedEgress.geometry);
+
+        //if the lanes intersect within the intersection, this is a ~90 degree turn and we add 1 more point to round the curve
+        if (intersect.features.length > 0) {
+          var intersectPoint = intersect.features[0].geometry.coordinates;
+          //the intersection would overshoot the curve, so curveMidpoint is a weighted average the intersection and connectingLanes edges
+          var curveMidpoint = turf.centroid(turf.points([ingressCoords[0], egressCoords[0],
+            intersectPoint, intersectPoint, intersectPoint]));
+
+          var connectingLaneLine = turf.lineString([
+            ingressCoords[0],
+            curveMidpoint.geometry.coordinates,
+            egressCoords[0],
+          ]);
+          var curve = turf.bezierSpline(connectingLaneLine);
+          connectionFeature.geometry = curve.geometry;
+        }
+
+        //If the ingress and egress lanes are going in generally opposite directions and didn't intersect, use the U-turn calculations 
+        else if (Math.abs(ingressBearing - egressBearing) < 45){
+        //this formula was found experimentally to give a round curve and allow parallel curving lanes to not intersect
+        var leadupLength = (Math.min(turf.distance(ingressCoords[0], egressCoords[0]) * -7 + 0.045, -0.02));
+
+        var normalizedIngressPoint = turf.destination(ingressCoords[0], leadupLength, ingressBearing);
+        var normalizedEgressPoint = turf.destination(egressCoords[0], leadupLength, egressBearing);
+        var connectingLaneLine = turf.lineString([
+          normalizedIngressPoint.geometry.coordinates,
+          ingressCoords[0],
+          egressCoords[0],
+          normalizedEgressPoint.geometry.coordinates]);
+
+        var rawCurve = turf.bezierSpline(connectingLaneLine);
+        //slice the curve back to remove the redundant ends
+        var curve = turf.lineSlice(ingressCoords[0], egressCoords[0], rawCurve);
+        connectionFeature.geometry = curve.geometry;
+        }
+        //anything else is mostly straight and doesn't require a bezier curve
+      }
+    });
+
     return {
       ...connectingLanes,
       features: connectingLanes.features.map((feature) => ({
@@ -1074,7 +1120,7 @@ const MapTab = (props: MyProps) => {
       setQueryParams(query_params);
       if (liveDataActive && session?.accessToken && props.roadRegulatorId && props.intersectionId) {
         cleanUpLiveStreaming();
-        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId, true);
+        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
       }
     }
   }, [props.intersectionId, props.roadRegulatorId]);
@@ -1214,7 +1260,9 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     if (liveDataActive) {
       if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
-        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId, true);
+        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
+        onTimeQueryChanged(new Date(), 10, 0, 5);
+        if (bsmTrailLength > 15) setBsmTrailLength(5);
         setRawData({});
       } else {
         console.error(
@@ -1227,6 +1275,7 @@ const MapTab = (props: MyProps) => {
         );
       }
     } else {
+      if (bsmTrailLength < 15) setBsmTrailLength(20);
       cleanUpLiveStreaming();
     }
   }, [liveDataActive]);
@@ -1246,30 +1295,9 @@ const MapTab = (props: MyProps) => {
     return sliderValue;
   };
 
-  const initializeLiveStreaming = (
-    token: string,
-    roadRegulatorId: number,
-    intersectionId: number,
-    zoomToMap: boolean = true,
-    lastRetryTime: Date = new Date(),
-    numRetries: number = 3
-  ) => {
-    cleanUpLiveStreaming();
-    const connectionAttemptTime = new Date();
-    if (connectionAttemptTime.getTime() - lastRetryTime.getTime() < 10 * 1000) {
-      if (numRetries <= 0) {
-        console.error("Failed to initialize live streaming consecutively");
-        return;
-      } else {
-        console.debug("Waiting 1000ms to re-initialize live streaming");
-        setTimeout(() => {
-          initializeLiveStreaming(token, roadRegulatorId, intersectionId, true, connectionAttemptTime, numRetries - 1);
-        }, 1000);
-      }
-    }
+  const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
     // Connect to WebSocket when component mounts
     onTimeQueryChanged(new Date(), 10, 0, 2);
-    setBsmTrailLength(5);
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
@@ -1287,7 +1315,6 @@ const MapTab = (props: MyProps) => {
     let spatTime = Date.now();
     let mapTime = Date.now();
     let bsmTime = Date.now();
-
     client.connect(
       {
         // "username": "test",
@@ -1305,18 +1332,6 @@ const MapTab = (props: MyProps) => {
 
         client.subscribe(mapTopic, function (mes: IMessage) {
           const mapMessage: ProcessedMap = JSON.parse(mes.body);
-          if (
-            zoomToMap &&
-            mapData?.properties.refPoint.latitude != undefined &&
-            mapData?.properties.refPoint.latitude != 0
-          ) {
-            setViewState({
-              latitude: mapData?.properties.refPoint.latitude,
-              longitude: mapData?.properties.refPoint.longitude,
-              zoom: 19,
-            });
-            zoomToMap = false;
-          }
           console.debug("Received MAP message " + (Date.now() - mapTime) + " ms");
           mapTime = Date.now();
           setCurrentMapData((prevValue) => renderIterative_Map(prevValue, [mapMessage]));
@@ -1333,22 +1348,7 @@ const MapTab = (props: MyProps) => {
       },
       (error) => {
         console.error("ERROR connecting to live data Websockets", error);
-        initializeLiveStreaming(
-          token,
-          roadRegulatorId,
-          intersectionId,
-          zoomToMap,
-          connectionAttemptTime,
-          numRetries - 1
-        );
       }
-    );
-
-    // trigger the heartbeat once every 10 seconds
-    setWsClientTimer(
-      setInterval(() => {
-        client.send("/live/heartbeat", {}, "keepalive");
-      }, 10 * 1000)
     );
 
     setWsClient(client);
@@ -1360,12 +1360,19 @@ const MapTab = (props: MyProps) => {
         console.debug("Disconnected from STOMP endpoint");
       });
     }
-    if (wsClientTimer) {
-      clearInterval(wsClientTimer);
-    }
     setWsClient(undefined);
-    setWsClientTimer(undefined);
-    setBsmTrailLength(20);
+    setTimeWindowSeconds(60);
+  };
+
+  const downloadJsonFile = (contents: any, name: string) => {
+    const element = document.createElement("a");
+    const file = new Blob([JSON.stringify(contents)], {
+      type: "text/plain",
+    });
+    element.href = URL.createObjectURL(file);
+    element.download = name;
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
   };
 
   const downloadAllData = () => {
@@ -1536,17 +1543,28 @@ const MapTab = (props: MyProps) => {
             setHoveredFeature(undefined);
           }}
         >
-          <Source type="geojson" data={mapData?.mapFeatureCollection ?? emptyGeoJSON}>
+          <Source type="geojson" data={mapData?.mapFeatureCollection}>
             <Layer {...mapMessageLayer} />
+          </Source>
+          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
+            <Layer {...mapMessageLabelsLayer} />
+          </Source>
+          <Source
+            type="geojson"
+            data={connectingLanes && currentSignalGroups && mapData?.mapFeatureCollection &&
+              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)}
+          >
+            <Layer {...connectingLanesLayer} />
           </Source>
           <Source
             type="geojson"
             data={
-              (connectingLanes && currentSignalGroups && addConnections(connectingLanes, currentSignalGroups)) ??
-              emptyGeoJSON
+              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
+                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+                : undefined
             }
           >
-            <Layer {...connectingLanesLayer} />
+            <Layer {...connectingLanesLabelsLayer} />
           </Source>
           <Source
             type="geojson"
@@ -1557,32 +1575,16 @@ const MapTab = (props: MyProps) => {
                     props.sourceData as MessageMonitor.Notification,
                     mapData.mapFeatureCollection
                   )
-                : undefined ?? emptyGeoJSON
+                : undefined
             }
           >
             <Layer {...markerLayer} />
           </Source>
-          <Source type="geojson" data={currentBsms ?? emptyGeoJSON}>
+          <Source type="geojson" data={currentBsms}>
             <Layer {...bsmLayerStyle} />
           </Source>
-          <Source
-            type="geojson"
-            data={connectingLanes && currentSignalGroups ? signalStateData : undefined ?? emptyGeoJSON}
-          >
+          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
             <Layer {...signalStateLayer} />
-          </Source>
-          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined ?? emptyGeoJSON}>
-            <Layer {...mapMessageLabelsLayer} />
-          </Source>
-          <Source
-            type="geojson"
-            data={
-              connectingLanes && currentSignalGroups && sigGroupLabelsVisible
-                ? addConnections(connectingLanes, currentSignalGroups)
-                : undefined ?? emptyGeoJSON
-            }
-          >
-            <Layer {...connectingLanesLabelsLayer} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
