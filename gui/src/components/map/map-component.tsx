@@ -410,6 +410,7 @@ const MapTab = (props: MyProps) => {
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
+  const [playbackModeActive, setPlaybackModeActive] = useState<boolean>(false);
   const [___, setCurrentBsmData] = useState<BsmFeatureCollection>({
     type: "FeatureCollection",
     features: [],
@@ -945,6 +946,30 @@ const MapTab = (props: MyProps) => {
       )
     );
   };
+  // Increment sliderValue by 1 every second when playbackModeActive is true
+  useEffect(() => {
+    if (playbackModeActive) {
+      const interval = setInterval(() => {
+        setSliderValue(prevSliderValue => prevSliderValue + 1);
+
+      }, 100);
+      // Clear interval on component unmount
+      return () => {
+        clearInterval(interval);
+      };
+    }
+    return () => {};
+  }, [playbackModeActive]);  
+
+
+  useEffect(() => {
+    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate)
+     if (sliderValue >= (endTime)) {
+      setSliderValue(endTime);
+      setPlaybackModeActive(false);
+      }
+}, [sliderValue]);
+
 
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
     const start = Date.now();
@@ -1208,14 +1233,14 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     const startTime = queryParams.startDate.getTime() / 1000; // seconds
 
-    const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
-    const filteredEndTime = startTime + sliderValue;
+    const filteredStartTime = startTime + (sliderValue / 10) - timeWindowSeconds;
+    const filteredEndTime = startTime + (sliderValue / 10);
 
     setRenderTimeInterval([filteredStartTime, filteredEndTime]);
   }, [sliderValue, queryParams, timeWindowSeconds]);
 
   const getTimeRange = (startDate: Date, endDate: Date) => {
-    return (endDate.getTime() - startDate.getTime()) / 1000;
+    return (endDate.getTime() - startDate.getTime()) / 100;
   };
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
@@ -1431,8 +1456,8 @@ const MapTab = (props: MyProps) => {
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}
                 sliderTimeValue={{
-                  start: new Date((queryParams.startDate.getTime() / 1000 + sliderValue - timeWindowSeconds) * 1000),
-                  end: new Date((queryParams.startDate.getTime() / 1000 + sliderValue) * 1000),
+                  start: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10) - timeWindowSeconds) * 1000),
+                  end: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10)) * 1000),
                 }}
                 setSlider={handleSliderChange}
                 downloadAllData={downloadAllData}
@@ -1453,6 +1478,8 @@ const MapTab = (props: MyProps) => {
                 setLiveDataActive={setLiveDataActive}
                 bsmTrailLength={bsmTrailLength}
                 setBsmTrailLength={setBsmTrailLength}
+                playbackModeActive={playbackModeActive}
+                setPlaybackModeActive={setPlaybackModeActive}
                 rawData={rawData}
               />
             </Paper>

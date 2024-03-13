@@ -15,6 +15,9 @@ import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
 import { LayerProps } from "react-map-gl";
 import ScrollBar from "react-perfect-scrollbar";
+import pauseIcon from '../../../public/pause.png';
+import playIcon from '../../../public/play.png';
+
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -80,6 +83,8 @@ interface ControlPanelProps {
   setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
   bsmTrailLength: number;
   setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
+  playbackModeActive: boolean;
+  setPlaybackModeActive: React.Dispatch<React.SetStateAction<boolean>>;
   rawData: {
     map?: ProcessedMap[];
     spat?: ProcessedSpat[];
@@ -370,7 +375,10 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  setTimeWindowSeconds(e.target.value);
+                  if(e.target.value === "" || Number.isInteger(Number(e.target.value)))
+                  {
+                    setTimeWindowSeconds(e.target.value);
+                  }
                 }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">seconds</InputAdornment>,
@@ -513,16 +521,25 @@ function ControlPanel(props: ControlPanelProps) {
           </div>
         </AccordionDetails>
       </Accordion>
-
-      <Slider
-        sx={{ ml: 2, width: "calc(100% - 60px)" }}
-        value={props.sliderValue}
-        onChange={props.setSlider}
-        min={0}
-        max={props.max}
-        valueLabelDisplay="auto"
-        disableSwap
-      />
+      <div style={{ display: 'flex', alignItems: 'center' , marginTop: '1rem'}}>
+        <button
+          style={{ marginLeft: '1rem', border: 'none', background: 'none' }}
+          onClick={() => {
+            props.setPlaybackModeActive((prevValue) => !prevValue);
+          }}
+        >
+          {props.playbackModeActive ? <img src={pauseIcon.src} alt="Pause" /> : <img src={playIcon.src} alt="Play" />}
+        </button>
+        <Slider
+          sx={{ ml: 2, width: "calc(100% - 80px)" }}
+          value={props.sliderValue}
+          onChange={props.setSlider}
+          min={0}
+          max={props.max}
+          valueLabelDisplay="auto"
+          disableSwap
+        />
+      </div>
     </div>
   );
 }
