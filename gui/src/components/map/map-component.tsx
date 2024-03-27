@@ -810,13 +810,22 @@ const MapTab = (props: MyProps) => {
       surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
       // ######################### BSM Events By Minute #########################
+      const dayStart = new Date(queryParams.startDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(queryParams.startDate);
+      dayEnd.setHours(23, 59, 59, 0);
+
       const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
         session?.accessToken,
         queryParams.intersectionId,
         queryParams.startDate,
         queryParams.endDate,
+        dayStart,
+        dayEnd,
         { test: true }
       );
+      console.log("Start and End Dates", queryParams.startDate, queryParams.endDate);
+      console.log("dayStart and dayEnd", dayStart, dayEnd);
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
       setRawData((prevValue) => ({ ...prevValue, bsmEventsByMinute: BsmEventsByMinute }));
 

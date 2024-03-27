@@ -363,7 +363,7 @@ function ControlPanel(props: ControlPanelProps) {
       y={y-1}
       width={12}
       height={height+3}
-      fill="#10B981"
+      fill={(reformattedTimelineData != null && reformattedTimelineData.length > 0)? "#10B981" : "transparent"}
       style={{ pointerEvents: 'none' }}
     />
   );
@@ -538,7 +538,7 @@ function ControlPanel(props: ControlPanelProps) {
             </h4>
             <ResponsiveContainer width="100%" height={50}>
               <BarChart data={reformattedTimelineData} barGap={0} barCategoryGap={0} onClick={(data) => {
-                if(data !== null && data.activePayload !== undefined){
+                if(data !== null && data.activePayload !== undefined && data.activePayload !== null){
                   setEventTime(dayjs(data.activePayload[0].payload.msTime));
                 }
               }}>
