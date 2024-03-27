@@ -85,7 +85,7 @@ class EventsApi {
     startTime: Date,
     endTime: Date,
     { test = false }: { test?: boolean } = {}
-  ): Promise<MessageMonitor.Event[]> {
+  ): Promise<MessageMonitor.MinuteCount[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
       start_time_utc_millis: startTime.getTime().toString(),
@@ -100,7 +100,7 @@ class EventsApi {
       queryParams: queryParams,
       failureMessage: `Failed to retrieve bsm events by minute`,
     });
-    return response ?? ([] as MessageMonitor.Event[]);
+    return response ?? ([] as MessageMonitor.MinuteCount[]);
   }
 }
 

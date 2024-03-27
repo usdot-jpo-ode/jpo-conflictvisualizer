@@ -93,7 +93,7 @@ interface ControlPanelProps {
     notification?: MessageMonitor.Notification;
     event?: MessageMonitor.Event;
     assessment?: Assessment;
-    bsmEventsByMinute?: MessageMonitor.Event[];
+    bsmEventsByMinute?: MessageMonitor.MinuteCount[];
   };
 }
 
@@ -291,59 +291,16 @@ function ControlPanel(props: ControlPanelProps) {
       const mins = minutes % 60;
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     };
-    
-    function bsmByMinute() {
-      return [
-        {
-          msTime: 1710241665397,
-          count: 270,
-        },
-        {
-          msTime: 1710288665397,
-          count: 5,
-        },
-        {
-          msTime: 1710781635397,
-          count: 160,
-        },
-        {
-          msTime: 1710587665397,
-          count: 138,
-        },
-        {
-          msTime: 1710281665397,
-          count: 191,
-        },
-        {
-          msTime: 1710236665397,
-          count: 211,
-        },
-        {
-          msTime: 1711281365397,
-          count: 134,
-        },
-      ];
-    }
 
     const reformattedTimelineData = props.rawData.bsmEventsByMinute?.map(item => {
-      console.log("BSM Events: ", props.rawData.bsmEventsByMinute);
-      const minutesAfterMidnight = Math.floor(item.minute) % 1440;
+      const date = new Date(item.minute);
+      const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
       return {
-      ...item,
-      minutesAfterMidnight,
-      timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
+        ...item,
+        minutesAfterMidnight,
+        timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
       };
     });
-
-    // const reformattedTimelineData = bsmByMinute().map(item => {
-    //   console.log("BSM Events: ", props.rawData.bsmEventsByMinute);
-    //   const minutesAfterMidnight = Math.floor(item.msTime / 60 / 1000) % 1440;
-    //   return {
-    //   ...item,
-    //   minutesAfterMidnight,
-    //   timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-    //   };
-    // });
 
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -357,20 +314,37 @@ function ControlPanel(props: ControlPanelProps) {
     return null;
   };
 
-  const TimelineCursor = ({ x, y, width, height }) => (
-    <rect
-      x={(x+width/2)-6}
-      y={y-1}
-      width={12}
-      height={height+3}
-      fill={(reformattedTimelineData != null && reformattedTimelineData.length > 0)? "#10B981" : "transparent"}
-      style={{ pointerEvents: 'none' }}
-    />
-  );
+  interface TimelineCursorProps {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  }
 
-  const TimelineAxisTick = ({ x, y, payload }) => {
-    const timeString = formatMinutesAfterMidnightTime(payload.value);
+  const TimelineCursor: React.FC<TimelineCursorProps> = ({ x = 0, y = 0, width = 0, height = 0 }) => {
+    // Your component logic here
+    return (
+      <rect
+        x={(x+width/2)-6}
+        y={y-1}
+        width={12}
+        height={height+3}
+        fill={(reformattedTimelineData != null && reformattedTimelineData.length > 0)? "#10B981" : "transparent"}
+        style={{ pointerEvents: 'none' }}
+      />
+    );
+  };
 
+  interface TimelineAxisTickProps {
+    x?: number;
+    y?: number;
+    payload?: {
+      value: any;
+    };
+  }
+
+  const TimelineAxisTick: React.FC<TimelineAxisTickProps> = ({ x = 0, y = 0, payload }) => {
+    const timeString = formatMinutesAfterMidnightTime(payload?.value);
     return (
       <g transform={`translate(${x},${y})`}>
         <text x={0} y={0} dy={0} textAnchor="middle">
@@ -539,7 +513,7 @@ function ControlPanel(props: ControlPanelProps) {
             <ResponsiveContainer width="100%" height={50}>
               <BarChart data={reformattedTimelineData} barGap={0} barCategoryGap={0} onClick={(data) => {
                 if(data !== null && data.activePayload !== undefined && data.activePayload !== null){
-                  setEventTime(dayjs(data.activePayload[0].payload.msTime));
+                  setEventTime(dayjs(data.activePayload[0].payload.minute));
                 }
               }}>
                 <XAxis dataKey="minutesAfterMidnight" type="number" mirror domain={[0,1440]} tick={<TimelineAxisTick />} ticks={timelineTicks}/>

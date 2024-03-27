@@ -367,7 +367,7 @@ const MapTab = (props: MyProps) => {
   const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
     MessageMonitor.Notification[]
   >([]);
-  const [BsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.Event[]>([]);
+  const [BsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.MinuteCount[]>([]);
   //   const mapRef = useRef<mapboxgl.Map>();
   const [viewState, setViewState] = useState({
     latitude: 39.587905,
@@ -387,7 +387,7 @@ const MapTab = (props: MyProps) => {
     notification?: MessageMonitor.Notification;
     event?: MessageMonitor.Event;
     assessment?: Assessment;
-    bsmEventsByMinute?: MessageMonitor.Event[];
+    bsmEventsByMinute?: MessageMonitor.MinuteCount[];
   }>({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
@@ -822,8 +822,6 @@ const MapTab = (props: MyProps) => {
         dayEnd,
         { test: true }
       );
-      console.log("Start and End Dates", queryParams.startDate, queryParams.endDate);
-      console.log("dayStart and dayEnd", dayStart, dayEnd);
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
       setRawData((prevValue) => ({ ...prevValue, bsmEventsByMinute: BsmEventsByMinute }));
 
