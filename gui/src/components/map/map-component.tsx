@@ -818,8 +818,6 @@ const MapTab = (props: MyProps) => {
       const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
         session?.accessToken,
         queryParams.intersectionId,
-        queryParams.startDate,
-        queryParams.endDate,
         dayStart,
         dayEnd,
         { test: true }
