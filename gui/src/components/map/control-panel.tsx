@@ -347,7 +347,7 @@ function ControlPanel(props: ControlPanelProps) {
     const timeString = formatMinutesAfterMidnightTime(payload?.value);
     return (
       <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={0} textAnchor="middle">
+        <text x={0} y={0} dy={10} textAnchor="middle">
           {timeString}
         </text>
       </g>
@@ -510,13 +510,17 @@ function ControlPanel(props: ControlPanelProps) {
                 ? "No Data"
                 : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
-            <ResponsiveContainer width="100%" height={50}>
+            <h4>
+              Activity Chart for {format(props.sliderTimeValue.start, "MM/dd/yyyy")}:
+            </h4>
+
+            <ResponsiveContainer width="100%" height={80}>
               <BarChart data={reformattedTimelineData} barGap={0} barCategoryGap={0} onClick={(data) => {
                 if(data !== null && data.activePayload !== undefined && data.activePayload !== null){
                   setEventTime(dayjs(data.activePayload[0].payload.minute));
                 }
               }}>
-                <XAxis dataKey="minutesAfterMidnight" type="number" mirror domain={[0,1440]} tick={<TimelineAxisTick />} ticks={timelineTicks}/>
+                <XAxis dataKey="minutesAfterMidnight" type="number" domain={[0,1440]} tick={<TimelineAxisTick />} ticks={timelineTicks}/>
                 <Bar dataKey="count" fill="#D14343" barSize={10} minPointSize={10}>
                 </Bar>
                 <Tooltip
