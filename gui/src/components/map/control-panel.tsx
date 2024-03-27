@@ -292,15 +292,58 @@ function ControlPanel(props: ControlPanelProps) {
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     };
     
-    const reformattedTimelineData = bsmByMinute().map(item => {
-      console.log("BSM Events: ", props.rawData?.bsmEventsByMinute);
-      const minutesAfterMidnight = Math.floor(item.msTime / 60 / 1000) % 1440;
+    function bsmByMinute() {
+      return [
+        {
+          msTime: 1710241665397,
+          count: 270,
+        },
+        {
+          msTime: 1710288665397,
+          count: 5,
+        },
+        {
+          msTime: 1710781635397,
+          count: 160,
+        },
+        {
+          msTime: 1710587665397,
+          count: 138,
+        },
+        {
+          msTime: 1710281665397,
+          count: 191,
+        },
+        {
+          msTime: 1710236665397,
+          count: 211,
+        },
+        {
+          msTime: 1711281365397,
+          count: 134,
+        },
+      ];
+    }
+
+    const reformattedTimelineData = props.rawData.bsmEventsByMinute?.map(item => {
+      console.log("BSM Events: ", props.rawData.bsmEventsByMinute);
+      const minutesAfterMidnight = Math.floor(item.minute) % 1440;
       return {
       ...item,
       minutesAfterMidnight,
       timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
       };
     });
+
+    // const reformattedTimelineData = bsmByMinute().map(item => {
+    //   console.log("BSM Events: ", props.rawData.bsmEventsByMinute);
+    //   const minutesAfterMidnight = Math.floor(item.msTime / 60 / 1000) % 1440;
+    //   return {
+    //   ...item,
+    //   minutesAfterMidnight,
+    //   timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
+    //   };
+    // });
 
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
