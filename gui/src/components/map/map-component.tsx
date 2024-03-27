@@ -820,7 +820,7 @@ const MapTab = (props: MyProps) => {
         queryParams.intersectionId,
         dayStart,
         dayEnd,
-        { test: true }
+        { test: false }
       );
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
       setRawData((prevValue) => ({ ...prevValue, bsmEventsByMinute: BsmEventsByMinute }));
