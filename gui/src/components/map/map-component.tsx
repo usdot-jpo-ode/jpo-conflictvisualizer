@@ -24,6 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -366,6 +367,7 @@ const MapTab = (props: MyProps) => {
   const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
     MessageMonitor.Notification[]
   >([]);
+  const [BsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.MinuteCount[]>([]);
   //   const mapRef = useRef<mapboxgl.Map>();
   const [viewState, setViewState] = useState({
     latitude: 39.587905,
@@ -385,6 +387,7 @@ const MapTab = (props: MyProps) => {
     notification?: MessageMonitor.Notification;
     event?: MessageMonitor.Event;
     assessment?: Assessment;
+    bsmEventsByMinute?: MessageMonitor.MinuteCount[];
   }>({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
@@ -806,6 +809,22 @@ const MapTab = (props: MyProps) => {
       });
       surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
+      // ######################### BSM Events By Minute #########################
+      const dayStart = new Date(queryParams.startDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(queryParams.startDate);
+      dayEnd.setHours(23, 59, 59, 0);
+
+      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
+        session?.accessToken,
+        queryParams.intersectionId,
+        dayStart,
+        dayEnd,
+        { test: false }
+      );
+      bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
+      setRawData((prevValue) => ({ ...prevValue, bsmEventsByMinute: BsmEventsByMinute }));
+
       // ######################### Surrounding Notifications #########################
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
         token: session?.accessToken,
@@ -936,6 +955,7 @@ const MapTab = (props: MyProps) => {
     } else if (props.sourceDataType == "assessment") {
       rawData["assessment"] = props.sourceData as Assessment;
     }
+    rawData["bsmEventsByMinute"] = BsmEventsByMinute;
     setRawData(rawData);
 
     // ######################### Set Slider Position #########################
