@@ -49,10 +49,16 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
   };
 
   function sortByName(a, b) {
-    if (a.name < b.name) {
+    if (a.ingressLaneID < b.ingressLaneID) {
       return -1;
     }
-    if (a.name > b.name) {
+    if (a.ingressLaneID > b.ingressLaneID) {
+      return 1;
+    }
+    if (a.egressLaneId < b.egressLaneId) {
+      return -1;
+    }
+    if (a.egressLaneId > b.egressLaneId) {
       return 1;
     }
     return 0;
@@ -95,7 +101,14 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" label={{ value: "Connection ID", position: "insideBottomRight", offset: -5 }} />
+                  <XAxis
+                    dataKey="name"
+                    interval={0}
+                    angle={-45}
+                    height={50}
+                    textAnchor="end"
+                    label={{ value: "Connection ID", position: "insideBottomRight", offset: -15 }}
+                  />
                   <YAxis label={{ value: "Event Count", angle: -90, position: "insideLeft" }} />
                   <Tooltip content={CustomTooltip} />
                   <Legend
