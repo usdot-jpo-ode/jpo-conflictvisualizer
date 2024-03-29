@@ -447,14 +447,20 @@ const MapTab = (props: MyProps) => {
     const features: SignalStateFeature[] = [];
 
     mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
-      if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
+      // Find non-null signal group. connectsTo can have multiple entries, but only 1 may be non-null
+      var signalGroup: number | undefined = undefined;
+      mapFeature?.properties?.connectsTo?.forEach((connection: J2735Connection) => {
+        if (connection?.signalGroup) signalGroup = connection?.signalGroup;
+      });
+
+      if (!mapFeature.properties.ingressApproach || !signalGroup) {
         return;
       }
       const coords = mapFeature.geometry.coordinates.slice(0, 2);
       features.push({
         type: "Feature",
         properties: {
-          signalGroup: mapFeature.properties.connectsTo[0].signalGroup,
+          signalGroup: signalGroup,
           intersectionId: mapMessage.properties.intersectionId,
           orientation: getBearingBetweenPoints(coords[1], coords[0]),
           signalState: "UNAVAILABLE",
@@ -611,7 +617,6 @@ const MapTab = (props: MyProps) => {
     signalGroups: SpatSignalGroup[],
     mapFeatures: MapFeatureCollection
   ): ConnectingLanesFeatureCollectionWithSignalState => {
-
     //bounding box representing the edges of the intersection
     var bbox = turf.bbox(connectingLanes);
 
@@ -619,8 +624,8 @@ const MapTab = (props: MyProps) => {
     connectingLanes.features?.forEach((connectionFeature: ConnectingLanesFeature) => {
       var ingressLaneId = connectionFeature.properties.ingressLaneId;
       var egressLaneId = connectionFeature.properties.egressLaneId;
-      var ingressLane = mapFeatures.features.find(feature => feature.id === ingressLaneId)
-      var egressLane = mapFeatures.features.find(feature => feature.id === egressLaneId)
+      var ingressLane = mapFeatures.features.find((feature) => feature.id === ingressLaneId);
+      var egressLane = mapFeatures.features.find((feature) => feature.id === egressLaneId);
 
       if (ingressLane && egressLane) {
         var ingressCoords = ingressLane.geometry.coordinates;
@@ -630,11 +635,17 @@ const MapTab = (props: MyProps) => {
         var egressBearing = turf.bearing(egressCoords[1], egressCoords[0]);
 
         //project the ingress/egress lanes through the intersection to the edge of the bbox
-        var ingressLine = turf.lineString([ingressCoords[0], turf.destination(ingressCoords[0], 0.05, ingressBearing).geometry.coordinates]);
-        var egressLine = turf.lineString([egressCoords[0], turf.destination(egressCoords[0], 0.05, egressBearing).geometry.coordinates]);
+        var ingressLine = turf.lineString([
+          ingressCoords[0],
+          turf.destination(ingressCoords[0], 0.05, ingressBearing).geometry.coordinates,
+        ]);
+        var egressLine = turf.lineString([
+          egressCoords[0],
+          turf.destination(egressCoords[0], 0.05, egressBearing).geometry.coordinates,
+        ]);
         var clippedIngress = turf.bboxClip(ingressLine, bbox);
         var clippedEgress = turf.bboxClip(egressLine, bbox);
-        
+
         //find the intersection point of the projected lanes, if it exists
         var intersect = turf.lineIntersect(clippedIngress.geometry, clippedEgress.geometry);
 
@@ -642,8 +653,9 @@ const MapTab = (props: MyProps) => {
         if (intersect.features.length > 0) {
           var intersectPoint = intersect.features[0].geometry.coordinates;
           //the intersection would overshoot the curve, so curveMidpoint is a weighted average the intersection and connectingLanes edges
-          var curveMidpoint = turf.centroid(turf.points([ingressCoords[0], egressCoords[0],
-            intersectPoint, intersectPoint, intersectPoint]));
+          var curveMidpoint = turf.centroid(
+            turf.points([ingressCoords[0], egressCoords[0], intersectPoint, intersectPoint, intersectPoint])
+          );
 
           var connectingLaneLine = turf.lineString([
             ingressCoords[0],
@@ -654,23 +666,24 @@ const MapTab = (props: MyProps) => {
           connectionFeature.geometry = curve.geometry;
         }
 
-        //If the ingress and egress lanes are going in generally opposite directions and didn't intersect, use the U-turn calculations 
-        else if (Math.abs(ingressBearing - egressBearing) < 45){
-        //this formula was found experimentally to give a round curve and allow parallel curving lanes to not intersect
-        var leadupLength = (Math.min(turf.distance(ingressCoords[0], egressCoords[0]) * -7 + 0.045, -0.02));
+        //If the ingress and egress lanes are going in generally opposite directions and didn't intersect, use the U-turn calculations
+        else if (Math.abs(ingressBearing - egressBearing) < 45) {
+          //this formula was found experimentally to give a round curve and allow parallel curving lanes to not intersect
+          var leadupLength = Math.min(turf.distance(ingressCoords[0], egressCoords[0]) * -7 + 0.045, -0.02);
 
-        var normalizedIngressPoint = turf.destination(ingressCoords[0], leadupLength, ingressBearing);
-        var normalizedEgressPoint = turf.destination(egressCoords[0], leadupLength, egressBearing);
-        var connectingLaneLine = turf.lineString([
-          normalizedIngressPoint.geometry.coordinates,
-          ingressCoords[0],
-          egressCoords[0],
-          normalizedEgressPoint.geometry.coordinates]);
+          var normalizedIngressPoint = turf.destination(ingressCoords[0], leadupLength, ingressBearing);
+          var normalizedEgressPoint = turf.destination(egressCoords[0], leadupLength, egressBearing);
+          var connectingLaneLine = turf.lineString([
+            normalizedIngressPoint.geometry.coordinates,
+            ingressCoords[0],
+            egressCoords[0],
+            normalizedEgressPoint.geometry.coordinates,
+          ]);
 
-        var rawCurve = turf.bezierSpline(connectingLaneLine);
-        //slice the curve back to remove the redundant ends
-        var curve = turf.lineSlice(ingressCoords[0], egressCoords[0], rawCurve);
-        connectionFeature.geometry = curve.geometry;
+          var rawCurve = turf.bezierSpline(connectingLaneLine);
+          //slice the curve back to remove the redundant ends
+          var curve = turf.lineSlice(ingressCoords[0], egressCoords[0], rawCurve);
+          connectionFeature.geometry = curve.geometry;
         }
         //anything else is mostly straight and doesn't require a bezier curve
       }
@@ -700,7 +713,7 @@ const MapTab = (props: MyProps) => {
         properties: {
           ...feature.properties,
           signalState:
-            signalGroups?.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
+            signalGroups.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroup)?.state ??
             "UNAVAILABLE",
         },
       })),
@@ -719,8 +732,8 @@ const MapTab = (props: MyProps) => {
     notificationData: any;
   }) => {
     const sortedSpatData = spatData.sort((x, y) => x.utcTimeStamp - y.utcTimeStamp);
-    const endTime = new Date(sortedSpatData[0].utcTimeStamp);
-    const startTime = new Date(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp);
+    const startTime = new Date(sortedSpatData[0].utcTimeStamp);
+    const endTime = new Date(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp);
     setImportedMessageData({ mapData, bsmData, spatData, notificationData });
     setQueryParams({
       startDate: startTime,
@@ -950,8 +963,7 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     if (playbackModeActive) {
       const interval = setInterval(() => {
-        setSliderValue(prevSliderValue => prevSliderValue + 1);
-
+        setSliderValue((prevSliderValue) => prevSliderValue + 1);
       }, 100);
       // Clear interval on component unmount
       return () => {
@@ -959,17 +971,15 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);  
-
+  }, [playbackModeActive]);
 
   useEffect(() => {
-    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate)
-     if (sliderValue >= (endTime)) {
+    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
+    if (sliderValue >= endTime) {
       setSliderValue(endTime);
       setPlaybackModeActive(false);
-      }
-}, [sliderValue]);
-
+    }
+  }, [sliderValue]);
 
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
     const start = Date.now();
@@ -1233,9 +1243,10 @@ const MapTab = (props: MyProps) => {
   useEffect(() => {
     const startTime = queryParams.startDate.getTime() / 1000; // seconds
 
-    const filteredStartTime = startTime + (sliderValue / 10) - timeWindowSeconds;
-    const filteredEndTime = startTime + (sliderValue / 10);
+    const filteredStartTime = startTime + sliderValue / 10 - timeWindowSeconds;
+    const filteredEndTime = startTime + sliderValue / 10;
 
+    console.log("Filtered Time Interval:", filteredStartTime, filteredEndTime, sliderValue, timeWindowSeconds);
     setRenderTimeInterval([filteredStartTime, filteredEndTime]);
   }, [sliderValue, queryParams, timeWindowSeconds]);
 
@@ -1456,8 +1467,10 @@ const MapTab = (props: MyProps) => {
                 sx={{ flex: 0 }}
                 sliderValue={sliderValue}
                 sliderTimeValue={{
-                  start: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10) - timeWindowSeconds) * 1000),
-                  end: new Date((queryParams.startDate.getTime() / 1000 + (sliderValue / 10)) * 1000),
+                  start: new Date(
+                    (queryParams.startDate.getTime() / 1000 + sliderValue / 10 - timeWindowSeconds) * 1000
+                  ),
+                  end: new Date((queryParams.startDate.getTime() / 1000 + sliderValue / 10) * 1000),
                 }}
                 setSlider={handleSliderChange}
                 downloadAllData={downloadAllData}
@@ -1552,8 +1565,12 @@ const MapTab = (props: MyProps) => {
           </Source>
           <Source
             type="geojson"
-            data={connectingLanes && currentSignalGroups && mapData?.mapFeatureCollection &&
-              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)}
+            data={
+              connectingLanes &&
+              currentSignalGroups &&
+              mapData?.mapFeatureCollection &&
+              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+            }
           >
             <Layer {...connectingLanesLayer} />
           </Source>
