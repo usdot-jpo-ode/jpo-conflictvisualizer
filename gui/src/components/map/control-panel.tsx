@@ -137,6 +137,8 @@ function ControlPanel(props: ControlPanelProps) {
   const [timeWindowSeconds, setTimeWindowSeconds] = useState<string | undefined>(
     getQueryParams(props.timeQueryParams).timeWindowSeconds.toString()
   );
+  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number; }[];
+  const [reformattedTimelineData, setReformattedTimelineData] = useState<BarChartData>([]);
 
   useEffect(() => {
     const newDateParams = getQueryParams(props.timeQueryParams);
@@ -286,22 +288,28 @@ function ControlPanel(props: ControlPanelProps) {
     1200,
     1320
   ];
+  
     const formatMinutesAfterMidnightTime = (minutes) => {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     };
 
-    const reformattedTimelineData = props.rawData.bsmEventsByMinute?.map(item => {
-      const date = new Date(item.minute);
-      const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
-      return {
-        ...item,
-        minutesAfterMidnight,
-        timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-      };
-    });
+    useEffect(() => {
+      const data = (props.rawData.bsmEventsByMinute || []).map(item => {
+        const date = new Date(item.minute);
+        const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
+        return {
+          ...item,
+          minutesAfterMidnight,
+          timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
+        };
+      });
 
+      setReformattedTimelineData(data);
+    }, [props.rawData]);
+    
+    
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
