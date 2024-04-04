@@ -367,7 +367,8 @@ const MapTab = (props: MyProps) => {
   const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
     MessageMonitor.Notification[]
   >([]);
-  const [BsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.MinuteCount[]>([]);
+  const [bsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.MinuteCount[]>([]);
+  const [bsmByMinuteUpdated, setBsmByMinuteUpdated] = useState<boolean>(false);
   //   const mapRef = useRef<mapboxgl.Map>();
   const [viewState, setViewState] = useState({
     latitude: 39.587905,
@@ -387,7 +388,6 @@ const MapTab = (props: MyProps) => {
     notification?: MessageMonitor.Notification;
     event?: MessageMonitor.Event;
     assessment?: Assessment;
-    bsmEventsByMinute?: MessageMonitor.MinuteCount[];
   }>({});
   const [mapSpatTimes, setMapSpatTimes] = useState({ mapTime: 0, spatTime: 0 });
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
@@ -823,7 +823,6 @@ const MapTab = (props: MyProps) => {
         { test: false }
       );
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
-      setRawData((prevValue) => ({ ...prevValue, bsmEventsByMinute: BsmEventsByMinute }));
 
       // ######################### Surrounding Notifications #########################
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
@@ -955,7 +954,6 @@ const MapTab = (props: MyProps) => {
     } else if (props.sourceDataType == "assessment") {
       rawData["assessment"] = props.sourceData as Assessment;
     }
-    rawData["bsmEventsByMinute"] = BsmEventsByMinute;
     setRawData(rawData);
 
     // ######################### Set Slider Position #########################
@@ -981,6 +979,9 @@ const MapTab = (props: MyProps) => {
     return () => {};
   }, [playbackModeActive]);  
 
+  useEffect(() => {
+  setBsmByMinuteUpdated(true);
+}, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate)
@@ -1500,6 +1501,9 @@ const MapTab = (props: MyProps) => {
                 setBsmTrailLength={setBsmTrailLength}
                 playbackModeActive={playbackModeActive}
                 setPlaybackModeActive={setPlaybackModeActive}
+                bsmEventsByMinute={bsmEventsByMinute}
+                bsmByMinuteUpdated={bsmByMinuteUpdated}
+                setBsmByMinuteUpdated={setBsmByMinuteUpdated}
                 rawData={rawData}
               />
             </Paper>
