@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import Slider from "@mui/material/Slider";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -86,6 +86,9 @@ interface ControlPanelProps {
   setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
   playbackModeActive: boolean;
   setPlaybackModeActive: React.Dispatch<React.SetStateAction<boolean>>;
+  bsmEventsByMinute: MessageMonitor.MinuteCount[];
+  bsmByMinuteUpdated: boolean;
+  setBsmByMinuteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
   rawData: {
     map?: ProcessedMap[];
     spat?: ProcessedSpat[];
@@ -93,7 +96,6 @@ interface ControlPanelProps {
     notification?: MessageMonitor.Notification;
     event?: MessageMonitor.Event;
     assessment?: Assessment;
-    bsmEventsByMinute?: MessageMonitor.MinuteCount[];
   };
 }
 
@@ -137,6 +139,8 @@ function ControlPanel(props: ControlPanelProps) {
   const [timeWindowSeconds, setTimeWindowSeconds] = useState<string | undefined>(
     getQueryParams(props.timeQueryParams).timeWindowSeconds.toString()
   );
+  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number; }[];
+  const [reformattedTimelineData, setReformattedTimelineData] = useState<BarChartData>([]);
 
   useEffect(() => {
     const newDateParams = getQueryParams(props.timeQueryParams);
@@ -286,22 +290,33 @@ function ControlPanel(props: ControlPanelProps) {
     1200,
     1320
   ];
-    const formatMinutesAfterMidnightTime = (minutes) => {
+  
+  const formatMinutesAfterMidnightTime = useMemo(() => {
+    return (minutes) => {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
       return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     };
+  }, []);
 
-    const reformattedTimelineData = props.rawData.bsmEventsByMinute?.map(item => {
-      const date = new Date(item.minute);
-      const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
-      return {
-        ...item,
-        minutesAfterMidnight,
-        timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-      };
-    });
+    useEffect(() => {
+      const newBsmEventsByMinute = (props.bsmEventsByMinute || []).map(item => {
+        const date = new Date(item.minute);
+        const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
+        return {
+          ...item,
+          minutesAfterMidnight,
+          timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
+        };
+      });
 
+    
+      setReformattedTimelineData(newBsmEventsByMinute);
+      props.setBsmByMinuteUpdated(false);
+    }, [props.bsmByMinuteUpdated]);
+    
+    useEffect(() => {
+    }, [reformattedTimelineData]);
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -322,7 +337,6 @@ function ControlPanel(props: ControlPanelProps) {
   }
 
   const TimelineCursor: React.FC<TimelineCursorProps> = ({ x = 0, y = 0, width = 0, height = 0 }) => {
-    // Your component logic here
     return (
       <rect
         x={(x+width/2)-6}
