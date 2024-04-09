@@ -24,6 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -366,6 +367,8 @@ const MapTab = (props: MyProps) => {
   const [filteredSurroundingNotifications, setFilteredSurroundingNotifications] = useState<
     MessageMonitor.Notification[]
   >([]);
+  const [bsmEventsByMinute, setBsmEventsByMinute] = useState<MessageMonitor.MinuteCount[]>([]);
+  const [bsmByMinuteUpdated, setBsmByMinuteUpdated] = useState<boolean>(false);
   //   const mapRef = useRef<mapboxgl.Map>();
   const [viewState, setViewState] = useState({
     latitude: 39.587905,
@@ -819,6 +822,21 @@ const MapTab = (props: MyProps) => {
       });
       surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
+      // ######################### BSM Events By Minute #########################
+      const dayStart = new Date(queryParams.startDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(queryParams.startDate);
+      dayEnd.setHours(23, 59, 59, 0);
+
+      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
+        session?.accessToken,
+        queryParams.intersectionId,
+        dayStart,
+        dayEnd,
+        { test: false }
+      );
+      bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
+
       // ######################### Surrounding Notifications #########################
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
         token: session?.accessToken,
@@ -971,7 +989,11 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);
+  }, [playbackModeActive]);  
+
+  useEffect(() => {
+  setBsmByMinuteUpdated(true);
+}, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
@@ -1493,6 +1515,9 @@ const MapTab = (props: MyProps) => {
                 setBsmTrailLength={setBsmTrailLength}
                 playbackModeActive={playbackModeActive}
                 setPlaybackModeActive={setPlaybackModeActive}
+                bsmEventsByMinute={bsmEventsByMinute}
+                bsmByMinuteUpdated={bsmByMinuteUpdated}
+                setBsmByMinuteUpdated={setBsmByMinuteUpdated}
                 rawData={rawData}
               />
             </Paper>
