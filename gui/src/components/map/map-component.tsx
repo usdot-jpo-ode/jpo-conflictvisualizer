@@ -398,9 +398,6 @@ const MapTab = (props: MyProps) => {
           <Source type="geojson" data={currentBsms}>
             <Layer {...bsmLayerStyle} />
           </Source>
-          <Source type="geojson" data={currentBsms}>
-            <Layer {...bsmLayerStyle} />
-          </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => dispatch(clearSelectedFeature())} />
           )}
