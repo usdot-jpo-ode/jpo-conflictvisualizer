@@ -4,14 +4,20 @@ export const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatu
   const features: SignalStateFeature[] = [];
 
   mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
-    if (!mapFeature.properties.ingressApproach || !mapFeature?.properties?.connectsTo?.[0]?.signalGroup) {
+    // Find non-null signal group. connectsTo can have multiple entries, but only 1 may be non-null
+    var signalGroup: number | undefined = undefined;
+    mapFeature?.properties?.connectsTo?.forEach((connection: J2735Connection) => {
+      if (connection?.signalGroup) signalGroup = connection?.signalGroup;
+    });
+
+    if (!mapFeature.properties.ingressApproach || !signalGroup) {
       return;
     }
     const coords = mapFeature.geometry.coordinates.slice(0, 2);
     features.push({
       type: "Feature",
       properties: {
-        signalGroup: mapFeature.properties.connectsTo[0].signalGroup,
+        signalGroup: signalGroup,
         intersectionId: mapMessage.properties.intersectionId,
         orientation: getBearingBetweenPoints(coords[1], coords[0]),
         signalState: "UNAVAILABLE",
@@ -129,23 +135,6 @@ export const createMarkerForNotification = (
       break;
   }
   return markerCollection;
-};
-
-export const addConnections = (
-  connectingLanes: ConnectingLanesFeatureCollection,
-  signalGroups: SpatSignalGroup[]
-): ConnectingLanesUiFeatureCollection => {
-  return {
-    ...connectingLanes,
-    features: connectingLanes.features.map((feature) => ({
-      ...feature,
-      properties: {
-        ...feature.properties,
-        signalState: signalGroups.find((signalGroup) => signalGroup.signalGroup == feature.properties.signalGroupId)
-          ?.state,
-      },
-    })),
-  };
 };
 
 export const generateSignalStateFeatureCollection = (

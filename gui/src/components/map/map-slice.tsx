@@ -20,6 +20,7 @@ import getConfig from "next/config";
 import JSZip from "jszip";
 import FileSaver from "file-saver";
 import { features } from "process";
+import { downloadAllData } from "./utilities/file-utilities";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -60,7 +61,7 @@ export type MAP_PROPS = {
   loadOnNull?: boolean;
 };
 
-type RAW_MESSAGE_DATA_EXPORT = {
+export type RAW_MESSAGE_DATA_EXPORT = {
   map?: ProcessedMap[];
   spat?: ProcessedSpat[];
   bsm?: BsmFeatureCollection;
@@ -117,6 +118,9 @@ const initialState = {
   filteredSurroundingEvents: [] as MessageMonitor.Event[],
   surroundingNotifications: [] as MessageMonitor.Notification[],
   filteredSurroundingNotifications: [] as MessageMonitor.Notification[],
+  bsmEventsByMinute: [] as MessageMonitor.MinuteCount[],
+  bsmByMinuteUpdated: false,
+  playbackModeActive: false,
   viewState: {
     latitude: 39.587905,
     longitude: -105.0907089,
@@ -200,13 +204,20 @@ export const pullInitialData = createAsyncThunk(
         success: `Successfully got SPAT Data`,
         error: `Failed to get SPAT data. Please see console`,
       });
-      rawSpat = (await rawSpatPromise).sort((a, b) => Number(a.utcTimeStamp) - Number(b.utcTimeStamp));
+      rawSpat = (await rawSpatPromise)
+        .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
+        .map((spat) => ({
+          ...spat,
+          utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
+            ? spat.utcTimeStamp * 1000
+            : Date.parse(spat.utcTimeStamp as any as string),
+        }));
 
       dispatch(getSurroundingEvents());
       dispatch(getSurroundingNotifications());
     } else {
       rawMap = importedMessageData.mapData;
-      rawSpat = importedMessageData.spatData.sort((a, b) => Number(a.utcTimeStamp) - Number(b.utcTimeStamp));
+      rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
       rawBsm = importedMessageData.bsmData;
     }
     if (!rawMap || rawMap.length == 0) {
@@ -216,6 +227,8 @@ export const pullInitialData = createAsyncThunk(
 
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
     const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
+
+    // ######################### SPAT Signal Groups #########################
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
 
@@ -349,6 +362,17 @@ export const renderIterative_Map = createAsyncThunk(
     // ######################### SPAT Signal Groups #########################
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     console.debug("MAP RENDER TIME:", Date.now() - start, "ms");
+    if (
+      latestMapMessage != null &&
+      (latestMapMessage.properties.refPoint.latitude != previousMapMessage?.properties.refPoint.latitude ||
+        latestMapMessage.properties.refPoint.longitude != previousMapMessage?.properties.refPoint.longitude)
+    ) {
+      setViewState({
+        latitude: latestMapMessage?.properties.refPoint.latitude,
+        longitude: latestMapMessage?.properties.refPoint.longitude,
+        zoom: 19,
+      });
+    }
     dispatch(setRawData({ map: currentMapDataLocal }));
     return {
       currentMapData: currentMapDataLocal,
@@ -370,7 +394,15 @@ export const renderIterative_Spat = createAsyncThunk(
     const queryParams = selectQueryParams(currentState);
     const currentSpatSignalGroups: ProcessedSpat[] = selectCurrentSpatData(currentState);
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
+
     // Inject and filter spat data
+    // 2024-01-09T00:24:28.354Z
+    newSpatData = newSpatData.map((spat) => ({
+      ...spat,
+      utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
+        ? spat.utcTimeStamp * 1000
+        : Date.parse(spat.utcTimeStamp as any as string),
+    }));
     const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp);
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
@@ -575,6 +607,7 @@ export const initializeLiveStreaming = createAsyncThunk(
         console.error("ERROR connecting to live data Websockets", error);
       }
     );
+    return client;
   }
 );
 
@@ -624,8 +657,6 @@ export const updateRenderedMapState = createAsyncThunk(
         feature.properties?.odeReceivedAt <= renderTimeInterval[1]
     );
     const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
-    const lastBsms = sortedBsms.slice(0, bsmTrailLength); // Apply BSM trail length
-    const currentBsms = { ...bsmData, features: lastBsms };
 
     // Update BSM legend colors
     const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id));
@@ -634,6 +665,19 @@ export const updateRenderedMapState = createAsyncThunk(
     dispatch(setBsmLegendColors(colors));
     const bsmLayerStyle = generateMapboxStyleExpression(colors);
     dispatch(setBsmCircleColor(bsmLayerStyle));
+
+    const lastBsms: BsmFeature[] = [];
+    const bsmCounts: { [id: string]: number } = {};
+    for (let i = 0; i < sortedBsms.length; i++) {
+      const id = sortedBsms[i].properties?.id;
+      if (bsmCounts[id] == undefined) {
+        bsmCounts[id] = 0;
+      }
+      if (bsmCounts[id] < bsmTrailLength) {
+        lastBsms.push(sortedBsms[i]);
+        bsmCounts[id]++;
+      }
+    }
 
     const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
       (event) =>
@@ -652,7 +696,7 @@ export const updateRenderedMapState = createAsyncThunk(
         ? generateSignalStateFeatureCollection(mapSignalGroups!, closestSignalGroup?.spat)
         : undefined,
       spatTime: closestSignalGroup?.datetime,
-      currentBsms,
+      currentBsms: lastBsms,
       filteredSurroundingEvents: filteredEvents,
       filteredSurroundingNotifications: filteredNotifications,
     };
@@ -679,8 +723,8 @@ const compareQueryParams = (oldParams: MAP_QUERY_PARAMS, newParams: MAP_QUERY_PA
 const generateRenderTimeInterval = (startDate: Date, sliderValue: number, timeWindowSeconds: number) => {
   const startTime = startDate.getTime() / 1000;
 
-  const filteredStartTime = startTime + sliderValue - timeWindowSeconds;
-  const filteredEndTime = startTime + sliderValue;
+  const filteredStartTime = startTime + sliderValue / 10 - timeWindowSeconds;
+  const filteredEndTime = startTime + sliderValue / 10;
 
   return [filteredStartTime, filteredEndTime];
 };
@@ -726,23 +770,6 @@ const _updateQueryParams = ({
   }
 };
 
-const _downloadData = (rawData: RAW_MESSAGE_DATA_EXPORT, queryParams: MAP_QUERY_PARAMS) => {
-  var zip = new JSZip();
-  zip.file(`intersection_${queryParams.intersectionId}_MAP_data.json`, JSON.stringify(rawData.map));
-  zip.file(`intersection_${queryParams.intersectionId}_SPAT_data.json`, JSON.stringify(rawData.spat));
-  zip.file(`intersection_${queryParams.intersectionId}_BSM_data.json`, JSON.stringify(rawData.bsm));
-  if (rawData.event)
-    zip.file(`intersection_${queryParams.intersectionId}_Event_data.json`, JSON.stringify(rawData.event));
-  if (rawData.assessment)
-    zip.file(`intersection_${queryParams.intersectionId}_Assessment_data.json`, JSON.stringify(rawData.assessment));
-  if (rawData.notification)
-    zip.file(`intersection_${queryParams.intersectionId}_Notification_data.json`, JSON.stringify(rawData.notification));
-
-  zip.generateAsync({ type: "blob" }).then(function (content) {
-    FileSaver.saveAs(content, `intersection_${queryParams.intersectionId}_data.zip`);
-  });
-};
-
 export const downloadMapData = createAsyncThunk(
   "map/downloadMapData",
   async (_, { getState }) => {
@@ -750,7 +777,7 @@ export const downloadMapData = createAsyncThunk(
     const rawData = selectRawData(currentState)!;
     const queryParams = selectQueryParams(currentState);
 
-    return _downloadData(rawData, queryParams);
+    return downloadAllData(rawData, queryParams);
   },
   {
     condition: (_, { getState }) =>
@@ -825,17 +852,9 @@ export const mapSlice = createSlice({
       }>
     ) => {
       const { mapData, bsmData, spatData, notificationData } = action.payload;
-      const sortedSpatData = spatData.sort((x, y) => {
-        if (x.utcTimeStamp < y.utcTimeStamp) {
-          return 1;
-        }
-        if (x.utcTimeStamp > y.utcTimeStamp) {
-          return -1;
-        }
-        return 0;
-      });
-      const endTime = new Date(Date.parse(sortedSpatData[0].utcTimeStamp));
-      const startTime = new Date(Date.parse(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp));
+      const sortedSpatData = spatData.sort((x, y) => x.utcTimeStamp - y.utcTimeStamp);
+      const startTime = new Date(sortedSpatData[0].utcTimeStamp);
+      const endTime = new Date(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp);
       state.value.importedMessageData = { mapData, bsmData, spatData, notificationData };
       state.value.queryParams = {
         startDate: startTime,
@@ -898,7 +917,7 @@ export const mapSlice = createSlice({
       state.value.timeWindowSeconds = timeWindowSeconds ?? state.value.timeWindowSeconds;
     },
     setSliderValue: (state, action: PayloadAction<number | number[]>) => {
-      state.value.sliderValue = action.payload as number;
+      state.value.sliderValue = Math.min(action.payload as number, getTimeRange(state.value.queryParams.startDate, state.value.queryParams.endDate));
       state.value.liveDataActive = false;
     },
     updateRenderTimeInterval: (state) => {
@@ -1134,7 +1153,10 @@ export const mapSlice = createSlice({
           state.value.filteredSurroundingEvents = action.payload.filteredSurroundingEvents;
           state.value.filteredSurroundingNotifications = action.payload.filteredSurroundingNotifications;
         }
-      );
+      )
+      .addCase(initializeLiveStreaming.fulfilled, (state, action: PayloadAction<CompatClient>) => {
+        state.value.wsClient = action.payload;
+      });
   },
 });
 
