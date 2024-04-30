@@ -22,7 +22,6 @@ import {
   handleImportedMapMessageData,
   onTimeQueryChanged,
   selectBsmEventsByMinute,
-  selectBsmEventsByMinute,
   selectBsmTrailLength,
   selectPlaybackModeActive,
   selectSliderTimeValue,
