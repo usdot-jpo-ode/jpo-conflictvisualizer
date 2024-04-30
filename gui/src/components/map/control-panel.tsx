@@ -21,6 +21,8 @@ import {
   downloadMapData,
   handleImportedMapMessageData,
   onTimeQueryChanged,
+  selectBsmEventsByMinute,
+  selectBsmEventsByMinute,
   selectBsmTrailLength,
   selectSliderTimeValue,
   setBsmTrailLength,
@@ -29,6 +31,7 @@ import {
   setSigGroupLabelsVisible,
   setSliderValue,
   toggleLiveDataActive,
+  togglePlaybackModeActive,
 } from "./map-slice";
 import {
   MAP_LAYERS,
@@ -127,55 +130,6 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-interface ControlPanelProps {
-  sx: SxProps<Theme> | undefined;
-  timeQueryParams: {
-    startDate: Date;
-    endDate: Date;
-    eventDate: Date;
-    timeWindowSeconds: number;
-  };
-  onTimeQueryChanged: (eventTime?: Date, timeBefore?: number, timeAfter?: number, timeWindowSeconds?: number) => void;
-  handleImportedMessageData: (messageData: any) => void;
-  sliderValue: number;
-  setSlider: (event: Event, value: number | number[], activeThumb: number) => void;
-  max: number;
-  sliderTimeValue: {
-    start: Date;
-    end: Date;
-  };
-  mapSpatTimes: {
-    mapTime: number;
-    spatTime: number;
-  };
-  downloadAllData: () => void;
-  signalStateLayer: any;
-  setSignalStateLayer: React.Dispatch<React.SetStateAction<any>>;
-  laneLabelsVisible: boolean;
-  setLaneLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  sigGroupLabelsVisible: boolean;
-  setSigGroupLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  showPopupOnHover: boolean;
-  setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
-  liveDataActive: boolean;
-  setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
-  bsmTrailLength: number;
-  setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
-  playbackModeActive: boolean;
-  setPlaybackModeActive: React.Dispatch<React.SetStateAction<boolean>>;
-  bsmEventsByMinute: MessageMonitor.MinuteCount[];
-  bsmByMinuteUpdated: boolean;
-  setBsmByMinuteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
-  rawData: {
-    map?: ProcessedMap[];
-    spat?: ProcessedSpat[];
-    bsm?: BsmFeatureCollection;
-    notification?: MessageMonitor.Notification;
-    event?: MessageMonitor.Event;
-    assessment?: Assessment;
-  };
-}
-
 function ControlPanel() {
   const dispatch: ThunkDispatch<RootState, void, AnyAction> = useDispatch();
 
@@ -224,6 +178,9 @@ function ControlPanel() {
   const sliderTimeValue = useSelector(selectSliderTimeValue);
   const bsmTrailLength = useSelector(selectBsmTrailLength);
 
+  const bsmEventsByMinute = useSelector(selectBsmEventsByMinute);
+  const playbackModeActive = useSelector(selectPlaybackModeActive);
+
   const getQueryParams = ({
     startDate,
     endDate,
@@ -263,8 +220,6 @@ function ControlPanel() {
   const [timeWindowSecondsLocal, setTimeWindowSeconds] = useState<string | undefined>(
     getQueryParams({ ...queryParams, timeWindowSeconds }).timeWindowSeconds.toString()
   );
-  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number }[];
-  const [reformattedTimelineData, setReformattedTimelineData] = useState<BarChartData>([]);
 
   useEffect(() => {
     const newDateParams = getQueryParams({ ...queryParams, timeWindowSeconds });
@@ -419,22 +374,6 @@ function ControlPanel() {
     };
   }, []);
 
-  useEffect(() => {
-    const newBsmEventsByMinute = (props.bsmEventsByMinute || []).map((item) => {
-      const date = new Date(item.minute);
-      const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
-      return {
-        ...item,
-        minutesAfterMidnight,
-        timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-      };
-    });
-
-    setReformattedTimelineData(newBsmEventsByMinute);
-    props.setBsmByMinuteUpdated(false);
-  }, [props.bsmByMinuteUpdated]);
-
-  useEffect(() => {}, [reformattedTimelineData]);
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -470,7 +409,7 @@ function ControlPanel() {
         y={y - 1}
         width={12}
         height={height + 3}
-        fill={reformattedTimelineData != null && reformattedTimelineData.length > 0 ? "#10B981" : "transparent"}
+        fill={bsmEventsByMinute != null && bsmEventsByMinute.length > 0 ? "#10B981" : "transparent"}
         style={{ pointerEvents: "none" }}
       />
     );
@@ -648,7 +587,7 @@ function ControlPanel() {
 
             <ResponsiveContainer width="100%" height={80}>
               <BarChart
-                data={reformattedTimelineData}
+                data={bsmEventsByMinute}
                 barGap={0}
                 barCategoryGap={0}
                 onClick={(data) => {
@@ -760,11 +699,9 @@ function ControlPanel() {
       <div style={{ display: "flex", alignItems: "center", marginTop: "1rem" }}>
         <button
           style={{ marginLeft: "1rem", border: "none", background: "none" }}
-          onClick={() => {
-            props.setPlaybackModeActive((prevValue) => !prevValue);
-          }}
+          onClick={() => dispatch(togglePlaybackModeActive())}
         >
-          {props.playbackModeActive ? <img src={pauseIcon.src} alt="Pause" /> : <img src={playIcon.src} alt="Play" />}
+          {playbackModeActive ? <img src={pauseIcon.src} alt="Pause" /> : <img src={playIcon.src} alt="Play" />}
         </button>
         <Slider
           sx={{ ml: 2, width: "calc(100% - 80px)" }}

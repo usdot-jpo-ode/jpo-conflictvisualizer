@@ -3,90 +3,56 @@ import Map, { Source, Layer } from "react-map-gl";
 
 import { Container, Col } from "reactstrap";
 
-import { Paper, Box, Typography } from "@mui/material";
-
-// import mapMessageData from "./processed_map_v4.json";
-import type { CircleLayer, LayerProps, LineLayer, SymbolLayer } from "react-map-gl";
-import ControlPanel from "./control-panel";
-import MessageMonitorApi from "../../apis/mm-api";
-import EventsApi from "../../apis/events-api";
-import NotificationApi from "../../apis/notification-api";
+import { Paper, Box } from "@mui/material";
 import { SidePanel } from "./side-panel";
 import { CustomPopup } from "./popup";
 import getConfig from "next/config";
-import { generateColorDictionary, generateMapboxStyleExpression } from "./utilities/colors";
 import { MapLegend } from "./map-legend";
-import toast from "react-hot-toast";
-import JSZip from "jszip";
-import FileSaver from "file-saver";
-import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
-import { set } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAuthToken } from "../../slices/userSlice";
 import {
   selectBsmLayerStyle,
   selectConnectingLanesLabelsLayerStyle,
   selectConnectingLanesLayerStyle,
-  selectMapLegendColors,
   selectMapMessageLabelsLayerStyle,
   selectMapMessageLayerStyle,
   selectMarkerLayerStyle,
   selectSignalStateLayerStyle,
-  setBsmCircleColor,
-  setBsmLegendColors,
 } from "./map-layer-style-slice";
-import { getBearingBetweenPoints, getTimeRange } from "./utilities/map-utils";
 import {
-  MAP_LAYERS,
   cleanUpLiveStreaming,
   clearHoveredFeature,
   clearSelectedFeature,
+  incrementSliderValue,
   initializeLiveStreaming,
-  maybeUpdateSliderValue,
   onMapClick,
   onMapMouseEnter,
   onMapMouseLeave,
   onMapMouseMove,
-  onTimeQueryChanged,
   pullInitialData,
-  renderIterative_Bsm,
-  renderIterative_Map,
-  renderIterative_Spat,
   selectAllInteractiveLayerIds,
   selectBsmData,
   selectConnectingLanes,
-  selectCurrentBsmData,
   selectCurrentBsms,
-  selectCurrentMapData,
   selectCurrentSignalGroups,
-  selectCurrentSpatData,
   selectCursor,
   selectFilteredSurroundingEvents,
   selectFilteredSurroundingNotifications,
   selectHoveredFeature,
-  selectImportedMessageData,
-  selectIntersectionId,
   selectLaneLabelsVisible,
-  selectLayersVisible,
   selectLiveDataActive,
   selectLoadInitialDataTimeoutId,
-  selectLoadOnNull,
   selectMapData,
   selectMapSignalGroups,
-  selectMapSpatTimes,
+  selectPlaybackModeActive,
   selectQueryParams,
-  selectRawData,
   selectRenderTimeInterval,
-  selectRoadRegulatorId,
   selectSelectedFeature,
   selectShowPopupOnHover,
   selectSigGroupLabelsVisible,
   selectSignalStateData,
   selectSliderValue,
-  selectSourceData,
-  selectSourceDataType,
   selectSpatSignalGroups,
-  selectSurroundingNotifications,
   selectTimeWindowSeconds,
   selectViewState,
   setLoadInitialdataTimeoutId,
@@ -96,18 +62,10 @@ import {
   updateRenderTimeInterval,
   updateRenderedMapState,
 } from "./map-slice";
-import {
-  addConnections,
-  createMarkerForNotification,
-  generateSignalStateFeatureCollection,
-} from "./utilities/message-utils";
+import { addConnections, createMarkerForNotification } from "./utilities/message-utils";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
-import * as turf from "@turf/turf";
 
-import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
-import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 const { publicRuntimeConfig } = getConfig();
 
 const generateQueryParams = (
@@ -211,6 +169,7 @@ const MapTab = (props: MyProps) => {
   const cursor = useSelector(selectCursor);
   const loadInitialDataTimeoutId = useSelector(selectLoadInitialDataTimeoutId);
   const liveDataActive = useSelector(selectLiveDataActive);
+  const playbackModeActive = useSelector(selectPlaybackModeActive);
 
   const mapRef = React.useRef<any>(null);
   const [rawData, setRawData] = useState<{
@@ -222,7 +181,6 @@ const MapTab = (props: MyProps) => {
     assessment?: Assessment;
   }>({});
   const [bsmTrailLength, setBsmTrailLength] = useState<number>(5);
-  const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
@@ -235,8 +193,10 @@ const MapTab = (props: MyProps) => {
   // Increment sliderValue by 1 every second when playbackModeActive is true
   useEffect(() => {
     if (playbackModeActive) {
+      const playbackPeriod = 100; //ms
+      const playbackIncrement = Math.ceil(playbackPeriod / 100);
       const interval = setInterval(() => {
-        setSliderValue((prevSliderValue) => prevSliderValue + 1);
+        dispatch(incrementSliderValue(playbackIncrement));
       }, 100);
       // Clear interval on component unmount
       return () => {
@@ -245,18 +205,6 @@ const MapTab = (props: MyProps) => {
     }
     return () => {};
   }, [playbackModeActive]);
-
-  useEffect(() => {
-    setBsmByMinuteUpdated(true);
-  }, [bsmEventsByMinute]);
-
-  useEffect(() => {
-    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
-    if (sliderValue >= endTime) {
-      setSliderValue(endTime);
-      setPlaybackModeActive(false);
-    }
-  }, [sliderValue]);
 
   useEffect(() => {
     if (props.intersectionId != queryParams.intersectionId || props.roadRegulatorId != queryParams.roadRegulatorId) {

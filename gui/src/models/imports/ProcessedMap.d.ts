@@ -94,6 +94,20 @@ type ConnectingLanesUiFeature = {
   };
 };
 
+type ConnectingLanesFeatureCollectionWithSignalState = {
+  type: "FeatureCollection";
+  features: ConnectingLanesFeatureWithSignalState[];
+};
+
+type ConnectingLanesFeatureWithSignalState = {
+  type: "Feature";
+  id: number | string;
+  geometry: GeoJSON.LineString;
+  properties: ConnectingLanesProperties & {
+    signalState?: SignalState;
+  };
+};
+
 type ConnectingLanesProperties = {
   signalGroupId: number | null;
   ingressLaneId: number;

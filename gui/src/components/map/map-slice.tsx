@@ -70,6 +70,11 @@ export type RAW_MESSAGE_DATA_EXPORT = {
   assessment?: Assessment;
 };
 
+export type BSM_COUNTS_CHART_DATA = MinuteCount & {
+  minutesAfterMidnight: number;
+  timestamp: string;
+};
+
 interface MinimalClient {
   connect: (headers: unknown, connectCallback: () => void, errorCallback?: (error: string) => void) => void;
   subscribe: (destination: string, callback: (message: IMessage) => void) => void;
@@ -118,14 +123,13 @@ const initialState = {
   filteredSurroundingEvents: [] as MessageMonitor.Event[],
   surroundingNotifications: [] as MessageMonitor.Notification[],
   filteredSurroundingNotifications: [] as MessageMonitor.Notification[],
-  bsmEventsByMinute: [] as MessageMonitor.MinuteCount[],
-  bsmByMinuteUpdated: false,
+  bsmEventsByMinute: [] as BSM_COUNTS_CHART_DATA[],
   playbackModeActive: false,
   viewState: {
     latitude: 39.587905,
     longitude: -105.0907089,
     zoom: 19,
-  },
+  } as Partial<ViewState>,
   timeWindowSeconds: 60,
   sliderValue: 0,
   sliderTimeValue: {
@@ -213,6 +217,7 @@ export const pullInitialData = createAsyncThunk(
             : Date.parse(spat.utcTimeStamp as any as string),
         }));
 
+      dispatch(getBsmDailyCounts());
       dispatch(getSurroundingEvents());
       dispatch(getSurroundingNotifications());
     } else {
@@ -226,6 +231,13 @@ export const pullInitialData = createAsyncThunk(
     }
 
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
+    if (latestMapMessage != null) {
+      setViewState({
+        latitude: latestMapMessage?.properties.refPoint.latitude,
+        longitude: latestMapMessage?.properties.refPoint.longitude,
+        zoom: 19,
+      });
+    }
     const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
 
     // ######################### SPAT Signal Groups #########################
@@ -287,6 +299,13 @@ export const renderEntireMap = createAsyncThunk(
 
     // ######################### MAP Data #########################
     const latestMapMessage: ProcessedMap = currentMapData.at(-1)!;
+    if (latestMapMessage != null) {
+      setViewState({
+        latitude: latestMapMessage?.properties.refPoint.latitude,
+        longitude: latestMapMessage?.properties.refPoint.longitude,
+        zoom: 19,
+      });
+    }
 
     // ######################### SPAT Signal Groups #########################
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
@@ -358,10 +377,19 @@ export const renderIterative_Map = createAsyncThunk(
 
     // ######################### MAP Data #########################
     const latestMapMessage: ProcessedMap = currentMapDataLocal.at(-1)!;
+    if (latestMapMessage != null) {
+      setViewState({
+        latitude: latestMapMessage?.properties.refPoint.latitude,
+        longitude: latestMapMessage?.properties.refPoint.longitude,
+        zoom: 19,
+      });
+    }
 
     // ######################### SPAT Signal Groups #########################
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+
     console.debug("MAP RENDER TIME:", Date.now() - start, "ms");
+    const previousMapMessage: ProcessedMap | undefined = currentMapData.at(-1);
     if (
       latestMapMessage != null &&
       (latestMapMessage.properties.refPoint.latitude != previousMapMessage?.properties.refPoint.latitude ||
@@ -392,9 +420,15 @@ export const renderIterative_Spat = createAsyncThunk(
   async (newSpatData: ProcessedSpat[], { getState, dispatch }) => {
     const currentState = getState() as RootState;
     const queryParams = selectQueryParams(currentState);
-    const currentSpatSignalGroups: ProcessedSpat[] = selectCurrentSpatData(currentState);
-    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
+    const currentSpatSignalGroups: SpatSignalGroups = selectSpatSignalGroups(currentState) ?? {};
+    const currentProcessedSpatData: ProcessedSpat[] = selectCurrentSpatData(currentState) ?? {};
 
+    const start = Date.now();
+    const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
+    if (newSpatData.length == 0) {
+      console.warn("Did not attempt to render map (iterative SPAT), no new SPAT messages available:", newSpatData);
+      return { signalGroups: currentSpatSignalGroups, raw: currentProcessedSpatData };
+    }
     // Inject and filter spat data
     // 2024-01-09T00:24:28.354Z
     newSpatData = newSpatData.map((spat) => ({
@@ -403,7 +437,8 @@ export const renderIterative_Spat = createAsyncThunk(
         ? spat.utcTimeStamp * 1000
         : Date.parse(spat.utcTimeStamp as any as string),
     }));
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp);
+    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
+
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
       key,
@@ -432,7 +467,7 @@ export const renderIterative_Spat = createAsyncThunk(
     // Update current processed spat data
     oldIndex = 0;
     for (let i = 0; i < currentProcessedSpatData.length; i++) {
-      if (Date.parse(currentProcessedSpatData[i].utcTimeStamp) < currTimestamp - OLDEST_DATA_TO_KEEP) {
+      if (currentProcessedSpatData[i].utcTimeStamp < currTimestamp - OLDEST_DATA_TO_KEEP) {
         oldIndex = i;
       } else {
         break;
@@ -441,11 +476,8 @@ export const renderIterative_Spat = createAsyncThunk(
     const currentProcessedSpatDataLocal = currentProcessedSpatData
       .slice(oldIndex, currentProcessedSpatData.length)
       .concat(newSpatData);
-    setCurrentProcessedSpatData(currentProcessedSpatDataLocal);
-    dispatch(setRawData({ spat: currentProcessedSpatDataLocal }));
     console.debug("SPAT RENDER TIME:", Date.now() - start, "ms");
-
-    return currentSpatSignalGroupsLocal;
+    return { signalGroups: currentSpatSignalGroupsLocal, raw: currentProcessedSpatDataLocal };
   },
   {
     condition: (newSpatData: ProcessedSpat[], { getState }) => newSpatData.length != 0,
@@ -488,6 +520,40 @@ export const renderIterative_Bsm = createAsyncThunk(
   },
   {
     condition: (newBsmData: OdeBsmData[], { getState }) => newBsmData.length != 0,
+  }
+);
+
+export const getBsmDailyCounts = createAsyncThunk(
+  "map/getBsmDailyCounts",
+  async (_, { getState }) => {
+    const currentState = getState() as RootState;
+    const authToken = selectAuthToken(currentState)!;
+    const queryParams = selectQueryParams(currentState);
+
+    const dayStart = new Date(queryParams.startDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(queryParams.startDate);
+    dayEnd.setHours(23, 59, 59, 0);
+
+    const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
+      authToken,
+      queryParams.intersectionId!,
+      dayStart,
+      dayEnd,
+      { test: false }
+    );
+    toast.promise(bsmEventsByMinutePromise, {
+      loading: `Loading BSM Event Counts`,
+      success: `Successfully got BSM event counts`,
+      error: `Failed to get BSM event counts. Please see console`,
+    });
+    return bsmEventsByMinutePromise;
+  },
+  {
+    condition: (_, { getState }) =>
+      selectAuthToken(getState() as RootState) != undefined &&
+      selectQueryParams(getState() as RootState).intersectionId != undefined &&
+      selectQueryParams(getState() as RootState).roadRegulatorId != undefined,
   }
 );
 
@@ -555,6 +621,7 @@ export const initializeLiveStreaming = createAsyncThunk(
     const { token, roadRegulatorId, intersectionId } = args;
     // Connect to WebSocket when component mounts
     dispatch(onTimeQueryChanged({ eventTime: new Date(), timeBefore: 10, timeAfter: 0, timeWindowSeconds: 2 }));
+    dispatch(setRawData({}));
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
@@ -696,7 +763,7 @@ export const updateRenderedMapState = createAsyncThunk(
         ? generateSignalStateFeatureCollection(mapSignalGroups!, closestSignalGroup?.spat)
         : undefined,
       spatTime: closestSignalGroup?.datetime,
-      currentBsms: lastBsms,
+      currentBsms: { type: "FeatureCollection" as "FeatureCollection", features: lastBsms },
       filteredSurroundingEvents: filteredEvents,
       filteredSurroundingNotifications: filteredNotifications,
     };
@@ -839,7 +906,7 @@ export const mapSlice = createSlice({
         state.value.timeWindowSeconds
       );
     },
-    setViewState: (state, action: PayloadAction<ViewState>) => {
+    setViewState: (state, action: PayloadAction<Partial<ViewState>>) => {
       state.value.viewState = action.payload;
     },
     handleImportedMapMessageData: (
@@ -917,8 +984,16 @@ export const mapSlice = createSlice({
       state.value.timeWindowSeconds = timeWindowSeconds ?? state.value.timeWindowSeconds;
     },
     setSliderValue: (state, action: PayloadAction<number | number[]>) => {
-      state.value.sliderValue = Math.min(action.payload as number, getTimeRange(state.value.queryParams.startDate, state.value.queryParams.endDate));
+      state.value.sliderValue = action.payload as number;
       state.value.liveDataActive = false;
+    },
+    incrementSliderValue: (state, action: PayloadAction<number | undefined>) => {
+      const maxSliderValue = getTimeRange(state.value.queryParams.startDate, state.value.queryParams.endDate);
+      if (state.value.sliderValue == maxSliderValue) {
+        state.value.playbackModeActive = false;
+      } else {
+        state.value.sliderValue += action.payload ?? 1;
+      }
     },
     updateRenderTimeInterval: (state) => {
       state.value.renderTimeInterval = generateRenderTimeInterval(
@@ -1019,6 +1094,12 @@ export const mapSlice = createSlice({
       state.value.intersectionId = action.payload.intersectionId;
       state.value.roadRegulatorId = action.payload.roadRegulatorId;
       state.value.loadOnNull = action.payload.loadOnNull;
+    },
+    setCurrentSpatData: (state, action: PayloadAction<ProcessedSpat[]>) => {
+      state.value.currentSpatData = action.payload;
+    },
+    togglePlaybackModeActive: (state) => {
+      state.value.playbackModeActive = !state.value.playbackModeActive;
     },
   },
   extraReducers: (builder) => {
@@ -1122,13 +1203,21 @@ export const mapSlice = createSlice({
           state.value.mapData = action.payload.mapData;
           state.value.mapSignalGroups = action.payload.mapSignalGroups;
           state.value.mapSpatTimes = { ...state.value.mapSpatTimes, mapTime: action.payload.mapTime };
+          state.value.rawData = { ...state.value.rawData, map: action.payload.currentMapData };
         }
       )
-      .addCase(renderIterative_Spat.fulfilled, (state, action: PayloadAction<SpatSignalGroups>) => {
-        state.value.spatSignalGroups = action.payload;
-      })
+      .addCase(
+        renderIterative_Spat.fulfilled,
+        (state, action: PayloadAction<{ signalGroups: SpatSignalGroups; raw: ProcessedSpat[] }>) => {
+          state.value.spatSignalGroups = action.payload.signalGroups;
+          state.value.currentSpatData = action.payload.raw;
+          state.value.rawData = { ...state.value.rawData, spat: action.payload.raw };
+        }
+      )
       .addCase(renderIterative_Bsm.fulfilled, (state, action: PayloadAction<BsmFeatureCollection>) => {
         state.value.currentBsmData = action.payload;
+        state.value.bsmData = action.payload;
+        state.value.rawData = { ...state.value.rawData, bsm: action.payload };
       })
       .addCase(
         updateRenderedMapState.fulfilled,
@@ -1156,6 +1245,20 @@ export const mapSlice = createSlice({
       )
       .addCase(initializeLiveStreaming.fulfilled, (state, action: PayloadAction<CompatClient>) => {
         state.value.wsClient = action.payload;
+      })
+      .addCase(getBsmDailyCounts.fulfilled, (state, action: PayloadAction<MinuteCount[]>) => {
+        state.value.bsmEventsByMinute = (action.payload ?? []).map((item) => {
+          const date = new Date(item.minute);
+          const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
+          return {
+            ...item,
+            minutesAfterMidnight,
+            timestamp: `${date.getHours().toString().padStart(2, "0")}:${date
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}`,
+          };
+        });
       });
   },
 });
@@ -1183,6 +1286,8 @@ export const selectFilteredSurroundingEvents = (state: RootState) => state.map.v
 export const selectSurroundingNotifications = (state: RootState) => state.map.value.surroundingNotifications;
 export const selectFilteredSurroundingNotifications = (state: RootState) =>
   state.map.value.filteredSurroundingNotifications;
+export const selectBsmEventsByMinute = (state: RootState) => state.map.value.bsmEventsByMinute;
+export const selectPlaybackModeActive = (state: RootState) => state.map.value.playbackModeActive;
 export const selectViewState = (state: RootState) => state.map.value.viewState;
 export const selectTimeWindowSeconds = (state: RootState) => state.map.value.timeWindowSeconds;
 export const selectSliderValue = (state: RootState) => state.map.value.sliderValue;
@@ -1213,6 +1318,7 @@ export const {
   updateQueryParams,
   onTimeQueryChanged,
   setSliderValue,
+  incrementSliderValue,
   updateRenderTimeInterval,
   onMapClick,
   onMapMouseMove,
@@ -1229,6 +1335,7 @@ export const {
   setBsmTrailLength,
   setRawData,
   setMapProps,
+  togglePlaybackModeActive,
 } = mapSlice.actions;
 
 export default mapSlice.reducer;
