@@ -24,6 +24,7 @@ import {
   selectBsmEventsByMinute,
   selectBsmEventsByMinute,
   selectBsmTrailLength,
+  selectPlaybackModeActive,
   selectSliderTimeValue,
   setBsmTrailLength,
   setLaneLabelsVisible,
