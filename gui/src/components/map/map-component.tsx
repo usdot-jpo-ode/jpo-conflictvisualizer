@@ -103,6 +103,11 @@ import {
 } from "./utilities/message-utils";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
+import * as turf from "@turf/turf";
+
+import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
+import { set } from "date-fns";
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 const { publicRuntimeConfig } = getConfig();
 
 const generateQueryParams = (
@@ -227,6 +232,32 @@ const MapTab = (props: MyProps) => {
     dispatch(setMapProps(props));
   }, [props]);
 
+  // Increment sliderValue by 1 every second when playbackModeActive is true
+  useEffect(() => {
+    if (playbackModeActive) {
+      const interval = setInterval(() => {
+        setSliderValue((prevSliderValue) => prevSliderValue + 1);
+      }, 100);
+      // Clear interval on component unmount
+      return () => {
+        clearInterval(interval);
+      };
+    }
+    return () => {};
+  }, [playbackModeActive]);
+
+  useEffect(() => {
+    setBsmByMinuteUpdated(true);
+  }, [bsmEventsByMinute]);
+
+  useEffect(() => {
+    const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
+    if (sliderValue >= endTime) {
+      setSliderValue(endTime);
+      setPlaybackModeActive(false);
+    }
+  }, [sliderValue]);
+
   useEffect(() => {
     if (props.intersectionId != queryParams.intersectionId || props.roadRegulatorId != queryParams.roadRegulatorId) {
       dispatch(
@@ -294,6 +325,7 @@ const MapTab = (props: MyProps) => {
           })
         );
         if (bsmTrailLength > 15) setBsmTrailLength(5);
+        setRawData({});
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -332,9 +364,7 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}>
-              <ControlPanel />
-            </Paper>
+            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}></Paper>
           </Box>
         </div>
         <div
@@ -375,15 +405,20 @@ const MapTab = (props: MyProps) => {
         >
           <Source
             type="geojson"
-            data={connectingLanes && currentSignalGroups && addConnections(connectingLanes, currentSignalGroups)}
+            data={
+              connectingLanes &&
+              currentSignalGroups &&
+              mapData?.mapFeatureCollection &&
+              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+            }
           >
             <Layer {...connectingLanesLayerStyle} />
           </Source>
           <Source
             type="geojson"
             data={
-              connectingLanes && currentSignalGroups && sigGroupLabelsVisible
-                ? addConnections(connectingLanes, currentSignalGroups)
+              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
+                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
                 : undefined
             }
           >
@@ -411,6 +446,9 @@ const MapTab = (props: MyProps) => {
             }
           >
             <Layer {...markerLayerStyle} />
+          </Source>
+          <Source type="geojson" data={currentBsms}>
+            <Layer {...bsmLayerStyle} />
           </Source>
           <Source type="geojson" data={currentBsms}>
             <Layer {...bsmLayerStyle} />

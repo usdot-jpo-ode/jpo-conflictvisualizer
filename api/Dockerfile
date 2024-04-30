@@ -1,4 +1,4 @@
-FROM maven:3.8.1-openjdk-11 as builder
+FROM maven:3.8-eclipse-temurin-21-alpine as builder
 
 WORKDIR /home
 
@@ -38,7 +38,7 @@ WORKDIR /home/jpo-conflictvisualizer-api
 
 RUN mvn clean package -DskipTests
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
-FROM openjdk:11-jre
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /home
 
@@ -47,7 +47,7 @@ COPY --from=builder /home/jpo-conflictvisualizer-api/src/main/resources/logback.
 COPY --from=builder /home/jpo-conflictvisualizer-api/target/jpo-conflictvisualizer-api-0.0.1-SNAPSHOT.jar /home
 
 #COPY cert.crt /home/cert.crt
-#RUN keytool -import -trustcacerts -keystore /usr/local/openjdk-11/lib/security/cacerts -storepass changeit -noprompt -alias mycert -file cert.crt
+#RUN keytool -import -trustcacerts -keystore /opt/java/openjdk/lib/security/cacerts -storepass changeit -noprompt -alias mycert -file cert.crt
 
 ENTRYPOINT ["java", \
     "-Djava.rmi.server.hostname=$DOCKER_HOST_IP", \

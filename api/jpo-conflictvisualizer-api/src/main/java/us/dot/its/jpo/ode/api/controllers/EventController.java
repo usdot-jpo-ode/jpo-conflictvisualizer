@@ -1,8 +1,16 @@
 package us.dot.its.jpo.ode.api.controllers;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import us.dot.its.jpo.conflictmonitor.monitor.models.bsm.BsmEvent;
 import us.dot.its.jpo.conflictmonitor.monitor.models.events.ConnectionOfTravelEvent;
 import us.dot.its.jpo.conflictmonitor.monitor.models.events.IntersectionReferenceAlignmentEvent;
 import us.dot.its.jpo.conflictmonitor.monitor.models.events.LaneDirectionOfTravelEvent;
@@ -30,6 +39,7 @@ import us.dot.its.jpo.conflictmonitor.monitor.models.events.broadcast_rate.SpatB
 import us.dot.its.jpo.conflictmonitor.monitor.models.events.minimum_data.MapMinimumDataEvent;
 import us.dot.its.jpo.conflictmonitor.monitor.models.events.minimum_data.SpatMinimumDataEvent;
 import us.dot.its.jpo.ode.api.ConflictMonitorApiProperties;
+import us.dot.its.jpo.ode.api.accessors.events.BsmEvent.BsmEventRepository;
 import us.dot.its.jpo.ode.api.accessors.events.ConnectionOfTravelEvent.ConnectionOfTravelEventRepository;
 import us.dot.its.jpo.ode.api.accessors.events.IntersectionReferenceAlignmentEvent.IntersectionReferenceAlignmentEventRepository;
 import us.dot.its.jpo.ode.api.accessors.events.LaneDirectionOfTravelEvent.LaneDirectionOfTravelEventRepository;
@@ -43,8 +53,11 @@ import us.dot.its.jpo.ode.api.accessors.events.SpatBroadcastRateEvent.SpatBroadc
 import us.dot.its.jpo.ode.api.accessors.events.SpatMinimumDataEvent.SpatMinimumDataEventRepository;
 import us.dot.its.jpo.ode.api.accessors.events.TimeChangeDetailsEvent.TimeChangeDetailsEventRepository;
 import us.dot.its.jpo.ode.api.models.IDCount;
+import us.dot.its.jpo.ode.api.models.MinuteCount;
 import us.dot.its.jpo.ode.mockdata.MockEventGenerator;
 import us.dot.its.jpo.ode.mockdata.MockIDCountGenerator;
+import us.dot.its.jpo.ode.model.OdeBsmPayload;
+import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
 
 @RestController
 public class EventController {
@@ -85,6 +98,9 @@ public class EventController {
     @Autowired
     MapBroadcastRateEventRepository mapBroadcastRateEventRepo;
 
+    @Autowired
+    BsmEventRepository bsmEventRepo;
+
 
 
     @Autowired
@@ -93,6 +109,7 @@ public class EventController {
     private static final Logger logger = LoggerFactory.getLogger(EventController.class);
 
     ObjectMapper objectMapper = new ObjectMapper();
+    DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
 
     public String getCurrentTime() {
         return ZonedDateTime.now().toInstant().toEpochMilli() + "";
@@ -473,6 +490,93 @@ public class EventController {
             logger.info("Returning SpatMinimumDataEventRepo Response with Size: " + count);
             System.out.println("Spat Broadcast Data Event");
             return ResponseEntity.ok(spatBroadcastRateEventRepo.find(query));
+        }
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/events/bsm_events", method = RequestMethod.GET, produces = "application/json")
+    @PreAuthorize("hasRole('USER') || hasRole('ADMIN')")
+    public ResponseEntity<List<BsmEvent>> findBsmEvents(
+            @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
+            @RequestParam(name = "start_time_utc_millis", required = false) Long startTime,
+            @RequestParam(name = "end_time_utc_millis", required = false) Long endTime,
+            @RequestParam(name = "latest", required = false, defaultValue = "false") boolean latest,
+            @RequestParam(name = "test", required = false, defaultValue = "false") boolean testData) {
+
+        if (testData) {
+            List<BsmEvent> list = new ArrayList<>();
+            list.add(MockEventGenerator.getBsmEvent());
+            return ResponseEntity.ok(list);
+        } else {
+            Query query = bsmEventRepo.getQuery(intersectionID, startTime, endTime, latest);
+            long count = bsmEventRepo.getQueryResultCount(query);
+            logger.info("Returning Bsm Event Repo Response with Size: " + count);
+            System.out.println("Spat Broadcast Data Event");
+            return ResponseEntity.ok(bsmEventRepo.find(query));
+        }
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/events/bsm_events_by_minute", method = RequestMethod.GET, produces = "application/json")
+    @PreAuthorize("hasRole('USER') || hasRole('ADMIN')")
+    public ResponseEntity<List<MinuteCount>> getBsmActivityByMinuteInRange(
+            @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
+            @RequestParam(name = "start_time_utc_millis", required = false) Long startTime,
+            @RequestParam(name = "end_time_utc_millis", required = false) Long endTime,
+            @RequestParam(name = "latest", required = false, defaultValue = "false") boolean latest,
+            @RequestParam(name = "test", required = false, defaultValue = "false") boolean testData) {
+
+        if (testData) {
+            List<MinuteCount> list = new ArrayList<>();
+            Random rand = new Random();
+            for(int i=0; i< 10; i++){
+                int offset = rand.nextInt((int)(endTime - startTime));
+                MinuteCount count = new MinuteCount();
+                count.setMinute(((long)Math.round((startTime + offset) / 60000)) * 60000L);
+                count.setCount(rand.nextInt(10) + 1);
+                list.add(count);
+            }
+            
+            return ResponseEntity.ok(list);
+        } else {
+            Query query = bsmEventRepo.getQuery(intersectionID, startTime, endTime, latest);
+
+            List<BsmEvent> events = bsmEventRepo.find(query);
+
+            Map<Long, Set<String>> bsmEventMap = new HashMap<>();
+
+            for(BsmEvent event: events){
+                J2735Bsm bsm = ((J2735Bsm)event.getStartingBsm().getPayload().getData());
+                Long eventStartMinute = Instant.from(formatter.parse(event.getStartingBsm().getMetadata().getOdeReceivedAt())).toEpochMilli() / (60 * 1000);
+                Long eventEndMinute = eventStartMinute;
+                
+                if(event.getEndingBsm() != null){
+                    eventEndMinute = Instant.from(formatter.parse(event.getEndingBsm().getMetadata().getOdeReceivedAt())).toEpochMilli() / (60 * 1000);
+                }
+
+                if(eventStartMinute != null && eventEndMinute != null){
+                    for (Long i = eventStartMinute; i<= eventEndMinute; i++){
+                        String bsmID = bsm.getCoreData().getId();
+                        if(bsmEventMap.get(i) != null){
+                            bsmEventMap.get(i).add(bsmID);
+                        }else{
+                            Set<String> newSet = new HashSet<>();
+                            newSet.add(bsmID);
+                            bsmEventMap.put(i, newSet);
+                        }
+                    }
+                }
+            }
+
+            List<MinuteCount> outputEvents = new ArrayList<>();
+            for(Long key: bsmEventMap.keySet()){
+                MinuteCount count = new MinuteCount();
+                count.setMinute(key * 60000);
+                count.setCount(bsmEventMap.get(key).size());
+                outputEvents.add(count);
+            }
+
+            return ResponseEntity.ok(outputEvents);
         }
     }
 

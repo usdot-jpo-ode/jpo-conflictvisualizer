@@ -40,9 +40,20 @@ Alternatively, clone the repository first, then import submodules second
 git submodule update --init --recursive
 ```
 
-### 2. Clone and Run jpo-ode, jpo-geojsonconverter, and jpo-conflictmonitor docker images
+### 2. Build and Run jpo-ode, jpo-geojsonconverter, and jpo-conflictmonitor docker images
 
-Run ODE, then GeoJSONConverter, then ConflictMonitor. Please see the individual repositories for each for information on how to deploy each of these.
+Run [ODE](https://github.com/usdot-jpo-ode/jpo-ode#step-2---build-and-run-the-application), then [GeoJSONConverter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter#step-2---build-and-run-jpo-ode-application), then [ConflictMonitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor#step-2---build-and-run-jpo-ode-application). Each can be built and run by navigating to their respective directories that contain a pom.xml, then running:
+
+```
+mvn install
+```
+
+or to skip the tests:
+
+```
+mvn install -DskipTests
+```
+
 
 ### 3. Configure Conflict Visualizer API
 

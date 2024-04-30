@@ -13,8 +13,6 @@ const nextConfig = {
   },
   // all visible runtime environment variables must be added here
   publicRuntimeConfig: {
-    KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
-    KEYCLOAK_CLIENT_SECRET: process.env.KEYCLOAK_CLIENT_SECRET,
     KEYCLOAK_REALM: process.env.KEYCLOAK_REALM,
     MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
     MAPBOX_STYLE_URL: process.env.MAPBOX_STYLE_URL,
