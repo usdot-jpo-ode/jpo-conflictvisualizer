@@ -13,7 +13,7 @@ export function generateColorDictionary(inputSet: Set<string>): { [key: string]:
 }
 
 export function generateMapboxStyleExpression(colors: { [key: string]: string }): mapboxgl.Expression {
-  const layerStyle: mapboxgl.Expression = ["match", ["get", "id"]];
+  const layerStyle: mapboxgl.Expression = ["match", ["get", "id"], "temp-id", "#0004ff"];
   for (const [key, value] of Object.entries(colors)) {
     layerStyle.push(key);
     layerStyle.push(value);

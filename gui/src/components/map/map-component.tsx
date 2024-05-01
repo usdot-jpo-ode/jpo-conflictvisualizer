@@ -24,7 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -803,7 +803,9 @@ const MapTab = (props: MyProps) => {
         .map((spat) => ({
           ...spat,
           utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-            ? spat.utcTimeStamp * 1000
+            ? spat.utcTimeStamp > 1000000000000
+              ? spat.utcTimeStamp
+              : spat.utcTimeStamp * 1000
             : Date.parse(spat.utcTimeStamp as any as string),
         }));
 
@@ -989,11 +991,11 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);  
+  }, [playbackModeActive]);
 
   useEffect(() => {
-  setBsmByMinuteUpdated(true);
-}, [bsmEventsByMinute]);
+    setBsmByMinuteUpdated(true);
+  }, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
@@ -1064,7 +1066,9 @@ const MapTab = (props: MyProps) => {
     newSpatData = newSpatData.map((spat) => ({
       ...spat,
       utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-        ? spat.utcTimeStamp * 1000
+        ? spat.utcTimeStamp > 1000000000000
+          ? spat.utcTimeStamp
+          : spat.utcTimeStamp * 1000
         : Date.parse(spat.utcTimeStamp as any as string),
     }));
     const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
@@ -1452,7 +1456,7 @@ const MapTab = (props: MyProps) => {
 
   const onClickMap = (e) => {
     const features = mapRef.current.queryRenderedFeatures(e.point, {
-      //   layers: allInteractiveLayerIds,
+      layers: allInteractiveLayerIds,
     });
     const feature = features?.[0];
     if (feature && allInteractiveLayerIds.includes(feature.layer.id)) {
@@ -1582,19 +1586,38 @@ const MapTab = (props: MyProps) => {
             setHoveredFeature(undefined);
           }}
         >
-          <Source type="geojson" data={mapData?.mapFeatureCollection}>
+          <Source
+            type="geojson"
+            data={
+              mapData?.mapFeatureCollection ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
+            }
+          >
             <Layer {...mapMessageLayer} />
           </Source>
-          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
+          <Source
+            type="geojson"
+            data={
+              (laneLabelsVisible ? mapData?.mapFeatureCollection : undefined) ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
+            }
+          >
             <Layer {...mapMessageLabelsLayer} />
           </Source>
           <Source
             type="geojson"
             data={
-              connectingLanes &&
-              currentSignalGroups &&
-              mapData?.mapFeatureCollection &&
-              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+              (connectingLanes &&
+                currentSignalGroups &&
+                mapData?.mapFeatureCollection &&
+                addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)) ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
             }
           >
             <Layer {...connectingLanesLayer} />
@@ -1602,9 +1625,12 @@ const MapTab = (props: MyProps) => {
           <Source
             type="geojson"
             data={
-              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
+              (connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
                 ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
-                : undefined
+                : undefined) ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
             }
           >
             <Layer {...connectingLanesLabelsLayer} />
@@ -1612,21 +1638,40 @@ const MapTab = (props: MyProps) => {
           <Source
             type="geojson"
             data={
-              mapData && props.sourceData && props.sourceDataType == "notification"
+              (mapData && props.sourceData && props.sourceDataType == "notification"
                 ? createMarkerForNotification(
                     [0, 0],
                     props.sourceData as MessageMonitor.Notification,
                     mapData.mapFeatureCollection
                   )
-                : undefined
+                : undefined) ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
             }
           >
             <Layer {...markerLayer} />
           </Source>
-          <Source type="geojson" data={currentBsms}>
+          <Source
+            type="geojson"
+            data={
+              currentBsms ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
+            }
+          >
             <Layer {...bsmLayerStyle} />
           </Source>
-          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
+          <Source
+            type="geojson"
+            data={
+              (connectingLanes && currentSignalGroups ? signalStateData : undefined) ?? {
+                type: "FeatureCollection" as "FeatureCollection",
+                features: [],
+              }
+            }
+          >
             <Layer {...signalStateLayer} />
           </Source>
           {selectedFeature && (
