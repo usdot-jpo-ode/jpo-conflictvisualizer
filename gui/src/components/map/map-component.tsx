@@ -885,6 +885,11 @@ const MapTab = (props: MyProps) => {
     const spatSignalGroupsLocal = parseSpatSignalGroups(rawSpat);
 
     setSpatSignalGroups(spatSignalGroupsLocal);
+    
+    renderEntireMap(rawMap, rawSpat, {
+      "type": "FeatureCollection",
+      features: [],
+    });
 
     // ######################### BSMs #########################
     if (!importedMessageData) {
