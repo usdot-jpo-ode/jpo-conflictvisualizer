@@ -7,6 +7,7 @@ import { getProviders, signIn } from "next-auth/react";
 import React from "react";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
 interface Provider {
   id: string;
@@ -93,7 +94,7 @@ const Page = () => {
                     {Object.values(providers).map((provider) => (
                       <div key={provider.name}>
                         <Button
-                          onClick={() => signIn(provider.id, { callbackUrl: `${publicRuntimeConfig.GUI_SERVER_URL}/` })}
+                          onClick={() => signIn(provider.id, { callbackUrl: `${env("GUI_SERVER_URL")}/` })}
                           variant="contained"
                         >
                           Sign in with {provider.name}

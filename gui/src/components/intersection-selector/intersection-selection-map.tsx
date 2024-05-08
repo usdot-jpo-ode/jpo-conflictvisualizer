@@ -5,6 +5,7 @@ import { Container, Col } from "reactstrap";
 import getConfig from "next/config";
 
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
 const getBoundsForIntersections = (
   selectedIntersection: IntersectionReferenceData | undefined,
@@ -105,7 +106,7 @@ type Props = {
 };
 
 const IntersectionMap = (props: Props) => {
-  const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
+  const MAPBOX_API_TOKEN = env("MAPBOX_TOKEN")!;
   const [selectedIntersection, setSelectedIntersection] = useState<IntersectionReferenceData | undefined>(
     props.selectedIntersection
   );
@@ -146,7 +147,7 @@ const IntersectionMap = (props: Props) => {
         <Map
           {...viewState}
           ref={myRef}
-          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
+          mapStyle={env("MAPBOX_STYLE_URL")!}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}

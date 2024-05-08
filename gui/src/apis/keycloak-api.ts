@@ -1,9 +1,10 @@
 import { authApiHelper } from "./api-helper";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
-const KEYCLOAK_ADMIN_ENDPOINT = `${publicRuntimeConfig.AUTH_SERVER_URL}/admin/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
-const KEYCLOAK_AUTH_ENDPOINT = `${publicRuntimeConfig.AUTH_SERVER_URL}/realms/${publicRuntimeConfig.KEYCLOAK_REALM}`;
+const KEYCLOAK_ADMIN_ENDPOINT = `${env("AUTH_SERVER_URL")}/admin/realms/${env("KEYCLOAK_REALM")}`;
+const KEYCLOAK_AUTH_ENDPOINT = `${env("AUTH_SERVER_URL")}/realms/${env("KEYCLOAK_REALM")}`;
 
 class KeycloakApi {
   getEmailPreferences(attributes: Record<string, string[]>): EmailPreferences {

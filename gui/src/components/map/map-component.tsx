@@ -24,9 +24,10 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
 const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
 
@@ -239,7 +240,7 @@ type MyProps = {
 };
 
 const MapTab = (props: MyProps) => {
-  const MAPBOX_API_TOKEN = publicRuntimeConfig.MAPBOX_TOKEN!;
+  const MAPBOX_API_TOKEN = env("MAPBOX_TOKEN")!;
 
   const [queryParams, setQueryParams] = useState<{
     startDate: Date;
@@ -989,11 +990,11 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);  
+  }, [playbackModeActive]);
 
   useEffect(() => {
-  setBsmByMinuteUpdated(true);
-}, [bsmEventsByMinute]);
+    setBsmByMinuteUpdated(true);
+  }, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
@@ -1335,7 +1336,7 @@ const MapTab = (props: MyProps) => {
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
-    const url = `${publicRuntimeConfig.API_WS_URL}/stomp`;
+    const url = `${env("API_WS_URL")}/stomp`;
     console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
 
     // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
@@ -1550,7 +1551,7 @@ const MapTab = (props: MyProps) => {
           {...viewState}
           ref={mapRef}
           onLoad={() => {}}
-          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
+          mapStyle={env("MAPBOX_STYLE_URL")!}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}

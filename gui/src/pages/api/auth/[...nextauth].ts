@@ -3,6 +3,8 @@ import { JWT } from "next-auth/jwt";
 import KeycloakProvider from "next-auth/providers/keycloak";
 import keycloakApi from "../../../apis/keycloak-api";
 
+import env from "@beam-australia/react-env";
+
 const parseJwt = (token) => {
   try {
     return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
@@ -15,14 +17,14 @@ export const authOptions = {
   // Configure one or more authentication providers
   providers: [
     KeycloakProvider({
-      issuer: `${process.env.AUTH_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}`,
-      clientId: process.env.KEYCLOAK_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      issuer: `${env("AUTH_SERVER_URL")}/realms/${env("KEYCLOAK_REALM")}`,
+      clientId: env("KEYCLOAK_CLIENT_ID")!,
+      clientSecret: env("KEYCLOAK_CLIENT_SECRET")!,
       checks: "state",
     }),
     // ...add more providers here
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: env("NEXTAUTH_SECRET"),
   pages: {
     signIn: "/auth/signin",
   },

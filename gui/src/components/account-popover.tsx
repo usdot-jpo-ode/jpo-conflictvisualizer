@@ -7,6 +7,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import keycloakApi from "../apis/keycloak-api";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
 export const AccountPopover = (props) => {
   const { anchorEl, onClose, open, ...other } = props;
@@ -81,9 +82,7 @@ export const AccountPopover = (props) => {
       >
         <MenuItem
           onClick={() => {
-            window.open(
-              `${publicRuntimeConfig.AUTH_SERVER_URL}/realms/${publicRuntimeConfig.KEYCLOAK_REALM}/account/#/`
-            );
+            window.open(`${env("AUTH_SERVER_URL")}/realms/${env("KEYCLOAK_REALM")}/account/#/`);
           }}
         >
           Edit Account

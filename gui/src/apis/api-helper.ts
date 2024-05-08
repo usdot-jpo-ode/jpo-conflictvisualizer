@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
+import env from "@beam-australia/react-env";
 
 class AuthApiHelper {
   formatQueryParams(query_params?: Record<string, any>): string {
@@ -40,7 +41,7 @@ class AuthApiHelper {
     successMessage?: string;
     failureMessage?: string;
   }): Promise<any> {
-    const url = (basePath ?? publicRuntimeConfig.API_SERVER_URL!) + path + this.formatQueryParams(queryParams);
+    const url = (basePath ?? env("API_SERVER_URL")) + path + this.formatQueryParams(queryParams);
 
     const localHeaders: HeadersInit = { ...headers };
     if (token) localHeaders["Authorization"] = `Bearer ${token}`;
