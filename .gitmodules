@@ -2,7 +2,4 @@
 	path = api/jpo-conflictmonitor
 	url = https://github.com/usdot-jpo-ode/jpo-conflictmonitor
     branch = develop
-[submodule "api/asn1_codec"]
-        path = api/jpo-conflictmonitor
-        url = https://github.com:iyourshaw/asn1_codec
-    branch = develop
+
