@@ -92,7 +92,7 @@ const Page = () => {
       >
         <Container maxWidth={false}>
         <Box display="flex" justifyContent="flex-start">
-          <EventCountDataTable accessToken={session?.accessToken} intersectionId={12109} />
+          <EventCountDataTable accessToken={session?.accessToken} intersectionId={intersectionId} />
         </Box>
           <Grid container spacing={3}>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
