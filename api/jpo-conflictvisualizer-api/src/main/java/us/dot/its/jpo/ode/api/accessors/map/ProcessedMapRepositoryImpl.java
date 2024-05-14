@@ -36,7 +36,6 @@ import static com.mongodb.client.model.Filters.eq;
 
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 import us.dot.its.jpo.ode.api.ConflictMonitorApiProperties;
-import us.dot.its.jpo.ode.api.controllers.AssessmentController;
 import us.dot.its.jpo.ode.api.models.IDCount;
 import us.dot.its.jpo.ode.api.models.IntersectionReferenceData;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
@@ -105,9 +104,10 @@ public class ProcessedMapRepositoryImpl implements ProcessedMapRepository {
         MongoCursor<Integer> results = docs.iterator();
         List<IntersectionReferenceData> referenceDataList = new ArrayList<>();
         while (results.hasNext()) {
+            
             Integer intersectionId = results.next();
-                if (intersectionId != null){
-
+            if (intersectionId != null){
+                
                 Bson projectionFields = Projections.fields(
                         Projections.include("properties.intersectionId", "properties.originIp",
                                 "properties.refPoint.latitude", "properties.refPoint.longitude", "properties.intersectionName"),
@@ -125,7 +125,11 @@ public class ProcessedMapRepositoryImpl implements ProcessedMapRepository {
                             data.setIntersectionID(intersectionId);
                             data.setRoadRegulatorID("-1");
                             data.setRsuIP(properties.getString("originIp"));
-                            data.setIntersectionName(properties.getString("intersectionName"));
+
+                            if(properties.getString("intersectionName") != null && properties.getString("intersectionName").isEmpty()){
+                                data.setIntersectionName(properties.getString("intersectionName"));
+                            }
+                            
                             if (refPoint != null) {
                                 data.setLatitude(refPoint.getDouble("latitude"));
                                 data.setLongitude(refPoint.getDouble("longitude"));
@@ -136,7 +140,7 @@ public class ProcessedMapRepositoryImpl implements ProcessedMapRepository {
                 } catch (MongoException e){
                     logger.error("MongoDB Intersection Query Did not finish in allowed time window");
                 } catch (Exception e) {
-                    logger.error("");
+                    logger.error(e.getMessage());
                 }
                 
             }
