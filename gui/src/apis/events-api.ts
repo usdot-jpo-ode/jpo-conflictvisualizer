@@ -67,6 +67,7 @@ class EventsApi {
 
     const events: MessageMonitor.Event[] = [];
     for (const eventTypeObj of EVENT_TYPES) {
+      console.log(`Retrieving events of type ${eventTypeObj.value}`);
       const response: MessageMonitor.Event[] =
         (await authApiHelper.invokeApi({
           path: `/events/${eventTypeObj.value}`,
@@ -101,6 +102,28 @@ class EventsApi {
       failureMessage: `Failed to retrieve bsm events by minute`,
     });
     return response ?? ([] as MessageMonitor.MinuteCount[]);
+  }
+
+  async getEventCount(
+    token: string,
+    eventType: string,
+    intersectionId: number,
+    startTime: Date,
+    endTime: Date
+  ): Promise<number> {
+    const queryParams = {
+      intersection_id: intersectionId.toString(),
+      start_time_utc_millis: startTime.getTime().toString(),
+      end_time_utc_millis: endTime.getTime().toString(),
+      test: "false",
+    };
+    const response = await authApiHelper.invokeApi({
+      path: `/${eventType}/count`,
+      token: token,
+      queryParams: queryParams,
+      failureMessage: `Failed to retrieve event count for type ${eventType}`,
+    });
+    return response;
   }
 }
 

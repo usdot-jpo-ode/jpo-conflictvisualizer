@@ -10,6 +10,7 @@ import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
+import { EventCountDataTable } from '../components/event-counts/event-count-widget';
 
 const Page = () => {
   const [assessment, setAssessments] = useState<Assessment[]>([]);
@@ -90,6 +91,9 @@ const Page = () => {
         }}
       >
         <Container maxWidth={false}>
+        <Box display="flex" justifyContent="flex-start">
+          <EventCountDataTable accessToken={session?.accessToken} intersectionId={12109} />
+        </Box>
           <Grid container spacing={3}>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
