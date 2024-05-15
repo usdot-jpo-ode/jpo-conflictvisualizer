@@ -169,7 +169,7 @@ const signalStateLayer: LayerProps = {
       "PRE_MOVEMENT",
       "traffic-light-icon-yellow-red-1",
       "PERMISSIVE_MOVEMENT_ALLOWED",
-      "traffic-light-icon-yellow-1",
+      "traffic-light-icon-green-1",
       "PROTECTED_MOVEMENT_ALLOWED",
       "traffic-light-icon-green-1",
       "PERMISSIVE_CLEARANCE",

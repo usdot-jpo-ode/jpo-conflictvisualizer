@@ -65,6 +65,7 @@ import {
 import { addConnections, createMarkerForNotification } from "./utilities/message-utils";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
+import ControlPanel from "./control-panel";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -312,7 +313,9 @@ const MapTab = (props: MyProps) => {
           }}
         >
           <Box style={{ position: "relative" }}>
-            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}></Paper>
+            <Paper sx={{ pt: 1, pb: 1, opacity: 0.85 }}>
+              <ControlPanel />
+            </Paper>
           </Box>
         </div>
         <div
