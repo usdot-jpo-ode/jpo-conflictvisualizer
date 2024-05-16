@@ -180,7 +180,11 @@ const getTimestamp = (dt: any): number => {
   try {
     const dtFromString = Date.parse(dt as any as string);
     if (isNaN(dtFromString)) {
-      return dt * 1000;
+        if (dt > 1000000000000) {
+          return dt; // already in milliseconds
+        } else {
+          return dt * 1000;
+        }
     } else {
       return dtFromString;
     }
