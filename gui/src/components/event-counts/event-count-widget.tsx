@@ -62,58 +62,51 @@ return (
   <Box display="flex" justifyContent="flex-start">
     <Container maxWidth="sm">
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Card>
-          <CardHeader 
-            title={`Message Counts between ${startDate.toLocaleString(undefined, {
-              dateStyle: 'short',
-              timeStyle: 'short',
-              hour12: false,
-            })} and ${endDate.toLocaleString(undefined, {
-              dateStyle: 'short',
-              timeStyle: 'short',
-              hour12: false,
-            })}`} 
-            sx={{ pb: 0 }} 
-          />
-          <CardContent sx={{ pt: 2 }}>
-            <DateTimePicker
-              label="Start Date"
-              value={startDate}
-              onChange={(newStartDate) => setStartDate(newStartDate || new Date())}
-              renderInput={(params) => <TextField {...params} />}
-            />
-            <DateTimePicker
-              label="End Date"
-              value={endDate}
-              onChange={(newEndDate) => setEndDate(newEndDate || new Date())}
-              renderInput={(params) => <TextField {...params} />}
-            />
-            <Grid container spacing={1}>
-              <Grid item xs={6}>
-                <Typography variant="body1">BSM:</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardHeader 
+                title={`Select time range`} 
+                sx={{ pb: 0 }} 
+              />
+              <CardContent sx={{ pt: 2 }}>
+                <DateTimePicker
+                  label="Start Date"
+                  value={startDate}
+                  onChange={(newStartDate) => setStartDate(newStartDate || new Date())}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+                <DateTimePicker
+                  label="End Date"
+                  value={endDate}
+                  onChange={(newEndDate) => setEndDate(newEndDate || new Date())}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Grid container spacing={0}>
+              <Grid item xs={6} md={12}>
+                <Card sx={{ mb: 2, marginRight: { xs: 2, md: 0} }}>
+                  <CardHeader title="BSM Count" sx={{ pb: 0 }} />
+                  <CardContent sx={{ pt: 2 }}>
+                    <Typography variant="body1">{bsmCount !== 0 ? bsmCount : "-"}</Typography>
+                  </CardContent>
+                </Card>
               </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body1">{bsmCount !== 0 ? bsmCount : "-"}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body1">SPAT:</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body1">{spatCount !== 0 ? spatCount : "-"}</Typography>
+              <Grid item xs={6} md={12}>
+                <Card>
+                  <CardHeader title="SPAT Count" sx={{ pb: 0 }} />
+                  <CardContent sx={{ pt: 2 }}>
+                    <Typography variant="body1">{spatCount !== 0 ? spatCount : "-"}</Typography>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
-            </CardContent>
-          </Card>
-        </LocalizationProvider>
-      <Box sx={{ mb: 4 }}>
-        <Box
-          sx={{
-            m: -1,
-            mt: 3,
-          }}
-        >
-        </Box>
-      </Box>
+          </Grid>        
+        </Grid>
+      </LocalizationProvider>
     </Container>
   </Box>
 );
