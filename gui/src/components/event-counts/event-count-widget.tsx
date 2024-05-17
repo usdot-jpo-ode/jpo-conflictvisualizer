@@ -13,7 +13,7 @@ import EventsApi from '../../apis/events-api';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
 
-export const EventCountDataTable = (props: {
+export const EventCountWidget = (props: {
   accessToken: string | undefined;
   intersectionId: number;
 }) => {

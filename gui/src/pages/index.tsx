@@ -10,7 +10,8 @@ import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
-import { EventCountDataTable } from '../components/event-counts/event-count-widget';
+import { EventCountWidget } from '../components/event-counts/event-count-widget';
+import { EventCountWeekChart } from "../components/event-counts/event-count-week-chart";
 
 const Page = () => {
   const [assessment, setAssessments] = useState<Assessment[]>([]);
@@ -91,10 +92,10 @@ const Page = () => {
         }}
       >
         <Container maxWidth={false}>
-        <Box display="flex" justifyContent="flex-start">
-          <EventCountDataTable accessToken={session?.accessToken} intersectionId={intersectionId} />
-        </Box>
           <Grid container spacing={3}>
+            <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
+            <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
+            <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
             <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
