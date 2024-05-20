@@ -67,7 +67,7 @@ return (
             <Card>
               <CardHeader 
                 title={
-                <Typography color="textSecondary" gutterBottom variant="overline">
+                  <Typography color="textSecondary" gutterBottom variant="overline">
                   {`Select time range`}                            
                   </Typography>
                   }
@@ -93,7 +93,7 @@ return (
             <Grid container spacing={0}>
               <Grid item xs={6} md={12}>
                 <Card sx={{ mb: { xs: 0, md: 3}, marginRight: { xs: 1.5, md: 0} }}>
-                    <CardHeader 
+                  <CardHeader 
                     title={
                     <Typography color="textSecondary" gutterBottom variant="overline">
                       {`BSM Count`}                            
@@ -102,19 +102,20 @@ return (
                     sx={{ pb: 0 }} 
                   />
                   <CardContent sx={{ pt: 0 }}>
-                  <Typography variant="h2" color="primary" fontWeight="bold" align="center">
-                    {bsmCount !== 0 ? bsmCount : "-"}</Typography>
+                    <Typography variant="h2" color="primary" fontWeight="bold" align="center">
+                      {bsmCount !== 0 ? bsmCount : "-"}
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={6} md={12}>
-              <Card sx={{marginLeft: { xs: 1.5, md: 0} }}>
-                <CardHeader 
+                <Card sx={{marginLeft: { xs: 1.5, md: 0} }}>
+                  <CardHeader 
                     title={
                     <Typography color="textSecondary" gutterBottom variant="overline">
                       {`SPAT Count`}                            
                       </Typography>
-                      }
+                    }
                     sx={{ pb: 0 }} 
                   />
                   <CardContent sx={{ pt: 0 }}>

@@ -92,36 +92,36 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 };
 
 return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Card sx={{ minWidth: '300px', maxWidth: '550px'}}>
-          <CardHeader
-            title={
-              <Typography color="textSecondary" gutterBottom variant="overline">
-                {`Seven-day ${eventLabel} trend`}
-              </Typography>
-            }
-            sx={{ pb: 0 }}
-          />         
-          <CardContent sx={{ pt: 1}}>
-            <ResponsiveContainer height={250}>
-              <BarChart data={eventCounts} margin={{ top: 5, right: 30, left: -10}}>
-                <XAxis
-                  dataKey="date"
-                  interval={0}
-                  angle={-45}
-                  height={50}
-                  textAnchor="end"
-                />
-                <YAxis 
-                  label={{ value: 'Message count', angle: -90, dx:-15 }}
-                  interval={0}
-                />
-                <Tooltip content={CustomTooltip} />
-                <Bar dataKey="count" fill="#463af1" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-    </LocalizationProvider>
+  <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <Card sx={{ minWidth: '300px'}}>
+      <CardHeader
+        title={
+          <Typography color="textSecondary" gutterBottom variant="overline">
+            {`Seven-day ${eventLabel} trend`}
+          </Typography>
+        }
+        sx={{ pb: 0 }}
+      />         
+      <CardContent sx={{ pt: 1}}>
+        <ResponsiveContainer height={250}>
+          <BarChart data={eventCounts} margin={{ top: 5, right: 30, left: -10}}>
+            <XAxis
+              dataKey="date"
+              interval={0}
+              angle={-45}
+              height={50}
+              textAnchor="end"
+            />
+            <YAxis 
+              label={{ value: 'Message count', angle: -90, dx:-15 }}
+              interval={0}
+            />
+            <Tooltip content={CustomTooltip} />
+            <Bar dataKey="count" fill="#463af1" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  </LocalizationProvider>
 );
 };

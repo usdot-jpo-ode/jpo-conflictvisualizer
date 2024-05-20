@@ -92,17 +92,16 @@ const Page = () => {
         }}
       >
         <Container maxWidth={false}>
-
           <Grid container spacing={3} alignItems="flex-start">
             <Box mt={3} mr={-3}>
               <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
             </Box>
-              <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
               <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
               <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
-              </Grid>
+            </Grid>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
             <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
