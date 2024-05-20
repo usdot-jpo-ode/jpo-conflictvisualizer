@@ -92,20 +92,17 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 };
 
 return (
-  <Container maxWidth="xs">
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ pb: 2 }}>
-        <Card>
+      <Card sx={{ minWidth: '300px', maxWidth: '550px'}}>
           <CardHeader
             title={
               <Typography color="textSecondary" gutterBottom variant="overline">
                 {`Seven-day ${eventLabel} trend`}
               </Typography>
             }
-            titleTypographyProps={{ align: 'center' }}
             sx={{ pb: 0 }}
           />         
-          <CardContent sx={{ pt: 2}}>
+          <CardContent sx={{ pt: 1}}>
             <ResponsiveContainer height={250}>
               <BarChart data={eventCounts} margin={{ top: 5, right: 30, left: -10}}>
                 <XAxis
@@ -125,8 +122,6 @@ return (
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </Box>
     </LocalizationProvider>
-  </Container>
 );
 };

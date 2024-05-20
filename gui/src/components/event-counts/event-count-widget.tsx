@@ -59,10 +59,10 @@ useEffect(() => {
 }, [startDate, endDate, intersectionId]);
 
 return (
-  <Box display="flex" justifyContent="flex-start">
+  <Box>
     <Container maxWidth="sm">
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardHeader 
@@ -73,7 +73,7 @@ return (
                   }
                 sx={{ pb: 0 }} 
               />
-              <CardContent sx={{ pt: 2 }}>
+              <CardContent>
                 <DateTimePicker
                   label="Start Date"
                   value={startDate}
@@ -92,7 +92,7 @@ return (
           <Grid item xs={12} md={6}>
             <Grid container spacing={0}>
               <Grid item xs={6} md={12}>
-                <Card sx={{ mb: 2, marginRight: { xs: 1, md: 0} }}>
+                <Card sx={{ mb: { xs: 0, md: 3}, marginRight: { xs: 1.5, md: 0} }}>
                     <CardHeader 
                     title={
                     <Typography color="textSecondary" gutterBottom variant="overline">
@@ -108,7 +108,7 @@ return (
                 </Card>
               </Grid>
               <Grid item xs={6} md={12}>
-              <Card sx={{ mb: 2, marginLeft: { xs: 1, md: 0} }}>
+              <Card sx={{marginLeft: { xs: 1.5, md: 0} }}>
                 <CardHeader 
                     title={
                     <Typography color="textSecondary" gutterBottom variant="overline">

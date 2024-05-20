@@ -94,21 +94,19 @@ const Page = () => {
         <Container maxWidth={false}>
 
           <Grid container spacing={3} alignItems="flex-start">
-            <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
-            <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
-            <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
-            <Box sx={{ mx: 1 }}>
-              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
+            <Box mt={3} mr={-3}>
+              <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
             </Box>
-            <Box sx={{ mx: 1 }}>
-              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
-            </Box>
-            <Box sx={{ mx: 1 }}>
-              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
-            </Box>
-            <Box sx={{ mx: 1 }}>
-              <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
-            </Box>
+              <Grid item xs={12} md={3}>
+              <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
+              </Grid>
+            <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
+            <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
+            <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
+            <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
             <Grid item xs={12}>
               <NotificationsTable simple={true} />
             </Grid>
