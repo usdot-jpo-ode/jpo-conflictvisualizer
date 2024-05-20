@@ -12,7 +12,8 @@ import React, { useEffect, useState, useRef } from "react";
 import EventsApi from '../../apis/events-api';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
-import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
+import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 export const EventCountWeekChart = (props: {
   accessToken: string | undefined;
@@ -51,11 +52,10 @@ useEffect(() => {
         .then((count) => {
           weekCounts[i] = { 
             date: dayStart.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' }), 
-            count: count 
+            count: count
           };
           if (i === 6) {
             setEventCounts(weekCounts);
-            console.log(weekCounts);
         }
         })
         .catch((error) => console.error(error));
@@ -64,19 +64,47 @@ useEffect(() => {
   }
 }, [intersectionId]);
 
-useEffect(() => {
-}, [intersectionId]);
+const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload) {
+    const obj = payload[0].payload;
+    return (
+      <div
+        key={obj.date}
+        style={{
+          padding: "6px",
+          backgroundColor: "white",
+          border: "1px solid grey",
+        }}
+      >
+        <b>{obj.date}</b>
+        <p>{obj.count} messages</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 return (
   <Container maxWidth="xs">
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ pb: 2 }}>
         <Card>
-          <CardHeader 
-            title={`Seven-day ${eventLabel} trend`}
+          <CardHeader
+            title={
+              <Typography color="textSecondary" gutterBottom variant="overline">
+                {`Seven-day ${eventLabel} trend`}
+              </Typography>
+            }
             titleTypographyProps={{ align: 'center' }}
-            sx={{ pb: 0 }} 
-          />            
+            sx={{ pb: 0 }}
+          />         
           <CardContent sx={{ pt: 2}}>
             <ResponsiveContainer height={250}>
               <BarChart data={eventCounts} margin={{ top: 5, right: 30, left: -10}}>
@@ -91,7 +119,7 @@ return (
                   label={{ value: 'Message count', angle: -90, dx:-15 }}
                   interval={0}
                 />
-                <Tooltip />
+                <Tooltip content={CustomTooltip} />
                 <Bar dataKey="count" fill="#463af1" />
               </BarChart>
             </ResponsiveContainer>

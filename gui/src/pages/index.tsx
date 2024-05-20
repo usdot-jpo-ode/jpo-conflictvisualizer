@@ -92,14 +92,23 @@ const Page = () => {
         }}
       >
         <Container maxWidth={false}>
-          <Grid container spacing={3}>
+
+          <Grid container spacing={3} alignItems="flex-start">
             <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
             <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
             <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
-            <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
-            <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
-            <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
-            <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
+            <Box sx={{ mx: 1 }}>
+              <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
+            </Box>
+            <Box sx={{ mx: 1 }}>
+              <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
+            </Box>
+            <Box sx={{ mx: 1 }}>
+              <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
+            </Box>
+            <Box sx={{ mx: 1 }}>
+              <LaneDirectionOfTravelAssessmentCard assessment={laneDirectionOfTravelAssessment} />
+            </Box>
             <Grid item xs={12}>
               <NotificationsTable simple={true} />
             </Grid>

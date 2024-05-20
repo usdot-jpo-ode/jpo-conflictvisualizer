@@ -66,7 +66,11 @@ return (
           <Grid item xs={12} md={6}>
             <Card>
               <CardHeader 
-                title={`Select time range`} 
+                title={
+                <Typography color="textSecondary" gutterBottom variant="overline">
+                  {`Select time range`}                            
+                  </Typography>
+                  }
                 sx={{ pb: 0 }} 
               />
               <CardContent sx={{ pt: 2 }}>
@@ -88,18 +92,35 @@ return (
           <Grid item xs={12} md={6}>
             <Grid container spacing={0}>
               <Grid item xs={6} md={12}>
-                <Card sx={{ mb: 2, marginRight: { xs: 2, md: 0} }}>
-                  <CardHeader title="BSM Count" sx={{ pb: 0 }} />
-                  <CardContent sx={{ pt: 2 }}>
-                    <Typography variant="body1">{bsmCount !== 0 ? bsmCount : "-"}</Typography>
+                <Card sx={{ mb: 2, marginRight: { xs: 1, md: 0} }}>
+                    <CardHeader 
+                    title={
+                    <Typography color="textSecondary" gutterBottom variant="overline">
+                      {`BSM Count`}                            
+                      </Typography>
+                      }
+                    sx={{ pb: 0 }} 
+                  />
+                  <CardContent sx={{ pt: 0 }}>
+                  <Typography variant="h2" color="primary" fontWeight="bold" align="center">
+                    {bsmCount !== 0 ? bsmCount : "-"}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={6} md={12}>
-                <Card>
-                  <CardHeader title="SPAT Count" sx={{ pb: 0 }} />
-                  <CardContent sx={{ pt: 2 }}>
-                    <Typography variant="body1">{spatCount !== 0 ? spatCount : "-"}</Typography>
+              <Card sx={{ mb: 2, marginLeft: { xs: 1, md: 0} }}>
+                <CardHeader 
+                    title={
+                    <Typography color="textSecondary" gutterBottom variant="overline">
+                      {`SPAT Count`}                            
+                      </Typography>
+                      }
+                    sx={{ pb: 0 }} 
+                  />
+                  <CardContent sx={{ pt: 0 }}>
+                    <Typography variant="h2" color="secondary" fontWeight="bold" align="center">
+                      {spatCount !== 0 ? spatCount : "-"}
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
