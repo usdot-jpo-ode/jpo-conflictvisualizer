@@ -91,7 +91,7 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
 
   return (
     <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1200}>
-      <Card sx={{ height: "100%" }}>
+      <Card sx={{ height: "100%", overflow: "visible" }}>
         <CardContent>
           <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
             <Grid item>

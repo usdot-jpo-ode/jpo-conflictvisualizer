@@ -66,7 +66,7 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
 
   return (
     <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1600}>
-      <Card sx={{ height: "100%" }}>
+      <Card sx={{ height: "100%", overflow: "visible" }}>
         <CardContent>
           <Grid container spacing={3} sx={{ justifyContent: "space-between" }}>
             <Grid item>

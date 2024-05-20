@@ -93,7 +93,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 
 return (
   <LocalizationProvider dateAdapter={AdapterDateFns}>
-    <Card sx={{ minWidth: '300px'}}>
+    <Card sx={{ minWidth: '300px', overflow: "visible" }}>
       <CardHeader
         title={
           <Typography color="textSecondary" gutterBottom variant="overline">
