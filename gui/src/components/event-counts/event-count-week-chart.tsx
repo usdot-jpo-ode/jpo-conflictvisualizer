@@ -1,18 +1,14 @@
 import {
-  Box,
   Card,
-  Container,
-  Grid,
-  TextField,
   Typography,
   CardHeader,
   CardContent,
 } from "@mui/material";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState} from "react";
 import EventsApi from '../../apis/events-api';
-import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import {LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
-import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 export const EventCountWeekChart = (props: {
@@ -20,11 +16,11 @@ export const EventCountWeekChart = (props: {
   intersectionId: number;
   eventType: string;
   eventLabel: string;
-
+  barColor: string;
 }) => {
-  const { accessToken, intersectionId, eventType, eventLabel} = props;
+  const { accessToken, intersectionId, eventType, eventLabel, barColor } = props;
 
-  type ChartData = { date: string; count: number };
+  type ChartData = { date: string; count: number; dayOfWeek: string };
 
   const [eventCounts, setEventCounts] = useState<ChartData[]>([]);
 
@@ -52,7 +48,8 @@ useEffect(() => {
         .then((count) => {
           weekCounts[i] = { 
             date: dayStart.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' }), 
-            count: count
+            count: count,
+            dayOfWeek: dayStart.toLocaleDateString(undefined, { weekday: 'long' })
           };
           if (i === 6) {
             setEventCounts(weekCounts);
@@ -76,8 +73,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
           border: "1px solid grey",
         }}
       >
-        <b>{obj.date}</b>
-        <p>{obj.count} messages</p>
+        <b>{obj.dayOfWeek} {obj.date}</b>
+        <p>{obj.count.toLocaleString()} messages</p>
         <div
           style={{
             display: "flex",
@@ -104,7 +101,7 @@ return (
       />         
       <CardContent sx={{ pt: 1}}>
         <ResponsiveContainer height={250}>
-          <BarChart data={eventCounts} margin={{ top: 5, right: 30, left: -10}}>
+          <LineChart data={eventCounts} margin={{ top: 5, right: 5}}>
             <XAxis
               dataKey="date"
               interval={0}
@@ -113,12 +110,21 @@ return (
               textAnchor="end"
             />
             <YAxis 
-              label={{ value: 'Message count', angle: -90, dx:-15 }}
+              label={{ value: 'Message count', angle: -90, dx:-25 }}
               interval={0}
+              tickFormatter={(value) => {
+                if (value >= 1000000) {
+                  return `${value / 1000000}M`;
+                } else if (value >= 1000) {
+                  return `${value / 1000}K`;
+                } else {
+                  return value;
+                }
+              }}
             />
             <Tooltip content={CustomTooltip} />
-            <Bar dataKey="count" fill="#463af1" />
-          </BarChart>
+            <Line type="monotone" dataKey="count" stroke={barColor} />
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

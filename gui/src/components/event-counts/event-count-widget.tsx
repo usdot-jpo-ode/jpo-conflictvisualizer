@@ -63,7 +63,7 @@ return (
     <Container maxWidth="sm">
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={7}>
             <Card>
               <CardHeader 
                 title={
@@ -89,7 +89,7 @@ return (
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5}>
             <Grid container spacing={0}>
               <Grid item xs={6} md={12}>
                 <Card sx={{ mb: { xs: 0, md: 3}, marginRight: { xs: 1.5, md: 0} }}>

@@ -97,10 +97,20 @@ const Page = () => {
               <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
             </Box>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
-              <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="bsm" eventLabel="BSM"/>
+              <EventCountWeekChart
+              accessToken={session?.accessToken}
+              intersectionId={intersectionId}
+              eventType="bsm"
+              eventLabel="BSM message"
+              barColor="#5048E5"/>
             </Grid>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
-              <EventCountWeekChart accessToken={session?.accessToken} intersectionId={intersectionId} eventType="spat" eventLabel="SPAT"/>
+              <EventCountWeekChart
+              accessToken={session?.accessToken}
+              intersectionId={intersectionId}
+              eventType="spat"
+              eventLabel="SPAT message"
+              barColor="#10B981"/>
             </Grid>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
