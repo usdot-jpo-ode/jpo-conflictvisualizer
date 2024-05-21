@@ -376,6 +376,9 @@ const MapTab = (props: MyProps) => {
           onMouseEnter={(e) => dispatch(onMapMouseEnter({ features: e.features, lngLat: e.lngLat }))}
           onMouseLeave={(e) => dispatch(onMapMouseLeave())}
         >
+          <Source type="geojson" data={mapData?.mapFeatureCollection}>
+            <Layer {...mapMessageLayerStyle} />
+          </Source>
           <Source
             type="geojson"
             data={
@@ -386,25 +389,6 @@ const MapTab = (props: MyProps) => {
             }
           >
             <Layer {...connectingLanesLayerStyle} />
-          </Source>
-          <Source
-            type="geojson"
-            data={
-              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
-                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
-                : undefined
-            }
-          >
-            <Layer {...connectingLanesLabelsLayerStyle} />
-          </Source>
-          <Source type="geojson" data={mapData?.mapFeatureCollection}>
-            <Layer {...mapMessageLayerStyle} />
-          </Source>
-          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
-            <Layer {...mapMessageLabelsLayerStyle} />
-          </Source>
-          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
-            <Layer {...signalStateLayerStyle} />
           </Source>
           <Source
             type="geojson"
@@ -422,6 +406,22 @@ const MapTab = (props: MyProps) => {
           </Source>
           <Source type="geojson" data={currentBsms}>
             <Layer {...bsmLayerStyle} />
+          </Source>
+          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
+            <Layer {...signalStateLayerStyle} />
+          </Source>
+          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
+            <Layer {...mapMessageLabelsLayerStyle} />
+          </Source>
+          <Source
+            type="geojson"
+            data={
+              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
+                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+                : undefined
+            }
+          >
+            <Layer {...connectingLanesLabelsLayerStyle} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => dispatch(clearSelectedFeature())} />
