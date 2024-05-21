@@ -24,7 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -174,6 +174,24 @@ const markerLayer: LayerProps = {
     "line-color": "#d40000",
     // "line-dasharray": [2, 1],
   },
+};
+
+const getTimestamp = (dt: any): number => {
+  try {
+    const dtFromString = Date.parse(dt as any as string);
+    if (isNaN(dtFromString)) {
+        if (dt > 1000000000000) {
+          return dt; // already in milliseconds
+        } else {
+          return dt * 1000;
+        }
+    } else {
+      return dtFromString;
+    }
+  } catch (e) {
+    console.error("Failed to parse timestamp from value: " + dt, e);
+    return 0;
+  }
 };
 
 const generateQueryParams = (
@@ -329,7 +347,7 @@ const MapTab = (props: MyProps) => {
         "PRE_MOVEMENT",
         "traffic-light-icon-yellow-red-1",
         "PERMISSIVE_MOVEMENT_ALLOWED",
-        "traffic-light-icon-yellow-1",
+        "traffic-light-icon-green-1",
         "PROTECTED_MOVEMENT_ALLOWED",
         "traffic-light-icon-green-1",
         "PERMISSIVE_CLEARANCE",
@@ -410,6 +428,8 @@ const MapTab = (props: MyProps) => {
   const [wsClient, setWsClient] = useState<CompatClient | undefined>(undefined);
 
   const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
+  const [liveDataRestart, setLiveDataRestart] = useState<number>(-1);
+  const [liveDataRestartTimeoutId, setLiveDataRestartTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
   const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
@@ -802,9 +822,7 @@ const MapTab = (props: MyProps) => {
         .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
         .map((spat) => ({
           ...spat,
-          utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-            ? spat.utcTimeStamp * 1000
-            : Date.parse(spat.utcTimeStamp as any as string),
+          utcTimeStamp: getTimestamp(spat.utcTimeStamp),
         }));
 
       // ######################### Surrounding Events #########################
@@ -989,11 +1007,11 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);  
+  }, [playbackModeActive]);
 
   useEffect(() => {
-  setBsmByMinuteUpdated(true);
-}, [bsmEventsByMinute]);
+    setBsmByMinuteUpdated(true);
+  }, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
@@ -1003,6 +1021,27 @@ const MapTab = (props: MyProps) => {
     }
   }, [sliderValue]);
 
+  const resetMapView = () => {
+    setMapSignalGroups(undefined);
+    setSignalStateData(undefined);
+    setSpatSignalGroups(undefined);
+    setCurrentSignalGroups(undefined);
+    setConnectingLanes(undefined);
+    setSurroundingEvents([]);
+    setFilteredSurroundingEvents([]);
+    setSurroundingNotifications([]);
+    setFilteredSurroundingNotifications([]);
+    setBsmData({ type: "FeatureCollection", features: [] });
+    setCurrentBsms({ type: "FeatureCollection", features: [] });
+    setMapSpatTimes({ mapTime: 0, spatTime: 0 });
+    setRawData({});
+    setSliderValue(0);
+    setPlaybackModeActive(false);
+    setCurrentSpatData([]);
+    setCurrentProcessedSpatData([]);
+    setCurrentBsmData({ type: "FeatureCollection", features: [] });
+  };
+
   const renderIterative_Map = (currentMapData: ProcessedMap[], newMapData: ProcessedMap[]) => {
     const start = Date.now();
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
@@ -1011,7 +1050,7 @@ const MapTab = (props: MyProps) => {
       return currentMapData;
     }
 
-    const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt) / 1000;
+    const currTimestamp = getTimestamp(newMapData.at(-1)!.properties.odeReceivedAt) / 1000;
     let oldIndex = 0;
     for (let i = 0; i < currentMapData.length; i++) {
       if ((currentMapData[i].properties.odeReceivedAt as unknown as number) < currTimestamp - OLDEST_DATA_TO_KEEP) {
@@ -1063,11 +1102,9 @@ const MapTab = (props: MyProps) => {
     // 2024-01-09T00:24:28.354Z
     newSpatData = newSpatData.map((spat) => ({
       ...spat,
-      utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-        ? spat.utcTimeStamp * 1000
-        : Date.parse(spat.utcTimeStamp as any as string),
+      utcTimeStamp: getTimestamp(spat.utcTimeStamp),
     }));
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
+    const currTimestamp = getTimestamp(newSpatData.at(-1)!.utcTimeStamp);
 
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
@@ -1297,7 +1334,7 @@ const MapTab = (props: MyProps) => {
         initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId);
         onTimeQueryChanged(new Date(), 10, 0, 5);
         if (bsmTrailLength > 15) setBsmTrailLength(5);
-        setRawData({});
+        resetMapView();
       } else {
         console.error(
           "Did not attempt to update notifications. Access token:",
@@ -1329,7 +1366,16 @@ const MapTab = (props: MyProps) => {
     return sliderValue;
   };
 
-  const initializeLiveStreaming = (token: string, roadRegulatorId: number, intersectionId: number) => {
+  const initializeLiveStreaming = (
+    token: string,
+    roadRegulatorId: number,
+    intersectionId: number,
+    numRestarts: number = 0
+  ) => {
+    if (!liveDataActive) {
+      console.debug("Not initializing live streaming because liveDataActive is false");
+      return;
+    }
     // Connect to WebSocket when component mounts
     onTimeQueryChanged(new Date(), 10, 0, 2);
 
@@ -1340,7 +1386,9 @@ const MapTab = (props: MyProps) => {
 
     // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
     let client = Stomp.client(url, protocols);
-    client.debug = () => {};
+    client.debug = (e) => {
+      console.debug("STOMP Debug: " + e);
+    };
 
     // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
     let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
@@ -1349,6 +1397,7 @@ const MapTab = (props: MyProps) => {
     let spatTime = Date.now();
     let mapTime = Date.now();
     let bsmTime = Date.now();
+    let connectionStartTime = Date.now();
     client.connect(
       {
         // "username": "test",
@@ -1381,11 +1430,73 @@ const MapTab = (props: MyProps) => {
         });
       },
       (error) => {
-        console.error("ERROR connecting to live data Websockets", error);
+        console.error("Live Streaming ERROR connecting to live data Websocket: " + error);
       }
     );
 
     setWsClient(client);
+
+    client.onDisconnect = (frame) => {
+      console.debug(
+        "Live Streaming Disconnected from STOMP endpoint: " +
+          frame +
+          " (numRestarts: " +
+          numRestarts +
+          ", wsClient: " +
+          wsClient +
+          ")"
+      );
+      if (numRestarts < 5 && liveDataActive) {
+        let numRestartsLocal = numRestarts;
+        if (Date.now() - connectionStartTime > 10000) {
+          numRestartsLocal = 0;
+        }
+        console.debug("Attempting to reconnect to STOMP endpoint (numRestarts: " + numRestartsLocal + ")");
+        setLiveDataRestartTimeoutId(
+          setTimeout(() => {
+            setLiveDataRestart(numRestartsLocal + 1);
+          }, numRestartsLocal * 2000)
+        );
+      } else {
+        cleanUpLiveStreaming();
+      }
+    };
+
+    client.onStompError = (frame) => {
+      // TODO: Consider restarting connection on error
+      console.error("Live Streaming STOMP ERROR", frame);
+    };
+
+    client.onWebSocketClose = (frame) => {
+      console.error(
+        "Live Streaming STOMP WebSocket Close: " +
+          frame +
+          " (numRestarts: " +
+          numRestarts +
+          ", wsClient: " +
+          wsClient +
+          ")"
+      );
+      if (numRestarts < 5 && liveDataActive) {
+        let numRestartsLocal = numRestarts;
+        if (Date.now() - connectionStartTime > 10000) {
+          numRestartsLocal = 0;
+        }
+        console.debug("Attempting to reconnect to STOMP endpoint (numRestarts: " + numRestartsLocal + ")");
+        setLiveDataRestartTimeoutId(
+          setTimeout(() => {
+            setLiveDataRestart(numRestartsLocal + 1);
+          }, numRestartsLocal * 2000)
+        );
+      } else {
+        cleanUpLiveStreaming();
+      }
+    };
+
+    client.onWebSocketError = (frame) => {
+      // TODO: Consider restarting connection on error
+      console.error("Live Streaming STOMP WebSocket Error", frame);
+    };
   };
 
   const cleanUpLiveStreaming = () => {
@@ -1394,9 +1505,26 @@ const MapTab = (props: MyProps) => {
         console.debug("Disconnected from STOMP endpoint");
       });
     }
+    if (liveDataRestartTimeoutId) {
+      clearTimeout(liveDataRestartTimeoutId);
+      setLiveDataRestartTimeoutId(undefined);
+    }
+    setLiveDataActive(false);
+    setLiveDataRestart(-1);
     setWsClient(undefined);
     setTimeWindowSeconds(60);
   };
+
+  useEffect(() => {
+    console.log("Live Data Restart:", liveDataRestart, liveDataActive);
+    if (liveDataRestart != -1 && liveDataRestart < 5 && liveDataActive) {
+      if (session?.accessToken && props.roadRegulatorId && props.intersectionId) {
+        initializeLiveStreaming(session?.accessToken, props.roadRegulatorId, props.intersectionId, liveDataRestart);
+      }
+    } else {
+      cleanUpLiveStreaming();
+    }
+  }, [liveDataRestart]);
 
   const downloadJsonFile = (contents: any, name: string) => {
     const element = document.createElement("a");
@@ -1582,19 +1710,19 @@ const MapTab = (props: MyProps) => {
             setHoveredFeature(undefined);
           }}
         >
-          <Source type="geojson" data={mapData?.mapFeatureCollection}>
+          <Source type="geojson" data={mapData?.mapFeatureCollection ?? { type: "FeatureCollection", features: [] }}>
             <Layer {...mapMessageLayer} />
-          </Source>
-          <Source type="geojson" data={laneLabelsVisible ? mapData?.mapFeatureCollection : undefined}>
-            <Layer {...mapMessageLabelsLayer} />
           </Source>
           <Source
             type="geojson"
             data={
-              connectingLanes &&
-              currentSignalGroups &&
-              mapData?.mapFeatureCollection &&
-              addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+              (connectingLanes &&
+                currentSignalGroups &&
+                mapData?.mapFeatureCollection &&
+                addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)) ?? {
+                type: "FeatureCollection",
+                features: [],
+              }
             }
           >
             <Layer {...connectingLanesLayer} />
@@ -1602,32 +1730,51 @@ const MapTab = (props: MyProps) => {
           <Source
             type="geojson"
             data={
-              connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
-                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
-                : undefined
-            }
-          >
-            <Layer {...connectingLanesLabelsLayer} />
-          </Source>
-          <Source
-            type="geojson"
-            data={
-              mapData && props.sourceData && props.sourceDataType == "notification"
+              (mapData && props.sourceData && props.sourceDataType == "notification"
                 ? createMarkerForNotification(
                     [0, 0],
                     props.sourceData as MessageMonitor.Notification,
                     mapData.mapFeatureCollection
                   )
-                : undefined
+                : undefined) ?? { type: "FeatureCollection", features: [] }
             }
           >
             <Layer {...markerLayer} />
           </Source>
-          <Source type="geojson" data={currentBsms}>
+          <Source type="geojson" data={currentBsms ?? { type: "FeatureCollection", features: [] }}>
             <Layer {...bsmLayerStyle} />
           </Source>
-          <Source type="geojson" data={connectingLanes && currentSignalGroups ? signalStateData : undefined}>
+          <Source
+            type="geojson"
+            data={
+              (connectingLanes && currentSignalGroups ? signalStateData : undefined) ?? {
+                type: "FeatureCollection",
+                features: [],
+              }
+            }
+          >
             <Layer {...signalStateLayer} />
+          </Source>
+          <Source
+            type="geojson"
+            data={
+              (laneLabelsVisible ? mapData?.mapFeatureCollection : undefined) ?? {
+                type: "FeatureCollection",
+                features: [],
+              }
+            }
+          >
+            <Layer {...mapMessageLabelsLayer} />
+          </Source>
+          <Source
+            type="geojson"
+            data={
+              (connectingLanes && currentSignalGroups && sigGroupLabelsVisible && mapData?.mapFeatureCollection
+                ? addConnections(connectingLanes, currentSignalGroups, mapData.mapFeatureCollection)
+                : undefined) ?? { type: "FeatureCollection", features: [] }
+            }
+          >
+            <Layer {...connectingLanesLabelsLayer} />
           </Source>
           {selectedFeature && (
             <CustomPopup selectedFeature={selectedFeature} onClose={() => setSelectedFeature(undefined)} />
