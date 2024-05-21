@@ -8,12 +8,12 @@ import {
   CardHeader,
   CardContent,
 } from "@mui/material";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import EventsApi from '../../apis/events-api';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
 
-export const EventCountWidget = (props: {
+export const MessageCountWidget = (props: {
   accessToken: string | undefined;
   intersectionId: number;
 }) => {
@@ -36,7 +36,7 @@ export const EventCountWidget = (props: {
 
   useEffect(() => {
     if (accessToken) {
-      const bsmCountPromise = EventsApi.getEventCount(
+      const bsmCountPromise = EventsApi.getMessageCount(
         accessToken,
         "bsm",
         intersectionId,
@@ -46,7 +46,7 @@ export const EventCountWidget = (props: {
       bsmCountPromise.then((count) => setBsmCount(count))
       .catch(error => console.error(error));
 
-      const spatCountPromise = EventsApi.getEventCount(
+      const spatCountPromise = EventsApi.getMessageCount(
         accessToken,
         "spat",
         intersectionId,
@@ -56,7 +56,7 @@ export const EventCountWidget = (props: {
       spatCountPromise.then((count) => setSpatCount(count))
       .catch(error => console.error(error));
 
-      const mapCountPromise = EventsApi.getEventCount(
+      const mapCountPromise = EventsApi.getMessageCount(
         accessToken,
         "map",
         intersectionId,

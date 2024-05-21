@@ -11,19 +11,19 @@ import AdapterDateFns from '@date-io/date-fns';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
-export const EventCountWeekChart = (props: {
+export const MessageCountWeekChart = (props: {
   accessToken: string | undefined;
   intersectionId: number;
-  eventType: string;
-  eventLabel: string;
+  messageType: string;
+  messageLabel: string;
   barColor: string;
   disclaimer: string | undefined;
 }) => {
-  const { accessToken, intersectionId, eventType, eventLabel, barColor, disclaimer } = props;
+  const { accessToken, intersectionId, messageType, messageLabel, barColor, disclaimer } = props;
 
   type ChartData = { date: string; count: number; dayOfWeek: string };
 
-  const [eventCounts, setEventCounts] = useState<ChartData[]>([]);
+  const [messageCounts, setMessageCounts] = useState<ChartData[]>([]);
 
 useEffect(() => {
   if (accessToken) {
@@ -38,14 +38,14 @@ useEffect(() => {
       dayEnd.setDate(dayEnd.getDate() - (6-i));
       dayEnd.setHours(23, 59, 59, 0);
 
-      const eventCountPromise = EventsApi.getEventCount(
+      const messageCountPromise = EventsApi.getMessageCount(
         accessToken,
-        eventType,
+        messageType,
         intersectionId,
         dayStart,
         dayEnd
       );
-      eventCountPromise
+      messageCountPromise
         .then((count) => {
           weekCounts[i] = { 
             date: dayStart.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' }), 
@@ -53,7 +53,7 @@ useEffect(() => {
             dayOfWeek: dayStart.toLocaleDateString(undefined, { weekday: 'long' })
           };
           if (i === 6) {
-            setEventCounts(weekCounts);
+            setMessageCounts(weekCounts);
         }
         })
         .catch((error) => console.error(error));
@@ -95,14 +95,14 @@ return (
       <CardHeader
         title={
           <Typography color="textSecondary" gutterBottom variant="overline">
-            {`Seven-day ${eventLabel} trend`}
+            {`Seven-day ${messageLabel} trend`}
           </Typography>
         }
         sx={{ pb: 0 }}
       />         
       <CardContent sx={{ pt: 1}}>
         <ResponsiveContainer height={250}>
-          <LineChart data={eventCounts} margin={{ top: 5, right: 5}}>
+          <LineChart data={messageCounts} margin={{ top: 5, right: 5}}>
             <XAxis
               dataKey="date"
               interval={0}

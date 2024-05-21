@@ -10,8 +10,8 @@ import React, { useEffect, useState, useRef } from "react";
 import AssessmentsApi from "../apis/assessments-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
-import { EventCountWidget } from '../components/event-counts/event-count-widget';
-import { EventCountWeekChart } from "../components/event-counts/event-count-week-chart";
+import { MessageCountWidget } from '../components/message-counts/message-count-widget';
+import { MessageCountWeekChart } from "../components/message-counts/message-count-week-chart";
 
 const Page = () => {
   const [assessment, setAssessments] = useState<Assessment[]>([]);
@@ -94,32 +94,32 @@ const Page = () => {
         <Container maxWidth={false}>
           <Grid container spacing={3} alignItems="flex-start">
             <Box mt={3} mr={-3}>
-              <EventCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
+              <MessageCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
             </Box>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
-              <EventCountWeekChart
+              <MessageCountWeekChart
               accessToken={session?.accessToken}
               intersectionId={intersectionId}
-              eventType="bsm"
-              eventLabel="BSM message"
+              messageType="bsm"
+              messageLabel="BSM message"
               barColor="#5048E5"
               disclaimer=""/>
             </Grid>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
-              <EventCountWeekChart
+              <MessageCountWeekChart
               accessToken={session?.accessToken}
               intersectionId={intersectionId}
-              eventType="spat"
-              eventLabel="SPAT message"
+              messageType="spat"
+              messageLabel="SPAT message"
               barColor="#10B981"
               disclaimer=""/>
             </Grid>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
-              <EventCountWeekChart
+              <MessageCountWeekChart
               accessToken={session?.accessToken}
               intersectionId={intersectionId}
-              eventType="map"
-              eventLabel="MAP message"
+              messageType="map"
+              messageLabel="MAP message"
               barColor="#900bae"
               disclaimer="duplicate messages not included"/>
             </Grid>

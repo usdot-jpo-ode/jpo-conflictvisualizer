@@ -104,9 +104,9 @@ class EventsApi {
     return response ?? ([] as MessageMonitor.MinuteCount[]);
   }
 
-  async getEventCount(
+  async getMessageCount(
     token: string,
-    eventType: string,
+    messageType: string,
     intersectionId: number,
     startTime: Date,
     endTime: Date
@@ -118,10 +118,10 @@ class EventsApi {
       test: "false",
     };
     const response = await authApiHelper.invokeApi({
-      path: `/${eventType}/count`,
+      path: `/${messageType}/count`,
       token: token,
       queryParams: queryParams,
-      failureMessage: `Failed to retrieve event count for type ${eventType}`,
+      failureMessage: `Failed to retrieve message count for type ${messageType}`,
     });
     return response;
   }
