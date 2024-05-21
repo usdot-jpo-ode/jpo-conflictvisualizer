@@ -218,7 +218,7 @@ const mapLegendColors: MAP_LEGEND_COLORS = {
     STOP_THEN_PROCEED: "/icons/traffic-light-icon-red-flashing.svg",
     STOP_AND_REMAIN: "/icons/traffic-light-icon-red-1.svg",
     PRE_MOVEMENT: "/icons/traffic-light-icon-yellow-red-1.svg",
-    PERMISSIVE_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-yellow-1.svg",
+    PERMISSIVE_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-green-1.svg",
     PROTECTED_MOVEMENT_ALLOWED: "/icons/traffic-light-icon-green-1.svg",
     PERMISSIVE_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",
     PROTECTED_CLEARANCE: "/icons/traffic-light-icon-yellow-1.svg",

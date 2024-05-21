@@ -81,6 +81,24 @@ interface MinimalClient {
   disconnect: (disconnectCallback: () => void) => void;
 }
 
+const getTimestamp = (dt: any): number => {
+  try {
+    const dtFromString = Date.parse(dt as any as string);
+    if (isNaN(dtFromString)) {
+      if (dt > 1000000000000) {
+        return dt; // already in milliseconds
+      } else {
+        return dt * 1000;
+      }
+    } else {
+      return dtFromString;
+    }
+  } catch (e) {
+    console.error("Failed to parse timestamp from value: " + dt, e);
+    return 0;
+  }
+};
+
 const initialState = {
   layersVisible: {
     mapMessage: false,
@@ -157,6 +175,8 @@ const initialState = {
     features: [],
   } as BsmFeatureCollection,
   bsmTrailLength: 20,
+  liveDataRestart: -1,
+  liveDataRestartTimeoutId: undefined as NodeJS.Timeout | undefined,
 };
 
 const getNewSliderTimeValue = (startDate: Date, sliderValue: number, timeWindowSeconds: number) => {
@@ -212,9 +232,7 @@ export const pullInitialData = createAsyncThunk(
         .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
         .map((spat) => ({
           ...spat,
-          utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-            ? spat.utcTimeStamp * 1000
-            : Date.parse(spat.utcTimeStamp as any as string),
+          utcTimeStamp: getTimestamp(spat.utcTimeStamp),
         }));
 
       dispatch(getBsmDailyCounts());
@@ -364,7 +382,7 @@ export const renderIterative_Map = createAsyncThunk(
     const start = Date.now();
     const OLDEST_DATA_TO_KEEP = queryParams.eventDate.getTime() - queryParams.startDate.getTime(); // milliseconds
 
-    const currTimestamp = Date.parse(newMapData.at(-1)!.properties.odeReceivedAt) / 1000;
+    const currTimestamp = getTimestamp(newMapData.at(-1)!.properties.odeReceivedAt) / 1000;
     let oldIndex = 0;
     for (let i = 0; i < currentMapData.length; i++) {
       if ((currentMapData[i].properties.odeReceivedAt as unknown as number) < currTimestamp - OLDEST_DATA_TO_KEEP) {
@@ -433,11 +451,9 @@ export const renderIterative_Spat = createAsyncThunk(
     // 2024-01-09T00:24:28.354Z
     newSpatData = newSpatData.map((spat) => ({
       ...spat,
-      utcTimeStamp: isNaN(Date.parse(spat.utcTimeStamp as any as string))
-        ? spat.utcTimeStamp * 1000
-        : Date.parse(spat.utcTimeStamp as any as string),
+      utcTimeStamp: getTimestamp(spat.utcTimeStamp),
     }));
-    const currTimestamp = Date.parse(newSpatData.at(-1)!.utcTimeStamp as any as string);
+    const currTimestamp = getTimestamp(newSpatData.at(-1)!.utcTimeStamp);
 
     let oldIndex = 0;
     const currentSpatSignalGroupsArr = Object.keys(currentSpatSignalGroups).map((key) => ({
@@ -617,11 +633,22 @@ export const getSurroundingNotifications = createAsyncThunk(
 
 export const initializeLiveStreaming = createAsyncThunk(
   "map/initializeLiveStreaming",
-  async (args: { token: string; roadRegulatorId: number; intersectionId: number }, { getState, dispatch }) => {
-    const { token, roadRegulatorId, intersectionId } = args;
+  async (
+    args: { token: string; roadRegulatorId: number; intersectionId: number; numRestarts: number },
+    { getState, dispatch }
+  ) => {
+    const { token, roadRegulatorId, intersectionId, numRestarts = 0 } = args;
     // Connect to WebSocket when component mounts
+    const liveDataActive = selectLiveDataActive(getState() as RootState);
+    const wsClient = selectWsClient(getState() as RootState);
+
     dispatch(onTimeQueryChanged({ eventTime: new Date(), timeBefore: 10, timeAfter: 0, timeWindowSeconds: 2 }));
-    dispatch(setRawData({}));
+    dispatch(resetMapView({}));
+
+    if (!liveDataActive) {
+      console.debug("Not initializing live streaming because liveDataActive is false");
+      return;
+    }
 
     let protocols = ["v10.stomp", "v11.stomp"];
     protocols.push(token);
@@ -630,7 +657,9 @@ export const initializeLiveStreaming = createAsyncThunk(
 
     // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
     let client = Stomp.client(url, protocols);
-    client.debug = () => {};
+    client.debug = (e) => {
+      console.debug("STOMP Debug: " + e);
+    };
 
     // Topics are in the format /live/{roadRegulatorID}/{intersectionID}/{spat,map,bsm}
     let spatTopic = `/live/${roadRegulatorId}/${intersectionId}/spat`;
@@ -639,6 +668,7 @@ export const initializeLiveStreaming = createAsyncThunk(
     let spatTime = Date.now();
     let mapTime = Date.now();
     let bsmTime = Date.now();
+    let connectionStartTime = Date.now();
     client.connect(
       {
         // "username": "test",
@@ -671,9 +701,76 @@ export const initializeLiveStreaming = createAsyncThunk(
         });
       },
       (error) => {
-        console.error("ERROR connecting to live data Websockets", error);
+        console.error("Live Streaming ERROR connecting to live data Websocket: " + error);
       }
     );
+
+    client.onDisconnect = (frame) => {
+      console.debug(
+        "Live Streaming Disconnected from STOMP endpoint: " +
+          frame +
+          " (numRestarts: " +
+          numRestarts +
+          ", wsClient: " +
+          wsClient +
+          ")"
+      );
+      if (numRestarts < 5 && liveDataActive) {
+        let numRestartsLocal = numRestarts;
+        if (Date.now() - connectionStartTime > 10000) {
+          numRestartsLocal = 0;
+        }
+        console.debug("Attempting to reconnect to STOMP endpoint (numRestarts: " + numRestartsLocal + ")");
+        dispatch(
+          setLiveDataRestartTimeoutId(
+            setTimeout(() => {
+              dispatch(setLiveDataRestart(numRestartsLocal + 1));
+            }, numRestartsLocal * 2000)
+          )
+        );
+      } else {
+        cleanUpLiveStreaming();
+      }
+    };
+
+    client.onStompError = (frame) => {
+      // TODO: Consider restarting connection on error
+      console.error("Live Streaming STOMP ERROR", frame);
+    };
+
+    client.onWebSocketClose = (frame) => {
+      console.error(
+        "Live Streaming STOMP WebSocket Close: " +
+          frame +
+          " (numRestarts: " +
+          numRestarts +
+          ", wsClient: " +
+          wsClient +
+          ")"
+      );
+      if (numRestarts < 5 && liveDataActive) {
+        let numRestartsLocal = numRestarts;
+        if (Date.now() - connectionStartTime > 10000) {
+          numRestartsLocal = 0;
+        }
+        console.debug("Attempting to reconnect to STOMP endpoint (numRestarts: " + numRestartsLocal + ")");
+        dispatch(
+          setLiveDataRestartTimeoutId(
+            setTimeout(() => {
+              dispatch(setLiveDataRestart(numRestartsLocal + 1));
+            }, numRestartsLocal * 2000)
+          )
+        );
+      } else {
+        dispatch(cleanUpLiveStreaming());
+      }
+    };
+
+    client.onWebSocketError = (frame) => {
+      // TODO: Consider restarting connection on error
+      console.error("Live Streaming STOMP WebSocket Error", frame);
+    };
+
     return client;
   }
 );
@@ -1051,6 +1148,12 @@ export const mapSlice = createSlice({
         });
         state.value.timeWindowSeconds = 60;
       }
+      if (state.value.liveDataRestartTimeoutId) {
+        clearTimeout(state.value.liveDataRestartTimeoutId);
+        state.value.liveliveDataRestartTimeoutId = undefined;
+      }
+      state.value.liveDataActive = false;
+      state.value.liveDataRestart = -1;
       state.value.wsClient = undefined;
     },
     setLoadInitialdataTimeoutId: (state, action: PayloadAction<NodeJS.Timeout>) => {
@@ -1100,6 +1203,32 @@ export const mapSlice = createSlice({
     },
     togglePlaybackModeActive: (state) => {
       state.value.playbackModeActive = !state.value.playbackModeActive;
+    },
+    resetMapView: (state) => {
+      state.value.mapSignalGroups = undefined;
+      state.value.signalStateData = undefined;
+      state.value.spatSignalGroups = undefined;
+      state.value.currentSignalGroups = undefined;
+      state.value.connectingLanes = undefined;
+      state.value.surroundingEvents = [];
+      state.value.filteredSurroundingEvents = [];
+      state.value.surroundingNotifications = [];
+      state.value.filteredSurroundingNotifications = [];
+      state.value.bsmData = { type: "FeatureCollection", features: [] };
+      state.value.currentBsmData = { type: "FeatureCollection", features: [] };
+      state.value.mapSpatTimes = { mapTime: 0, spatTime: 0 };
+      state.value.rawData = {};
+      state.value.sliderValue = 0;
+      state.value.playbackModeActive = false;
+      state.value.currentSpatData = [];
+      state.value.currentProcessedSpatData = [];
+      state.value.currentBsmData = { type: "FeatureCollection", features: [] };
+    },
+    setLiveDataRestartTimeoutId: (state, action) => {
+      state.value.liveRataRestartTimeoutId = action.payload;
+    },
+    setLiveDataRestart: (state, action) => {
+      state.value.liveDataRestart = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -1302,13 +1431,15 @@ export const selectShowPopupOnHover = (state: RootState) => state.map.value.show
 export const selectImportedMessageData = (state: RootState) => state.map.value.importedMessageData;
 export const selectCursor = (state: RootState) => state.map.value.cursor;
 export const selectLoadInitialDataTimeoutId = (state: RootState) => state.map.value.loadInitialDataTimeoutId;
-// export const selectWsClient = (state: RootState) => state.map.value.wsClient;
+export const selectWsClient = (state: RootState) => state.map.value.wsClient;
 export const selectLiveDataActive = (state: RootState) => state.map.value.liveDataActive;
 export const selectCurrentMapData = (state: RootState) => state.map.value.currentMapData;
 export const selectCurrentSpatData = (state: RootState) => state.map.value.currentSpatData;
 export const selectCurrentBsmData = (state: RootState) => state.map.value.currentBsmData;
 export const selectSliderTimeValue = (state: RootState) => state.map.value.sliderTimeValue;
 export const selectBsmTrailLength = (state: RootState) => state.map.value.bsmTrailLength;
+export const selectLiveDataRestartTimeoutId = (state: RootState) => state.map.value.liveDataRestartTimeoutId;
+export const selectLiveDataRestart = (state: RootState) => state.map.value.liveDataRestart;
 
 export const {
   setSurroundingEvents,
@@ -1336,6 +1467,9 @@ export const {
   setRawData,
   setMapProps,
   togglePlaybackModeActive,
+  resetMapView,
+  setLiveDataRestartTimeoutId,
+  setLiveDataRestart,
 } = mapSlice.actions;
 
 export default mapSlice.reducer;

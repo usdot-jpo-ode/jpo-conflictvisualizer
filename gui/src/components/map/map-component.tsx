@@ -41,6 +41,8 @@ import {
   selectHoveredFeature,
   selectLaneLabelsVisible,
   selectLiveDataActive,
+  selectLiveDataRestart,
+  selectLiveDataRestartTimeoutId,
   selectLoadInitialDataTimeoutId,
   selectMapData,
   selectMapSignalGroups,
@@ -171,6 +173,8 @@ const MapTab = (props: MyProps) => {
   const loadInitialDataTimeoutId = useSelector(selectLoadInitialDataTimeoutId);
   const liveDataActive = useSelector(selectLiveDataActive);
   const playbackModeActive = useSelector(selectPlaybackModeActive);
+  const liveDataRestartTimeoutId = useSelector(selectLiveDataRestartTimeoutId);
+  const liveDataRestart = useSelector(selectLiveDataRestart);
 
   const mapRef = React.useRef<any>(null);
   const [rawData, setRawData] = useState<{
@@ -290,6 +294,24 @@ const MapTab = (props: MyProps) => {
       dispatch(cleanUpLiveStreaming());
     }
   }, [liveDataActive]);
+
+  useEffect(() => {
+    console.log("Live Data Restart:", liveDataRestart, liveDataActive);
+    if (liveDataRestart != -1 && liveDataRestart < 5 && liveDataActive) {
+      if (authToken && props.roadRegulatorId && props.intersectionId) {
+        dispatch(
+          initializeLiveStreaming({
+            token: authToken,
+            roadRegulatorId: props.roadRegulatorId,
+            intersectionId: props.intersectionId,
+            liveDataRestart,
+          })
+        );
+      }
+    } else {
+      dispatch(cleanUpLiveStreaming());
+    }
+  }, [liveDataRestart]);
 
   return (
     <Container fluid={true} style={{ width: "100%", height: "100%", display: "flex" }}>
