@@ -89,6 +89,10 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
   return null;
 };
 
+//Reduce y axis for small graphs
+const maxCount = Math.max(...messageCounts.map(data => data.count));
+const tickCount = maxCount < 5 ? maxCount + 1 : undefined;
+
 return (
   <LocalizationProvider dateAdapter={AdapterDateFns}>
     <Card sx={{ minWidth: '300px', overflow: "visible" }}>
@@ -112,7 +116,7 @@ return (
             />
             <YAxis 
               label={{ value: 'Message count', angle: -90, dx:-25 }}
-              interval={0}
+              tickCount={tickCount}
               tickFormatter={(value) => {
                 if (value >= 1000000) {
                   return `${value / 1000000}M`;
