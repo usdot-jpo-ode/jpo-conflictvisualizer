@@ -304,7 +304,7 @@ const MapTab = (props: MyProps) => {
             token: authToken,
             roadRegulatorId: props.roadRegulatorId,
             intersectionId: props.intersectionId,
-            liveDataRestart,
+            numRestarts: liveDataRestart,
           })
         );
       }

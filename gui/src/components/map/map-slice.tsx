@@ -634,7 +634,7 @@ export const getSurroundingNotifications = createAsyncThunk(
 export const initializeLiveStreaming = createAsyncThunk(
   "map/initializeLiveStreaming",
   async (
-    args: { token: string; roadRegulatorId: number; intersectionId: number; numRestarts: number },
+    args: { token: string; roadRegulatorId: number; intersectionId: number; numRestarts?: number },
     { getState, dispatch }
   ) => {
     const { token, roadRegulatorId, intersectionId, numRestarts = 0 } = args;
@@ -643,7 +643,7 @@ export const initializeLiveStreaming = createAsyncThunk(
     const wsClient = selectWsClient(getState() as RootState);
 
     dispatch(onTimeQueryChanged({ eventTime: new Date(), timeBefore: 10, timeAfter: 0, timeWindowSeconds: 2 }));
-    dispatch(resetMapView({}));
+    dispatch(resetMapView());
 
     if (!liveDataActive) {
       console.debug("Not initializing live streaming because liveDataActive is false");
@@ -1150,7 +1150,7 @@ export const mapSlice = createSlice({
       }
       if (state.value.liveDataRestartTimeoutId) {
         clearTimeout(state.value.liveDataRestartTimeoutId);
-        state.value.liveliveDataRestartTimeoutId = undefined;
+        state.value.liveDataRestartTimeoutId = undefined;
       }
       state.value.liveDataActive = false;
       state.value.liveDataRestart = -1;
@@ -1221,11 +1221,11 @@ export const mapSlice = createSlice({
       state.value.sliderValue = 0;
       state.value.playbackModeActive = false;
       state.value.currentSpatData = [];
-      state.value.currentProcessedSpatData = [];
+      // state.value.currentProcessedSpatData = [];
       state.value.currentBsmData = { type: "FeatureCollection", features: [] };
     },
     setLiveDataRestartTimeoutId: (state, action) => {
-      state.value.liveRataRestartTimeoutId = action.payload;
+      state.value.liveDataRestartTimeoutId = action.payload;
     },
     setLiveDataRestart: (state, action) => {
       state.value.liveDataRestart = action.payload;
@@ -1372,7 +1372,7 @@ export const mapSlice = createSlice({
           state.value.filteredSurroundingNotifications = action.payload.filteredSurroundingNotifications;
         }
       )
-      .addCase(initializeLiveStreaming.fulfilled, (state, action: PayloadAction<CompatClient>) => {
+      .addCase(initializeLiveStreaming.fulfilled, (state, action: PayloadAction<CompatClient | undefined>) => {
         state.value.wsClient = action.payload;
       })
       .addCase(getBsmDailyCounts.fulfilled, (state, action: PayloadAction<MinuteCount[]>) => {
