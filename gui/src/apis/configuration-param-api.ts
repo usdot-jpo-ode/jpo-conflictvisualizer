@@ -136,7 +136,7 @@ class ConfigParamsApi {
   async updateDefaultParameter(token: string, name: string, param: Config): Promise<Config | undefined> {
     try {
       var response = await authApiHelper.invokeApi({
-        path: "/config/default/",
+        path: "/config/default",
         token: token,
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ class ConfigParamsApi {
   ): Promise<IntersectionConfig | undefined> {
     try {
       var response = await authApiHelper.invokeApi({
-        path: "/config/intersection/",
+        path: "/config/intersection",
         token: token,
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -214,7 +214,7 @@ class ConfigParamsApi {
   ): Promise<Config | undefined> {
     try {
       var response = await authApiHelper.invokeApi({
-        path: "/config/intersection/",
+        path: "/config/intersection",
         token: token,
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
