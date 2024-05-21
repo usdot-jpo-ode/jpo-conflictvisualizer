@@ -89,6 +89,28 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
     return 0;
   }
 
+  const data = assessment?.signalStateEventAssessmentGroup
+  .map((group) => {
+    const total =
+      Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
+    return {
+      name: `${group.signalGroup}`,
+      signalGroup: `${group.signalGroup}`,
+      total: total * 100,
+      red: Math.floor((group.redEvents / total) * 100) / 100,
+      redCount: group.redEvents,
+      yellow: Math.floor((group.yellowEvents / total) * 100) / 100,
+      yellowCount: group.yellowEvents,
+      green: Math.floor((group.greenEvents / total) * 100) / 100,
+      greenCount: group.greenEvents,
+      dark: Math.floor((group.darkEvents / total) * 100) / 100,
+      darkCount: group.darkEvents,
+    };
+  })
+  .sort(sortByName);
+
+const hasDark = data?.some(item => item.darkCount > 0);
+
   return (
     <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1200}>
       <Card sx={{ height: "100%", overflow: "visible" }}>
@@ -106,25 +128,7 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                 <BarChart
                   width={widthFactor * 1200}
                   height={350}
-                  data={assessment.signalStateEventAssessmentGroup
-                    .map((group) => {
-                      const total =
-                        Math.max(group.redEvents + group.yellowEvents + group.greenEvents + group.darkEvents, 1) / 100;
-                      return {
-                        name: `${group.signalGroup}`,
-                        signalGroup: `${group.signalGroup}`,
-                        total: total * 100,
-                        red: Math.floor((group.redEvents / total) * 100) / 100,
-                        redCount: group.redEvents,
-                        yellow: Math.floor((group.yellowEvents / total) * 100) / 100,
-                        yellowCount: group.yellowEvents,
-                        green: Math.floor((group.greenEvents / total) * 100) / 100,
-                        greenCount: group.greenEvents,
-                        dark: Math.floor((group.darkEvents / total) * 100) / 100,
-                        darkCount: group.darkEvents,
-                      };
-                    })
-                    .sort(sortByName)}
+                  data={data}
                   margin={{
                     top: 20,
                     right: 30,
@@ -141,6 +145,12 @@ export const SignalStateEventAssessmentCard = (props: { assessment: SignalStateE
                       paddingTop: "10px",
                       height: "50px",
                     }}
+                    payload={[
+                      { value: 'Red', type: 'square', id: 'red', color: '#e74b4b' },
+                      { value: 'Yellow', type: 'square', id: 'yellow', color: '#ffe600' },
+                      { value: 'Green', type: 'square', id: 'green', color: '#44db51' },
+                      hasDark ? { value: 'Dark', type: 'square', id: 'dark', color: '#505050' } : null,
+                    ].filter((item) => item !== null) as any[]}
                   />
                   <Bar dataKey="red" stackId="a" fill="#e74b4b" />
                   <Bar dataKey="yellow" stackId="a" fill="#ffe600" />

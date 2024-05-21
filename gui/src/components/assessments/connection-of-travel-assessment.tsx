@@ -64,6 +64,23 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
     return 0;
   }
 
+const data = assessment?.connectionOfTravelAssessmentGroups
+  .map((group) => {
+    return {
+      name: `${group.ingressLaneID}_${group.egressLaneID}`,
+      eventCountValid: group.connectionID == -1 ? 0 : group.eventCount,
+      eventCountInvalid: group.connectionID == -1 ? group.eventCount : 0,
+      connectionID: group.connectionID,
+      ingressLaneID: group.ingressLaneID,
+      egressLaneID: group.egressLaneID,
+    };
+  })
+  .sort(sortByName);
+
+const hasValidEvents = data?.some(item => item.eventCountValid > 0);
+const hasInvalidEvents = data?.some(item => item.eventCountInvalid > 0);
+
+
   return (
     <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1600}>
       <Card sx={{ height: "100%", overflow: "visible" }}>
@@ -81,18 +98,7 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
                 <BarChart
                   width={widthFactor * 1600}
                   height={350}
-                  data={assessment?.connectionOfTravelAssessmentGroups
-                    .map((group) => {
-                      return {
-                        name: `${group.ingressLaneID}_${group.egressLaneID}`,
-                        eventCountValid: group.connectionID == -1 ? 0 : group.eventCount,
-                        eventCountInvalid: group.connectionID == -1 ? group.eventCount : 0,
-                        connectionID: group.connectionID,
-                        ingressLaneID: group.ingressLaneID,
-                        egressLaneID: group.egressLaneID,
-                      };
-                    })
-                    .sort(sortByName)}
+                  data={data}
                   margin={{
                     top: 5,
                     right: 30,
@@ -117,16 +123,16 @@ export const ConnectionOfTravelAssessmentCard = (props: { assessment: Connection
                       height: "50px",
                     }}
                     payload={[
-                      {
+                      ...(hasValidEvents ? [{
                         value: `Event Count Valid Connection ID`,
                         id: "eventCountValid",
                         color: "#463af1",
-                      },
-                      {
+                      }] : []),
+                      ...(hasInvalidEvents ? [{
                         value: `Event Count Invalid Connection ID`,
                         id: "eventCountInvalid",
                         color: "#f35555",
-                      },
+                      }] : []),
                     ]}
                   />
                   <Bar dataKey="eventCountValid" stackId="a" fill="#463af1" />

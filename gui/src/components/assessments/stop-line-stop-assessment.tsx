@@ -89,6 +89,34 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
     return 0;
   }
 
+  const data = assessment?.stopLineStopAssessmentGroup
+  .map((group) => {
+    const total =
+      Math.max(
+        group.timeStoppedOnRed +
+          group.timeStoppedOnYellow +
+          group.timeStoppedOnGreen +
+          group.timeStoppedOnDark,
+        1
+      ) / 100;
+    return {
+      name: `${group.signalGroup}`,
+      signalGroup: `${group.signalGroup}`,
+      total: total * 100,
+      red: Math.floor((group.timeStoppedOnRed / total) * 100) / 100,
+      redTime: group.timeStoppedOnRed,
+      yellow: Math.floor((group.timeStoppedOnYellow / total) * 100) / 100,
+      yellowTime: group.timeStoppedOnYellow,
+      green: Math.floor((group.timeStoppedOnGreen / total) * 100) / 100,
+      greenTime: group.timeStoppedOnGreen,
+      dark: Math.floor((group.timeStoppedOnDark / total) * 100) / 100,
+      darkTime: group.timeStoppedOnDark,
+    };
+  })
+  .sort(sortByName);
+
+const hasDark = data?.some(item => item.dark > 0);
+
   return (
     <Grid item width={assessment === undefined ? 200 : 80 + widthFactor * 1200}>
       <Card sx={{ height: "100%", overflow: "visible" }}>
@@ -106,31 +134,7 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
                 <BarChart
                   width={widthFactor * 1200}
                   height={350}
-                  data={assessment.stopLineStopAssessmentGroup
-                    .map((group) => {
-                      const total =
-                        Math.max(
-                          group.timeStoppedOnRed +
-                            group.timeStoppedOnYellow +
-                            group.timeStoppedOnGreen +
-                            group.timeStoppedOnDark,
-                          1
-                        ) / 100;
-                      return {
-                        name: `${group.signalGroup}`,
-                        signalGroup: `${group.signalGroup}`,
-                        total: total * 100,
-                        red: Math.floor((group.timeStoppedOnRed / total) * 100) / 100,
-                        redTime: group.timeStoppedOnRed,
-                        yellow: Math.floor((group.timeStoppedOnYellow / total) * 100) / 100,
-                        yellowTime: group.timeStoppedOnYellow,
-                        green: Math.floor((group.timeStoppedOnGreen / total) * 100) / 100,
-                        greenTime: group.timeStoppedOnGreen,
-                        dark: Math.floor((group.timeStoppedOnDark / total) * 100) / 100,
-                        darkTime: group.timeStoppedOnDark,
-                      };
-                    })
-                    .sort(sortByName)}
+                  data={data}
                   margin={{
                     top: 20,
                     right: 30,
@@ -147,6 +151,12 @@ export const StopLineStopAssessmentCard = (props: { assessment: StopLineStopAsse
                       paddingTop: "10px",
                       height: "50px",
                     }}
+                    payload={[
+                      { value: 'Red', type: 'square', id: 'red', color: '#e74b4b' },
+                      { value: 'Yellow', type: 'square', id: 'yellow', color: '#ffe600' },
+                      { value: 'Green', type: 'square', id: 'green', color: '#44db51' },
+                      hasDark ? { value: 'Dark', type: 'square', id: 'dark', color: '#505050' } : null,
+                    ].filter((item) => item !== null) as any[]}
                   />
                   <Bar dataKey="red" stackId="a" fill="#e74b4b" />
                   <Bar dataKey="yellow" stackId="a" fill="#ffe600" />
