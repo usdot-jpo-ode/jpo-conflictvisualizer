@@ -17,8 +17,9 @@ export const EventCountWeekChart = (props: {
   eventType: string;
   eventLabel: string;
   barColor: string;
+  disclaimer: string | undefined;
 }) => {
-  const { accessToken, intersectionId, eventType, eventLabel, barColor } = props;
+  const { accessToken, intersectionId, eventType, eventLabel, barColor, disclaimer } = props;
 
   type ChartData = { date: string; count: number; dayOfWeek: string };
 
@@ -126,6 +127,13 @@ return (
             <Line type="monotone" dataKey="count" stroke={barColor} />
           </LineChart>
         </ResponsiveContainer>
+        </CardContent>
+      <CardContent sx={{ pt: 0, mt: -4, height: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+        {disclaimer && (
+          <Typography variant="caption" color="textSecondary">
+            *{disclaimer}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   </LocalizationProvider>

@@ -102,7 +102,8 @@ const Page = () => {
               intersectionId={intersectionId}
               eventType="bsm"
               eventLabel="BSM message"
-              barColor="#5048E5"/>
+              barColor="#5048E5"
+              disclaimer=""/>
             </Grid>
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
               <EventCountWeekChart
@@ -110,7 +111,17 @@ const Page = () => {
               intersectionId={intersectionId}
               eventType="spat"
               eventLabel="SPAT message"
-              barColor="#10B981"/>
+              barColor="#10B981"
+              disclaimer=""/>
+            </Grid>
+            <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
+              <EventCountWeekChart
+              accessToken={session?.accessToken}
+              intersectionId={intersectionId}
+              eventType="map"
+              eventLabel="MAP message"
+              barColor="#900bae"
+              disclaimer="duplicate messages not included"/>
             </Grid>
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
