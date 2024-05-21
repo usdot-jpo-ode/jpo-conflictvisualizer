@@ -6,7 +6,6 @@ import MapTab from "../../../../components/map/map-component";
 import { useRouter } from "next/router";
 import NotificationApi from "../../../../apis/notification-api";
 import { useDashboardContext } from "../../../../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
 
 const Map = () => {
   const router = useRouter();

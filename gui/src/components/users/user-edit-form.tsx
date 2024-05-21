@@ -19,12 +19,15 @@ import {
   Typography,
 } from "@mui/material";
 import keycloakApi from "../../apis/keycloak-api";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 export const UserEditForm = (props: { user: User }) => {
   const { user, ...other } = props;
   const router = useRouter();
-  const { data: session } = useSession();
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
 
   const initialValues = {
     email: user.email || "",
@@ -35,7 +38,7 @@ export const UserEditForm = (props: { user: User }) => {
   };
 
   const removeUser = (userId: string) => {
-    keycloakApi.removeUser({ token: session?.accessToken!, id: userId });
+    keycloakApi.removeUser({ token: authToken!, id: userId });
 
     router.push("/users").catch(console.error);
   };
@@ -49,21 +52,21 @@ export const UserEditForm = (props: { user: User }) => {
       role: Yup.string().max(50),
     }),
     onSubmit: async (values, helpers) => {
-      if (!session?.accessToken) {
+      if (!authToken) {
         toast.error("Not authenticated");
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: "Not Authenticated" });
         helpers.setSubmitting(false);
-        console.error("Did not attempt to edit user. Access token:", Boolean(session?.accessToken));
+        console.error("Did not attempt to edit user. Access token:", Boolean(authToken));
         return;
       }
       try {
         if (values.role !== initialValues.role) {
-          keycloakApi.removeUserFromGroup({ token: session?.accessToken, id: user.id, role: initialValues.role });
-          keycloakApi.addUserToGroup({ token: session?.accessToken, id: user.id, role: values.role });
+          keycloakApi.removeUserFromGroup({ token: authToken, id: user.id, role: initialValues.role });
+          keycloakApi.addUserToGroup({ token: authToken, id: user.id, role: values.role });
         }
         keycloakApi.updateUserInfo({
-          token: session?.accessToken,
+          token: authToken,
           id: user.id,
           email: values.email == initialValues.email ? undefined : values.email,
           first_name: values.firstName == initialValues.firstName ? undefined : values.firstName,

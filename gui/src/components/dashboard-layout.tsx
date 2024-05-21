@@ -1,16 +1,34 @@
 import { useState, useEffect } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { AuthGuard } from "./auth-guard";
 import { DashboardNavbar } from "./dashboard-navbar";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { DashboardProvider } from "../contexts/dashboard-context";
 import React from "react";
 import MessageMonitorApi from "../apis/mm-api";
 import { useDashboardContext } from "../contexts/dashboard-context";
-import { useSession } from "next-auth/react";
-import keycloakApi from "../apis/keycloak-api";
 import userManagementApi from "../apis/user-management-api";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  initKeycloakClient,
+  selectAuthToken,
+  selectEmail,
+  selectFirstName,
+  selectKeycloakClient,
+  selectLastName,
+  selectParsedJwt,
+  selectRole,
+  setRefreshToken,
+  // Actions
+  setToken,
+} from "../slices/userSlice";
+import dynamic from "next/dynamic";
+import getConfig from "next/config";
+import { AuthGuard } from "./auth-guard";
+import Keycloak from "keycloak-js";
+import { ReactKeycloakProvider } from "@react-keycloak/web";
+
+const { publicRuntimeConfig } = getConfig();
 
 const DashboardLayoutRoot = styled("div")(({ theme }) => ({
   display: "flex",
@@ -31,68 +49,71 @@ const parseJwt = (token) => {
 };
 
 export const DashboardLayout = (props) => {
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+  const role = useSelector(selectRole);
+  const email = useSelector(selectEmail);
+  const firstName = useSelector(selectFirstName);
+  const lastName = useSelector(selectLastName);
+  const parsedJwt = useSelector(selectParsedJwt);
+
   const { children } = props;
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [intersections, setIntersections] = useState<IntersectionReferenceData[]>([]);
   const { setIntersection, setUser } = useDashboardContext();
-  const { data: session } = useSession();
 
   const updateUser = async () => {
-    if (session?.accessToken && session?.role) {
-      const parsedJwt = parseJwt(session?.accessToken);
+    if (authToken && role) {
       const user: User = {
-        email: parsedJwt?.preferred_username,
-        first_name: parsedJwt?.given_name,
-        last_name: parsedJwt?.family_name,
-        id: parsedJwt?.sub,
-        role: session?.role,
+        email: email!,
+        first_name: firstName!,
+        last_name: lastName!,
+        id: parsedJwt?.sub!,
+        role: role,
         email_preference: await userManagementApi.getUserEmailPreference({
-          token: session?.accessToken,
+          token: authToken,
         }),
       };
       setUser(user);
     } else {
-      console.error(
-        "Did not attempt to update user. Access token:",
-        Boolean(session?.accessToken),
-        "Role:",
-        session?.role
-      );
+      console.error("Did not attempt to update user. Access token:", Boolean(authToken), "Role:", role);
     }
   };
 
   useEffect(() => {
     updateUser();
-    if (session?.accessToken) {
-      MessageMonitorApi.getIntersections({ token: session?.accessToken }).then(
-        (intersections: IntersectionReferenceData[]) => {
-          setIntersections(intersections);
-          setIntersection(intersections?.[0]?.intersectionID);
-        }
-      );
+    if (authToken) {
+      MessageMonitorApi.getIntersections({ token: authToken }).then((intersections: IntersectionReferenceData[]) => {
+        setIntersections(intersections);
+        setIntersection(intersections?.[0]?.intersectionID);
+      });
     } else {
-      console.error("Did not attempt to update user automatically. Access token:", Boolean(session?.accessToken));
+      console.error("Did not attempt to update user automatically. Access token:", Boolean(authToken));
     }
-  }, [session?.accessToken]);
+  }, [authToken]);
 
   return (
-    <AuthGuard>
-      <DashboardProvider>
-        <DashboardLayoutRoot>
-          <Box
-            sx={{
-              display: "flex",
-              flex: "1 1 auto",
-              flexDirection: "column",
-              width: "100%",
-            }}
-          >
-            {children}
-          </Box>
-        </DashboardLayoutRoot>
-        <DashboardNavbar onSidebarOpen={() => setSidebarOpen(true)} intersections={intersections} />
-        <DashboardSidebar onClose={() => setSidebarOpen(false)} open={isSidebarOpen} />
-      </DashboardProvider>
-    </AuthGuard>
+    <DashboardProvider>
+      <DashboardLayoutRoot>
+        <Box
+          sx={{
+            display: "flex",
+            flex: "1 1 auto",
+            flexDirection: "column",
+            width: "100%",
+          }}
+        >
+          {children}
+        </Box>
+      </DashboardLayoutRoot>
+      <DashboardNavbar onSidebarOpen={() => setSidebarOpen(true)} intersections={intersections} />
+      <DashboardSidebar onClose={() => setSidebarOpen(false)} open={isSidebarOpen} />
+    </DashboardProvider>
+    // </AuthGuard>
   );
 };
+
+// export const DashboardLayout = dynamic(() => Promise.resolve(DashboardLayoutSSR), {
+//   ssr: false,
+// });

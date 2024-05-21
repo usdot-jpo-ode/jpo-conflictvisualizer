@@ -20,11 +20,12 @@ import { Refresh as RefreshIcon } from "../../icons/refresh";
 import { Search as SearchIcon } from "../../icons/search";
 import keycloakApi from "../../apis/keycloak-api";
 import userCreationRequestApi from "../../apis/user-management-api";
-import { useSession } from "next-auth/react";
 import { UserListTable } from "../../components/users/user-list-table";
 import { UserCreationRequestListTable } from "../../components/users/user-creation-request-list-table";
 import NextLink from "next/link";
 import { Plus as PlusIcon } from "../../icons/plus";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../slices/userSlice";
 
 const tabs = [
   {
@@ -70,6 +71,10 @@ const applyFilters = (users, filter) =>
 const applyPagination = (users, page, rowsPerPage) => users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 const Page = () => {
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   const queryRef = useRef<TextFieldProps>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [userCreationRequests, setUserCreationRequests] = useState<User[]>([]);
@@ -81,7 +86,6 @@ const Page = () => {
     query: "",
     tab: currentTab,
   });
-  const { data: session } = useSession();
 
   useEffect(() => {
     updateDescription();
@@ -89,12 +93,12 @@ const Page = () => {
 
   const getUsers = async () => {
     try {
-      if (session?.accessToken) {
-        const data = await keycloakApi.getUsersList({ token: session?.accessToken });
+      if (authToken) {
+        const data = await keycloakApi.getUsersList({ token: authToken });
 
         setUsers(data);
       } else {
-        console.error("Did not attempt to get list of users. Access token:", Boolean(session?.accessToken));
+        console.error("Did not attempt to get list of users. Access token:", Boolean(authToken));
       }
     } catch (err) {
       console.error(err);
@@ -103,15 +107,12 @@ const Page = () => {
 
   const getUserCreationRequests = async () => {
     try {
-      if (session?.accessToken) {
-        const data = await userCreationRequestApi.getUserCreationRequests({ token: session?.accessToken });
+      if (authToken) {
+        const data = await userCreationRequestApi.getUserCreationRequests({ token: authToken });
 
         setUserCreationRequests(data);
       } else {
-        console.error(
-          "Did not attempt to retrieve user creation requests. Access token:",
-          Boolean(session?.accessToken)
-        );
+        console.error("Did not attempt to retrieve user creation requests. Access token:", Boolean(authToken));
       }
     } catch (err) {
       console.error(err);

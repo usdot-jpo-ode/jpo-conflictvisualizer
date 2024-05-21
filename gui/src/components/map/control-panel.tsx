@@ -14,11 +14,91 @@ import { format, set } from "date-fns";
 import JSZip from "jszip";
 import { getSelectedLayerPopupContent } from "./popup";
 import { LayerProps } from "react-map-gl";
+import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
+import { RootState } from "../../store";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  downloadMapData,
+  handleImportedMapMessageData,
+  onTimeQueryChanged,
+  selectBsmEventsByMinute,
+  selectBsmTrailLength,
+  selectPlaybackModeActive,
+  selectSliderTimeValue,
+  setBsmTrailLength,
+  setLaneLabelsVisible,
+  setShowPopupOnHover,
+  setSigGroupLabelsVisible,
+  setSliderValue,
+  toggleLiveDataActive,
+  togglePlaybackModeActive,
+} from "./map-slice";
+import {
+  MAP_LAYERS,
+  cleanUpLiveStreaming,
+  clearHoveredFeature,
+  clearSelectedFeature,
+  initializeLiveStreaming,
+  maybeUpdateSliderValue,
+  onMapClick,
+  onMapMouseEnter,
+  onMapMouseLeave,
+  onMapMouseMove,
+  pullInitialData,
+  renderIterative_Bsm,
+  renderIterative_Map,
+  renderIterative_Spat,
+  selectAllInteractiveLayerIds,
+  selectBsmData,
+  selectConnectingLanes,
+  selectCurrentBsmData,
+  selectCurrentBsms,
+  selectCurrentMapData,
+  selectCurrentSignalGroups,
+  selectCurrentSpatData,
+  selectCursor,
+  selectFilteredSurroundingEvents,
+  selectFilteredSurroundingNotifications,
+  selectHoveredFeature,
+  selectImportedMessageData,
+  selectIntersectionId,
+  selectLaneLabelsVisible,
+  selectLayersVisible,
+  selectLiveDataActive,
+  selectLoadInitialDataTimeoutId,
+  selectLoadOnNull,
+  selectMapData,
+  selectMapSignalGroups,
+  selectMapSpatTimes,
+  selectQueryParams,
+  selectRawData,
+  selectRenderTimeInterval,
+  selectRoadRegulatorId,
+  selectSelectedFeature,
+  selectShowPopupOnHover,
+  selectSigGroupLabelsVisible,
+  selectSignalStateData,
+  selectSliderValue,
+  selectSourceData,
+  selectSourceDataType,
+  selectSpatSignalGroups,
+  selectSurroundingNotifications,
+  selectTimeWindowSeconds,
+  selectViewState,
+  setLoadInitialdataTimeoutId,
+  setViewState,
+  updateQueryParams,
+  updateRenderTimeInterval,
+  updateRenderedMapState,
+} from "./map-slice";
+import { selectAuthToken } from "../../slices/userSlice";
+import { selectSignalStateLayerStyle, setSignalLayerLayout } from "./map-layer-style-slice";
+import { getTimeRange } from "./utilities/map-utils";
 import ScrollBar from "react-perfect-scrollbar";
-import pauseIcon from '../../../public/pause.png';
-import playIcon from '../../../public/play.png';
+import pauseIcon from "../../../public/pause.png";
+import playIcon from "../../../public/play.png";
 
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -50,56 +130,57 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}));
 
-interface ControlPanelProps {
-  sx: SxProps<Theme> | undefined;
-  timeQueryParams: {
-    startDate: Date;
-    endDate: Date;
-    eventDate: Date;
-    timeWindowSeconds: number;
-  };
-  onTimeQueryChanged: (eventTime?: Date, timeBefore?: number, timeAfter?: number, timeWindowSeconds?: number) => void;
-  handleImportedMessageData: (messageData: any) => void;
-  sliderValue: number;
-  setSlider: (event: Event, value: number | number[], activeThumb: number) => void;
-  max: number;
-  sliderTimeValue: {
-    start: Date;
-    end: Date;
-  };
-  mapSpatTimes: {
-    mapTime: number;
-    spatTime: number;
-  };
-  downloadAllData: () => void;
-  signalStateLayer: any;
-  setSignalStateLayer: React.Dispatch<React.SetStateAction<any>>;
-  laneLabelsVisible: boolean;
-  setLaneLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  sigGroupLabelsVisible: boolean;
-  setSigGroupLabelsVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  showPopupOnHover: boolean;
-  setShowPopupOnHover: React.Dispatch<React.SetStateAction<boolean>>;
-  liveDataActive: boolean;
-  setLiveDataActive: React.Dispatch<React.SetStateAction<boolean>>;
-  bsmTrailLength: number;
-  setBsmTrailLength: React.Dispatch<React.SetStateAction<number>>;
-  playbackModeActive: boolean;
-  setPlaybackModeActive: React.Dispatch<React.SetStateAction<boolean>>;
-  bsmEventsByMinute: MessageMonitor.MinuteCount[];
-  bsmByMinuteUpdated: boolean;
-  setBsmByMinuteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
-  rawData: {
-    map?: ProcessedMap[];
-    spat?: ProcessedSpat[];
-    bsm?: BsmFeatureCollection;
-    notification?: MessageMonitor.Notification;
-    event?: MessageMonitor.Event;
-    assessment?: Assessment;
-  };
-}
+function ControlPanel() {
+  const dispatch: ThunkDispatch<RootState, void, AnyAction> = useDispatch();
 
-function ControlPanel(props: ControlPanelProps) {
+  const authToken = useSelector(selectAuthToken);
+
+  const signalStateLayerStyle = useSelector(selectSignalStateLayerStyle);
+
+  const layersVisible = useSelector(selectLayersVisible);
+  const allInteractiveLayerIds = useSelector(selectAllInteractiveLayerIds);
+  const queryParams = useSelector(selectQueryParams);
+  const sourceData = useSelector(selectSourceData);
+  const sourceDataType = useSelector(selectSourceDataType);
+  const intersectionId = useSelector(selectIntersectionId);
+  const roadRegulatorId = useSelector(selectRoadRegulatorId);
+  const loadOnNull = useSelector(selectLoadOnNull);
+  const mapData = useSelector(selectMapData);
+  const bsmData = useSelector(selectBsmData);
+  const mapSignalGroups = useSelector(selectMapSignalGroups);
+  const signalStateData = useSelector(selectSignalStateData);
+  const spatSignalGroups = useSelector(selectSpatSignalGroups);
+  const currentSignalGroups = useSelector(selectCurrentSignalGroups);
+  const currentBsms = useSelector(selectCurrentBsms);
+  const connectingLanes = useSelector(selectConnectingLanes);
+  const filteredSurroundingEvents = useSelector(selectFilteredSurroundingEvents);
+  const surroundingNotifications = useSelector(selectSurroundingNotifications);
+  const filteredSurroundingNotifications = useSelector(selectFilteredSurroundingNotifications);
+  const viewState = useSelector(selectViewState);
+  const timeWindowSeconds = useSelector(selectTimeWindowSeconds);
+  const sliderValue = useSelector(selectSliderValue);
+  const renderTimeInterval = useSelector(selectRenderTimeInterval);
+  const hoveredFeature = useSelector(selectHoveredFeature);
+  const selectedFeature = useSelector(selectSelectedFeature);
+  const rawData = useSelector(selectRawData);
+  const mapSpatTimes = useSelector(selectMapSpatTimes);
+  const sigGroupLabelsVisible = useSelector(selectSigGroupLabelsVisible);
+  const laneLabelsVisible = useSelector(selectLaneLabelsVisible);
+  const showPopupOnHover = useSelector(selectShowPopupOnHover);
+  const importedMessageData = useSelector(selectImportedMessageData);
+  const cursor = useSelector(selectCursor);
+  const loadInitialDataTimeoutId = useSelector(selectLoadInitialDataTimeoutId);
+  // const wsClient = useSelector(selectWsClient);
+  const liveDataActive = useSelector(selectLiveDataActive);
+  const currentMapData = useSelector(selectCurrentMapData);
+  const currentSpatData = useSelector(selectCurrentSpatData);
+  const currentBsmData = useSelector(selectCurrentBsmData);
+  const sliderTimeValue = useSelector(selectSliderTimeValue);
+  const bsmTrailLength = useSelector(selectBsmTrailLength);
+
+  const bsmEventsByMinute = useSelector(selectBsmEventsByMinute);
+  const playbackModeActive = useSelector(selectPlaybackModeActive);
+
   const getQueryParams = ({
     startDate,
     endDate,
@@ -124,26 +205,24 @@ function ControlPanel(props: ControlPanelProps) {
   const [shouldReRenderTimeAfter, setShouldReRenderTimeAfter] = useState(true);
   const [shouldReRenderTimeWindowSeconds, setShouldReRenderTimeWindowSeconds] = useState(true);
   const [shouldReRenderBsmTrail, setShouldReRenderBsmTrail] = useState(true);
-  const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(props.bsmTrailLength.toString());
-  const [prevBsmTrailLength, setPrevBsmTrailLength] = useState<number>(props.bsmTrailLength);
-  const [oldDateParams, setOldDateParams] = useState(getQueryParams(props.timeQueryParams));
+  const [bsmTrailLengthLocal, setBsmTrailLengthLocal] = useState<string | undefined>(bsmTrailLength.toString());
+  const [prevBsmTrailLength, setPrevBsmTrailLength] = useState<number>(bsmTrailLength);
+  const [oldDateParams, setOldDateParams] = useState(getQueryParams({ ...queryParams, timeWindowSeconds }));
   const [eventTime, setEventTime] = useState<dayjs.Dayjs | null>(
-    dayjs(getQueryParams(props.timeQueryParams).eventTime.toString())
+    dayjs(getQueryParams({ ...queryParams, timeWindowSeconds }).eventTime.toString())
   );
   const [timeBefore, setTimeBefore] = useState<string | undefined>(
-    getQueryParams(props.timeQueryParams).timeBefore.toString()
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeBefore.toString()
   );
   const [timeAfter, setTimeAfter] = useState<string | undefined>(
-    getQueryParams(props.timeQueryParams).timeAfter.toString()
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeAfter.toString()
   );
-  const [timeWindowSeconds, setTimeWindowSeconds] = useState<string | undefined>(
-    getQueryParams(props.timeQueryParams).timeWindowSeconds.toString()
+  const [timeWindowSecondsLocal, setTimeWindowSeconds] = useState<string | undefined>(
+    getQueryParams({ ...queryParams, timeWindowSeconds }).timeWindowSeconds.toString()
   );
-  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number; }[];
-  const [reformattedTimelineData, setReformattedTimelineData] = useState<BarChartData>([]);
 
   useEffect(() => {
-    const newDateParams = getQueryParams(props.timeQueryParams);
+    const newDateParams = getQueryParams({ ...queryParams, timeWindowSeconds });
     if (newDateParams.eventTime.getTime() != oldDateParams.eventTime.getTime()) {
       setShouldReRenderEventTime(false);
       setEventTime(dayjs(newDateParams.eventTime));
@@ -160,15 +239,15 @@ function ControlPanel(props: ControlPanelProps) {
       setShouldReRenderTimeWindowSeconds(false);
       setTimeWindowSeconds(newDateParams.timeWindowSeconds.toString());
     }
-  }, [props.timeQueryParams]);
+  }, [{ ...queryParams, timeWindowSeconds }]);
 
   useEffect(() => {
-    if (props.bsmTrailLength != prevBsmTrailLength) {
+    if (bsmTrailLength != prevBsmTrailLength) {
       setShouldReRenderTimeAfter(false);
-      setPrevBsmTrailLength(props.bsmTrailLength);
-      setBsmTrailLengthLocal(props.bsmTrailLength.toString());
+      setPrevBsmTrailLength(bsmTrailLength);
+      setBsmTrailLengthLocal(bsmTrailLength.toString());
     }
-  }, [props.bsmTrailLength]);
+  }, [bsmTrailLength]);
 
   useEffect(() => {
     if (shouldReRenderEventTime && isFormValid()) {
@@ -176,13 +255,15 @@ function ControlPanel(props: ControlPanelProps) {
         eventTime: eventTime!.toDate(),
         timeBefore: getNumber(timeBefore)!,
         timeAfter: getNumber(timeAfter)!,
-        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
       });
-      props.onTimeQueryChanged(
-        eventTime!.toDate(),
-        getNumber(timeBefore),
-        getNumber(timeAfter),
-        getNumber(timeWindowSeconds)
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
       );
     } else {
       setShouldReRenderEventTime(true);
@@ -195,13 +276,15 @@ function ControlPanel(props: ControlPanelProps) {
         eventTime: eventTime!.toDate(),
         timeBefore: getNumber(timeBefore)!,
         timeAfter: getNumber(timeAfter)!,
-        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
       });
-      props.onTimeQueryChanged(
-        eventTime!.toDate(),
-        getNumber(timeBefore),
-        getNumber(timeAfter),
-        getNumber(timeWindowSeconds)
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
       );
     } else {
       setShouldReRenderTimeBefore(true);
@@ -214,13 +297,15 @@ function ControlPanel(props: ControlPanelProps) {
         eventTime: eventTime!.toDate(),
         timeBefore: getNumber(timeBefore)!,
         timeAfter: getNumber(timeAfter)!,
-        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
       });
-      props.onTimeQueryChanged(
-        eventTime!.toDate(),
-        getNumber(timeBefore),
-        getNumber(timeAfter),
-        getNumber(timeWindowSeconds)
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
       );
     } else {
       setShouldReRenderTimeAfter(true);
@@ -233,13 +318,15 @@ function ControlPanel(props: ControlPanelProps) {
         eventTime: eventTime!.toDate(),
         timeBefore: getNumber(timeBefore)!,
         timeAfter: getNumber(timeAfter)!,
-        timeWindowSeconds: getNumber(timeWindowSeconds)!,
+        timeWindowSeconds: getNumber(timeWindowSecondsLocal)!,
       });
-      props.onTimeQueryChanged(
-        eventTime!.toDate(),
-        getNumber(timeBefore),
-        getNumber(timeAfter),
-        getNumber(timeWindowSeconds)
+      dispatch(
+        onTimeQueryChanged({
+          eventTime: eventTime!.toDate(),
+          timeBefore: getNumber(timeBefore),
+          timeAfter: getNumber(timeAfter),
+          timeWindowSeconds: getNumber(timeWindowSecondsLocal),
+        })
       );
     } else {
       setShouldReRenderTimeWindowSeconds(true);
@@ -248,7 +335,7 @@ function ControlPanel(props: ControlPanelProps) {
 
   useEffect(() => {
     if (shouldReRenderBsmTrail && getNumber(bsmTrailLengthLocal) != null) {
-      props.setBsmTrailLength(getNumber(bsmTrailLengthLocal)!);
+      dispatch(setBsmTrailLength(getNumber(bsmTrailLengthLocal)!));
     } else {
       setShouldReRenderBsmTrail(true);
     }
@@ -261,7 +348,7 @@ function ControlPanel(props: ControlPanelProps) {
         !isNaN(d) &&
         getNumber(timeBefore) != null &&
         getNumber(timeAfter) != null &&
-        getNumber(timeWindowSeconds) != null
+        getNumber(timeWindowSecondsLocal) != null
       );
     } catch (e) {
       return false;
@@ -277,52 +364,31 @@ function ControlPanel(props: ControlPanelProps) {
     return num;
   };
 
-  const timelineTicks = [
-    120,
-    240,
-    360,
-    480,
-    600,
-    720,
-    840,
-    960,
-    1080,
-    1200,
-    1320
-  ];
-  
+  const timelineTicks = [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
+
   const formatMinutesAfterMidnightTime = useMemo(() => {
     return (minutes) => {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
     };
   }, []);
 
-    useEffect(() => {
-      const newBsmEventsByMinute = (props.bsmEventsByMinute || []).map(item => {
-        const date = new Date(item.minute);
-        const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
-        return {
-          ...item,
-          minutesAfterMidnight,
-          timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-        };
-      });
-
-    
-      setReformattedTimelineData(newBsmEventsByMinute);
-      props.setBsmByMinuteUpdated(false);
-    }, [props.bsmByMinuteUpdated]);
-    
-    useEffect(() => {
-    }, [reformattedTimelineData]);
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="custom-tooltip" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc', position: 'relative', bottom: '15px' }}>
-          <p className="label" style={{ color: '#333' }}>{`Time: ${payload[0].payload.timestamp}`}</p>
-          <p className="intro" style={{ color: '#333' }}>{`Events: ${payload[0].payload.count}`}</p>
+        <div
+          className="custom-tooltip"
+          style={{
+            backgroundColor: "#fff",
+            padding: "10px",
+            border: "1px solid #ccc",
+            position: "relative",
+            bottom: "15px",
+          }}
+        >
+          <p className="label" style={{ color: "#333" }}>{`Time: ${payload[0].payload.timestamp}`}</p>
+          <p className="intro" style={{ color: "#333" }}>{`Events: ${payload[0].payload.count}`}</p>
         </div>
       );
     }
@@ -339,12 +405,12 @@ function ControlPanel(props: ControlPanelProps) {
   const TimelineCursor: React.FC<TimelineCursorProps> = ({ x = 0, y = 0, width = 0, height = 0 }) => {
     return (
       <rect
-        x={(x+width/2)-6}
-        y={y-1}
+        x={x + width / 2 - 6}
+        y={y - 1}
         width={12}
-        height={height+3}
-        fill={(reformattedTimelineData != null && reformattedTimelineData.length > 0)? "#10B981" : "transparent"}
-        style={{ pointerEvents: 'none' }}
+        height={height + 3}
+        fill={bsmEventsByMinute != null && bsmEventsByMinute.length > 0 ? "#10B981" : "transparent"}
+        style={{ pointerEvents: "none" }}
       />
     );
   };
@@ -402,7 +468,7 @@ function ControlPanel(props: ControlPanelProps) {
           messageData.spatData = JSON.parse(data);
         }
       }
-      props.handleImportedMessageData(messageData);
+      dispatch(handleImportedMapMessageData(messageData));
     });
   };
 
@@ -416,9 +482,7 @@ function ControlPanel(props: ControlPanelProps) {
         <AccordionSummary>
           <Typography variant="h5">
             Time Query
-            {props.liveDataActive && (
-              <Chip label="Live Data Active" className="blink_me" sx={{ ml: 1 }} color="success" />
-            )}
+            {liveDataActive && <Chip label="Live Data Active" className="blink_me" sx={{ ml: 1 }} color="success" />}
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -441,7 +505,7 @@ function ControlPanel(props: ControlPanelProps) {
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateTimePicker
                     label="Event Date"
-                    disabled={props.liveDataActive}
+                    disabled={liveDataActive}
                     value={dayjs(eventTime ?? new Date())}
                     onChange={(e) => {
                       setEventTime(e);
@@ -472,8 +536,7 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  if(e.target.value === "" || Number.isInteger(Number(e.target.value)))
-                  {
+                  if (e.target.value === "" || Number.isInteger(Number(e.target.value))) {
                     setTimeWindowSeconds(e.target.value);
                   }
                 }}
@@ -484,13 +547,13 @@ function ControlPanel(props: ControlPanelProps) {
               />
             </Box>
             <Chip
-              label={props.liveDataActive ? "Stop Live Data" : "Render Live Data"}
+              label={liveDataActive ? "Stop Live Data" : "Render Live Data"}
               sx={{ mt: 1 }}
               onClick={() => {
-                props.setLiveDataActive((prevValue) => !prevValue);
+                dispatch(toggleLiveDataActive());
               }}
-              color={props.liveDataActive ? "success" : "default"}
-              variant={props.liveDataActive ? undefined : "outlined"}
+              color={liveDataActive ? "success" : "default"}
+              variant={liveDataActive ? undefined : "outlined"}
             />
           </Box>
         </AccordionDetails>
@@ -508,49 +571,48 @@ function ControlPanel(props: ControlPanelProps) {
             }}
           >
             <h4>
-              Visualization Time: {format(props.sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
-              {format(props.sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
+              Visualization Time: {format(sliderTimeValue.start, "MM/dd/yyyy HH:mm:ss")} -{" "}
+              {format(sliderTimeValue.end, "MM/dd/yyyy HH:mm:ss")}
             </h4>
             <h4>
               MAP Message Time:{" "}
-              {props.mapSpatTimes.mapTime == 0
-                ? "No Data"
-                : format(props.mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+              {mapSpatTimes.mapTime == 0 ? "No Data" : format(mapSpatTimes.mapTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
 
             <h4>
               SPAT Message Time:{" "}
-              {props.mapSpatTimes.spatTime == 0
-                ? "No Data"
-                : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
+              {mapSpatTimes.spatTime == 0 ? "No Data" : format(mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
-            <h4>
-              Activity Chart for {format(props.sliderTimeValue.start, "MM/dd/yyyy")}:
-            </h4>
+            <h4>Activity Chart for {format(sliderTimeValue.start, "MM/dd/yyyy")}:</h4>
 
             <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={reformattedTimelineData} barGap={0} barCategoryGap={0} onClick={(data) => {
-                if(data !== null && data.activePayload !== undefined && data.activePayload !== null){
-                  setEventTime(dayjs(data.activePayload[0].payload.minute));
-                }
-              }}>
-                <XAxis dataKey="minutesAfterMidnight" type="number" domain={[0,1440]} tick={<TimelineAxisTick />} ticks={timelineTicks}/>
-                <Bar dataKey="count" fill="#D14343" barSize={10} minPointSize={10}>
-                </Bar>
+              <BarChart
+                data={bsmEventsByMinute}
+                barGap={0}
+                barCategoryGap={0}
+                onClick={(data) => {
+                  if (data !== null && data.activePayload !== undefined && data.activePayload !== null) {
+                    setEventTime(dayjs(data.activePayload[0].payload.minute));
+                  }
+                }}
+              >
+                <XAxis
+                  dataKey="minutesAfterMidnight"
+                  type="number"
+                  domain={[0, 1440]}
+                  tick={<TimelineAxisTick />}
+                  ticks={timelineTicks}
+                />
+                <Bar dataKey="count" fill="#D14343" barSize={10} minPointSize={10}></Bar>
                 <Tooltip
                   cursor={<TimelineCursor />}
                   content={({ active, payload, label }) => (
-                    <TimelineTooltip active={active} payload={payload} label={label}/>
+                    <TimelineTooltip active={active} payload={payload} label={label} />
                   )}
                 />
               </BarChart>
             </ResponsiveContainer>
-            <Button
-              sx={{ m: 1 }}
-              variant="contained"
-              disabled={props.rawData?.map == undefined}
-              onClick={props.downloadAllData}
-            >
+            <Button sx={{ m: 1 }} variant="contained" onClick={() => dispatch(downloadMapData())}>
               Download All Message Data
             </Button>
             <h4>
@@ -586,42 +648,37 @@ function ControlPanel(props: ControlPanelProps) {
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Rotate Signal Head Icons With Map </h4>
               <Checkbox
-                checked={props.signalStateLayer.layout["icon-rotation-alignment"] == "map"}
+                checked={signalStateLayerStyle?.layout?.["icon-rotation-alignment"] == "map"}
                 onChange={(event) =>
-                  props.setSignalStateLayer({
-                    ...props.signalStateLayer,
-                    layout: {
-                      ...props.signalStateLayer.layout,
+                  dispatch(
+                    setSignalLayerLayout({
+                      ...signalStateLayerStyle.layout,
                       "icon-rotation-alignment": event.target.checked ? "map" : "viewport",
                       "icon-rotate": event.target.checked ? ["get", "orientation"] : 0,
-                    },
-                  })
+                    })
+                  )
                 }
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Lane IDs </h4>
               <Checkbox
-                checked={props.laneLabelsVisible}
-                onChange={(event) => {
-                  props.setLaneLabelsVisible(event.target.checked);
-                }}
+                checked={laneLabelsVisible}
+                onChange={(event) => dispatch(setLaneLabelsVisible(event.target.checked))}
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Signal Group IDs </h4>
               <Checkbox
-                checked={props.sigGroupLabelsVisible}
-                onChange={(event) => {
-                  props.setSigGroupLabelsVisible(event.target.checked);
-                }}
+                checked={sigGroupLabelsVisible}
+                onChange={(event) => dispatch(setSigGroupLabelsVisible(event.target.checked))}
               />
             </div>
             <div>
               <h4 style={{ float: "left", marginTop: "10px" }}>Show Popup on Hover </h4>
               <Checkbox
-                checked={props.showPopupOnHover}
-                onChange={(event) => props.setShowPopupOnHover(event.target.checked)}
+                checked={showPopupOnHover}
+                onChange={(event) => dispatch(setShowPopupOnHover(event.target.checked))}
               />
             </div>
             <div>
@@ -639,21 +696,19 @@ function ControlPanel(props: ControlPanelProps) {
           </div>
         </AccordionDetails>
       </Accordion>
-      <div style={{ display: 'flex', alignItems: 'center' , marginTop: '1rem'}}>
+      <div style={{ display: "flex", alignItems: "center", marginTop: "1rem" }}>
         <button
-          style={{ marginLeft: '1rem', border: 'none', background: 'none' }}
-          onClick={() => {
-            props.setPlaybackModeActive((prevValue) => !prevValue);
-          }}
+          style={{ marginLeft: "1rem", border: "none", background: "none" }}
+          onClick={() => dispatch(togglePlaybackModeActive())}
         >
-          {props.playbackModeActive ? <img src={pauseIcon.src} alt="Pause" /> : <img src={playIcon.src} alt="Play" />}
+          {playbackModeActive ? <img src={pauseIcon.src} alt="Pause" /> : <img src={playIcon.src} alt="Play" />}
         </button>
         <Slider
           sx={{ ml: 2, width: "calc(100% - 80px)" }}
-          value={props.sliderValue}
-          onChange={props.setSlider}
+          value={sliderValue}
+          onChange={(event: Event, value: number | number[], activeThumb: number) => dispatch(setSliderValue(value))}
           min={0}
-          max={props.max}
+          max={getTimeRange(queryParams.startDate, queryParams.endDate)}
           valueLabelDisplay="auto"
           disableSwap
         />

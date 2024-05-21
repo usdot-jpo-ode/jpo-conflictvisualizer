@@ -8,10 +8,12 @@ import { createEmotionCache } from "../utils/create-emotion-cache";
 import { registerChartJs } from "../utils/register-chart-js";
 import { theme } from "../theme";
 import React from "react";
-import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
 import "../theme/index.css";
+import { Provider } from "react-redux";
+import { wrapper } from "../store";
+import { AuthGuardKeycloak } from "../components/auth-guard-keycloak";
 
 registerChartJs();
 
@@ -21,25 +23,28 @@ const App = (props) => {
   const {
     Component,
     emotionCache = clientSideEmotionCache,
-    pageProps: { session, ...pageProps },
+    pageProps: { ...pageProps },
   } = props;
 
   const getLayout = Component.getLayout ?? ((page) => page);
+  const { store } = wrapper.useWrappedStore({});
 
   return (
-    <CacheProvider value={emotionCache}>
-      <Head>
-        <title>Material Kit Pro</title>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SessionProvider session={session}>{getLayout(<Component {...pageProps} />)}</SessionProvider>
-        </ThemeProvider>
-      </LocalizationProvider>
-      <Toaster />
-    </CacheProvider>
+    <Provider store={store}>
+      <CacheProvider value={emotionCache}>
+        <Head>
+          <title>Material Kit Pro</title>
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
+        </Head>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AuthGuardKeycloak content={getLayout(<Component {...pageProps} />)} />
+          </ThemeProvider>
+        </LocalizationProvider>
+        <Toaster />
+      </CacheProvider>
+    </Provider>
   );
 };
 

@@ -10,7 +10,8 @@ import { NotificationsTable } from "../components/notifications/notifications-ta
 import React, { useEffect, useState, useRef } from "react";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import AssessmentsApi from "../apis/assessments-api";
-import { useSession } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../slices/userSlice";
 
 const tabs = [
   {
@@ -67,6 +68,10 @@ const applyPagination = (parameters, page, rowsPerPage) =>
   parameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 const Page = () => {
+  const dispatch = useDispatch();
+
+  const authToken = useSelector(selectAuthToken);
+
   const queryRef = useRef<TextFieldProps>(null);
   const [notifications, setNotifications] = useState<SpatBroadcastRateNotification>([]);
   const [currentTab, setCurrentTab] = useState("all");
@@ -90,13 +95,12 @@ const Page = () => {
   const [laneDirectionOfTravelAssessment, setLaneDirectionOfTravelAssessment] = useState<
     LaneDirectionOfTravelAssessment | undefined
   >(undefined);
-  const { data: session } = useSession();
 
   const getAssessments = async () => {
-    if (intersectionId && session?.accessToken) {
+    if (intersectionId && authToken) {
       setStopLineStopAssessment(
         (await AssessmentsApi.getLatestAssessment(
-          session?.accessToken,
+          authToken,
           "signal_state_assessment",
           intersectionId,
           roadRegulatorId
@@ -104,7 +108,7 @@ const Page = () => {
       );
       setSignalStateEventAssessment(
         (await AssessmentsApi.getLatestAssessment(
-          session?.accessToken,
+          authToken,
           "signal_state_event_assessment",
           intersectionId,
           roadRegulatorId
@@ -112,7 +116,7 @@ const Page = () => {
       );
       setConnectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
-          session?.accessToken,
+          authToken,
           "connection_of_travel",
           intersectionId,
           roadRegulatorId
@@ -120,7 +124,7 @@ const Page = () => {
       );
       setLaneDirectionOfTravelAssessment(
         (await AssessmentsApi.getLatestAssessment(
-          session?.accessToken,
+          authToken,
           "lane_direction_of_travel",
           intersectionId,
           roadRegulatorId
@@ -129,7 +133,7 @@ const Page = () => {
     } else {
       console.error(
         "Did not attempt to get assessment data. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         intersectionId
       );
@@ -137,10 +141,10 @@ const Page = () => {
   };
 
   const updateNotifications = () => {
-    if (intersectionId && session?.accessToken) {
+    if (intersectionId && authToken) {
       setNotifications(
         NotificationApi.getActiveNotifications({
-          token: session?.accessToken,
+          token: authToken,
           intersectionId,
           roadRegulatorId,
         })
@@ -148,7 +152,7 @@ const Page = () => {
     } else {
       console.error(
         "Did not attempt to update notifications. Access token:",
-        session?.accessToken,
+        authToken,
         "Intersection ID:",
         intersectionId
       );
