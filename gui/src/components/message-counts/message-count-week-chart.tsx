@@ -62,6 +62,8 @@ useEffect(() => {
   }
 }, [intersectionId]);
 
+const emptyChartData: ChartData[] = [];
+
 const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   if (active && payload) {
     const obj = payload[0].payload;
@@ -93,6 +95,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 const maxCount = Math.max(...messageCounts.map(data => data.count));
 const tickCount = maxCount < 5 ? maxCount + 1 : undefined;
 
+const hasData = messageCounts.length > 0 && !messageCounts.every(({ count }) => count === 0);
+
 return (
   <LocalizationProvider dateAdapter={AdapterDateFns}>
     <Card sx={{ minWidth: '300px', overflow: "visible" }}>
@@ -105,35 +109,41 @@ return (
         sx={{ pb: 0 }}
       />         
       <CardContent sx={{ pt: 1}}>
-        <ResponsiveContainer height={250}>
-          <LineChart data={messageCounts} margin={{ top: 5, right: 5}}>
-            <XAxis
-              dataKey="date"
-              interval={0}
-              angle={-45}
-              height={50}
-              textAnchor="end"
-            />
-            <YAxis 
-              label={{ value: 'Message count', angle: -90, dx:-25 }}
-              tickCount={tickCount}
-              tickFormatter={(value) => {
-                if (value >= 1000000) {
-                  return `${value / 1000000}M`;
-                } else if (value >= 1000) {
-                  return `${value / 1000}K`;
-                } else {
-                  return value;
-                }
-              }}
-            />
-            <Tooltip content={CustomTooltip} />
-            <Line type="monotone" dataKey="count" stroke={barColor} />
-          </LineChart>
+        <ResponsiveContainer height={hasData ? 250 : 50}>
+          {hasData ? (
+            <LineChart data={messageCounts} margin={{ top: 5, right: 5}}>
+              <XAxis
+                dataKey="date"
+                interval={0}
+                angle={-45}
+                height={50}
+                textAnchor="end"
+              />
+              <YAxis 
+                label={{ value: 'Message count', angle: -90, dx:-25 }}
+                tickCount={tickCount}
+                tickFormatter={(value) => {
+                  if (value >= 1000000) {
+                    return `${value / 1000000}M`;
+                  } else if (value >= 1000) {
+                    return `${value / 1000}K`;
+                  } else {
+                    return value;
+                  }
+                }}
+              />
+              <Tooltip content={CustomTooltip} />
+              <Line type="monotone" dataKey="count" stroke={barColor} />
+            </LineChart>
+          ) : (
+            <Typography color="textPrimary" variant="h5" key={""}>
+              No Data
+            </Typography>
+          )}
         </ResponsiveContainer>
-        </CardContent>
+      </CardContent>
       <CardContent sx={{ pt: 0, mt: -4, height: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        {disclaimer && (
+        {disclaimer && hasData && (
           <Typography variant="caption" color="textSecondary">
             *{disclaimer}
           </Typography>
