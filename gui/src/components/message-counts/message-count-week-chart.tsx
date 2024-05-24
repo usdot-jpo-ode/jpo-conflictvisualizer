@@ -5,7 +5,7 @@ import {
   CardContent,
 } from "@mui/material";
 import React, { useEffect, useState} from "react";
-import EventsApi from '../../apis/events-api';
+import MessageMonitorApi from '../../apis/mm-api';
 import {LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
@@ -38,7 +38,7 @@ useEffect(() => {
       dayEnd.setDate(dayEnd.getDate() - (6-i));
       dayEnd.setHours(23, 59, 59, 0);
 
-      const messageCountPromise = EventsApi.getMessageCount(
+      const messageCountPromise = MessageMonitorApi.getMessageCount(
         accessToken,
         messageType,
         intersectionId,

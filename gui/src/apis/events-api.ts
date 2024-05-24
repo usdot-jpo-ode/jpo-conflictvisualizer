@@ -103,28 +103,6 @@ class EventsApi {
     });
     return response ?? ([] as MessageMonitor.MinuteCount[]);
   }
-
-  async getMessageCount(
-    token: string,
-    messageType: string,
-    intersectionId: number,
-    startTime: Date,
-    endTime: Date
-  ): Promise<number> {
-    const queryParams = {
-      intersection_id: intersectionId.toString(),
-      start_time_utc_millis: startTime.getTime().toString(),
-      end_time_utc_millis: endTime.getTime().toString(),
-      test: "false",
-    };
-    const response = await authApiHelper.invokeApi({
-      path: `/${messageType}/count`,
-      token: token,
-      queryParams: queryParams,
-      failureMessage: `Failed to retrieve message count for type ${messageType}`,
-    });
-    return response;
-  }
 }
 
 export default new EventsApi();
