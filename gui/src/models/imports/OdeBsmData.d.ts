@@ -4,14 +4,14 @@ type OdeBsmData = {
 };
 
 type OdeMsgMetadata = {
-  payloadType: String;
+  payloadType: string;
   serialId: SerialId;
-  odeReceivedAt: String;
+  odeReceivedAt: string;
   schemaVersion: number;
   maxDurationTime: number;
-  odePacketID: String;
-  odeTimStartDateTime: String;
-  recordGeneratedAt: String;
+  odePacketID: string;
+  odeTimStartDateTime: string;
+  recordGeneratedAt: string;
   recordGeneratedBy: GeneratedBy;
   sanitized: boolean;
 };

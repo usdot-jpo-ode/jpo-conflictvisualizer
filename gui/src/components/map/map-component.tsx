@@ -24,7 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -176,9 +176,37 @@ const markerLayer: LayerProps = {
   },
 };
 
+const getTimestamp = (dt: any): number => {
+  try {
+    const dtFromString = Date.parse(dt as any as string);
+    if (isNaN(dtFromString)) {
+      if (dt > 1000000000000) {
+        return dt; // already in milliseconds
+      } else {
+        return dt * 1000;
+      }
+    } else {
+      return dtFromString;
+    }
+  } catch (e) {
+    console.error("Failed to parse timestamp from value: " + dt, e);
+    return 0;
+  }
+};
+
 const generateQueryParams = (
-  source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+  source:
+    | MessageMonitor.Notification
+    | MessageMonitor.Event
+    | Assessment
+    | timestamp
+    | {
+        map: ProcessedMap[];
+        spat: ProcessedSpat[];
+        bsm: OdeBsmData[];
+      }
+    | undefined,
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined
 ) => {
   const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
@@ -216,6 +244,39 @@ const generateQueryParams = (
         eventDate: new Date(ts),
         vehicleId: undefined,
       };
+    case "exact":
+      let startDate = undefined as number | undefined;
+      let endDate = undefined as number | undefined;
+      for (const map of (source as { map: ProcessedMap[] }).map) {
+        if (!startDate || Date.parse(map.properties.odeReceivedAt) < startDate) {
+          startDate = Date.parse(map.properties.odeReceivedAt);
+        }
+        if (!endDate || Date.parse(map.properties.odeReceivedAt) > endDate) {
+          endDate = Date.parse(map.properties.odeReceivedAt);
+        }
+      }
+      for (const spat of (source as { spat: ProcessedSpat[] }).spat) {
+        if (!startDate || spat.utcTimeStamp < startDate) {
+          startDate = spat.utcTimeStamp;
+        }
+        if (!endDate || spat.utcTimeStamp > endDate) {
+          endDate = spat.utcTimeStamp;
+        }
+      }
+      for (const bsm of (source as { bsm: OdeBsmData[] }).bsm) {
+        if (!startDate || Date.parse(bsm.metadata.odeReceivedAt) < startDate) {
+          startDate = Date.parse(bsm.metadata.odeReceivedAt);
+        }
+        if (!endDate || Date.parse(bsm.metadata.odeReceivedAt) > endDate) {
+          endDate = Date.parse(bsm.metadata.odeReceivedAt);
+        }
+      }
+      return {
+        startDate: new Date(startDate ?? Date.now()),
+        endDate: new Date(endDate ?? Date.now() + 1),
+        eventDate: new Date((startDate ?? Date.now(), endDate ?? Date.now() + 1) / 2),
+        vehicleId: undefined,
+      };
     default:
       return {
         startDate: new Date(Date.now() - startOffset),
@@ -231,8 +292,18 @@ type timestamp = {
 };
 
 type MyProps = {
-  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+  sourceData:
+    | MessageMonitor.Notification
+    | MessageMonitor.Event
+    | Assessment
+    | timestamp
+    | {
+        map: ProcessedMap[];
+        spat: ProcessedSpat[];
+        bsm: OdeBsmData[];
+      }
+    | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined;
   intersectionId: number | undefined;
   roadRegulatorId: number | undefined;
   loadOnNull?: boolean;
@@ -768,7 +839,11 @@ const MapTab = (props: MyProps) => {
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
-    if (importedMessageData == undefined) {
+    if (props.sourceDataType == "exact") {
+      rawMap = (props.sourceData as { map: ProcessedMap[] }).map;
+      rawSpat = (props.sourceData as { spat: ProcessedSpat[] }).spat;
+      rawBsm = (props.sourceData as { bsm: OdeBsmData[] }).bsm;
+    } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
@@ -917,7 +992,7 @@ const MapTab = (props: MyProps) => {
     currentSpatData: ProcessedSpat[],
     currentBsmData: BsmFeatureCollection
   ) => {
-    if (currentMapData.length == 0) {
+    if (currentMapData.length == 0 && props.sourceDataType != "exact") {
       console.error("Did not attempt to render map, no map messages available:", currentMapData);
       return;
     }
@@ -989,11 +1064,11 @@ const MapTab = (props: MyProps) => {
       };
     }
     return () => {};
-  }, [playbackModeActive]);  
+  }, [playbackModeActive]);
 
   useEffect(() => {
-  setBsmByMinuteUpdated(true);
-}, [bsmEventsByMinute]);
+    setBsmByMinuteUpdated(true);
+  }, [bsmEventsByMinute]);
 
   useEffect(() => {
     const endTime = getTimeRange(queryParams.startDate, queryParams.endDate);
