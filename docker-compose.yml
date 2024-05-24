@@ -1,59 +1,59 @@
 version: "3"
 services:
-  conflictvisualizer-gui:
-    build:
-      context: gui
-      dockerfile: Dockerfile
-      args:
-        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-        NEXTAUTH_URL: ${NEXTAUTH_URL}
-        KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-        KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-        KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-        MAPBOX_TOKEN: ${MAPBOX_TOKEN}
-        MAPBOX_STYLE_URL: ${MAPBOX_STYLE_URL}
-        GUI_SERVER_URL: ${GUI_SERVER_URL}
-        AUTH_SERVER_URL: ${AUTH_SERVER_URL}
-        API_SERVER_URL: ${API_SERVER_URL}
-        API_WS_URL: ${API_WS_URL}
-    restart: always
-    ports:
-      - "3000:3000"
-    image: jpo-conflictvisualizer-gui:latest
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
+  # conflictvisualizer-gui:
+  #   build:
+  #     context: gui
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+  #       NEXTAUTH_URL: ${NEXTAUTH_URL}
+  #       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+  #       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+  #       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+  #       MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+  #       MAPBOX_STYLE_URL: ${MAPBOX_STYLE_URL}
+  #       GUI_SERVER_URL: ${GUI_SERVER_URL}
+  #       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+  #       API_SERVER_URL: ${API_SERVER_URL}
+  #       API_WS_URL: ${API_WS_URL}
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   image: jpo-conflictvisualizer-gui:latest
+  #   logging:
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "5"
 
-  keycloak:
-    build:
-      context: keycloak
-      dockerfile: Dockerfile
-    container_name: jpo-conflictvisualizer-keycloak
-    restart: always
-    environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      GUI_SERVER_URL: ${GUI_SERVER_URL}
-      API_SERVER_URL: ${API_SERVER_URL}
-    command:
-      - start-dev
-      - --log-level=INFO
-      - --import-realm
-      - --proxy edge
-    volumes:
-      - keycloak:/opt/keycloak/data/
-      - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
-    ports:
-      - "8084:8080"
+  # keycloak:
+  #   build:
+  #     context: keycloak
+  #     dockerfile: Dockerfile
+  #   container_name: jpo-conflictvisualizer-keycloak
+  #   restart: always
+  #   environment:
+  #     KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+  #     KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+  #     KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+  #     GUI_SERVER_URL: ${GUI_SERVER_URL}
+  #     API_SERVER_URL: ${API_SERVER_URL}
+  #   command:
+  #     - start-dev
+  #     - --log-level=INFO
+  #     - --import-realm
+  #     - --proxy edge
+  #   volumes:
+  #     - keycloak:/opt/keycloak/data/
+  #     - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
+  #   ports:
+  #     - "8084:8080"
 
   conflictvisualizer-api:
     build:
       context: api
       dockerfile: Dockerfile
     ports:
-      - "8081:8081"
+      - "8089:8081"
     image: jpo-conflictvisualizer-api:latest
     restart: always
     environment:
