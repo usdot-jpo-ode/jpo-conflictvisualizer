@@ -248,11 +248,11 @@ const generateQueryParams = (
       let startDate = undefined as number | undefined;
       let endDate = undefined as number | undefined;
       for (const map of (source as { map: ProcessedMap[] }).map) {
-        if (!startDate || Date.parse(map.properties.odeReceivedAt) < startDate) {
-          startDate = Date.parse(map.properties.odeReceivedAt);
+        if (!startDate || getTimestamp(map.properties.odeReceivedAt) < startDate) {
+          startDate = getTimestamp(map.properties.odeReceivedAt);
         }
-        if (!endDate || Date.parse(map.properties.odeReceivedAt) > endDate) {
-          endDate = Date.parse(map.properties.odeReceivedAt);
+        if (!endDate || getTimestamp(map.properties.odeReceivedAt) > endDate) {
+          endDate = getTimestamp(map.properties.odeReceivedAt);
         }
       }
       for (const spat of (source as { spat: ProcessedSpat[] }).spat) {
@@ -264,11 +264,11 @@ const generateQueryParams = (
         }
       }
       for (const bsm of (source as { bsm: OdeBsmData[] }).bsm) {
-        if (!startDate || Date.parse(bsm.metadata.odeReceivedAt) < startDate) {
-          startDate = Date.parse(bsm.metadata.odeReceivedAt);
+        if (!startDate || getTimestamp(bsm.metadata.odeReceivedAt) < startDate) {
+          startDate = getTimestamp(bsm.metadata.odeReceivedAt);
         }
-        if (!endDate || Date.parse(bsm.metadata.odeReceivedAt) > endDate) {
-          endDate = Date.parse(bsm.metadata.odeReceivedAt);
+        if (!endDate || getTimestamp(bsm.metadata.odeReceivedAt) > endDate) {
+          endDate = getTimestamp(bsm.metadata.odeReceivedAt);
         }
       }
       return {
@@ -842,9 +842,24 @@ const MapTab = (props: MyProps) => {
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
     if (props.sourceDataType == "exact") {
-      rawMap = (props.sourceData as { map: ProcessedMap[] }).map;
-      rawSpat = (props.sourceData as { spat: ProcessedSpat[] }).spat;
-      rawBsm = (props.sourceData as { bsm: OdeBsmData[] }).bsm;
+      rawMap = (props.sourceData as { map: ProcessedMap[] }).map.map((map) => ({
+        ...map,
+        properties: {
+          ...map.properties,
+          odeReceivedAt: getTimestamp(map.properties.odeReceivedAt),
+        },
+      }));
+      rawSpat = (props.sourceData as { spat: ProcessedSpat[] }).spat.map((spat) => ({
+        ...spat,
+        utcTimeStamp: getTimestamp(spat.utcTimeStamp),
+      }));
+      rawBsm = (props.sourceData as { bsm: OdeBsmData[] }).bsm.map((bsm) => ({
+        ...bsm,
+        metadata: {
+          ...bsm.metadata,
+          odeReceivedAt: getTimestamp(bsm.metadata.odeReceivedAt),
+        },
+      }));
     } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({

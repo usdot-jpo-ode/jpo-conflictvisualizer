@@ -6,7 +6,7 @@ type OdeBsmData = {
 type OdeMsgMetadata = {
   payloadType: string;
   serialId: SerialId;
-  odeReceivedAt: string;
+  odeReceivedAt: metadata;
   schemaVersion: number;
   maxDurationTime: number;
   odePacketID: string;
