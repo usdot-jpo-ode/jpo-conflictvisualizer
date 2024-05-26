@@ -10,13 +10,16 @@ import { DecoderTables } from "../components/decoder/decoder-tables";
 import { v4 as uuidv4 } from "uuid";
 import { DecoderMapDialog } from "../components/decoder/decoder-map-dialog";
 import { Plus as PlusIcon } from "../icons/plus";
+import MapIcon from "@mui/icons-material/Map";
 
 const DecoderPage = () => {
-  const { intersectionId } = useDashboardContext();
   const { data: session } = useSession();
 
   const [openMapDialog, setOpenMapDialog] = useState(false);
   const [data, setData] = useState({} as { [id: string]: DecoderDataEntry });
+  const [selectedMapMessage, setSelectedMapMessage] = useState(
+    undefined as undefined | { id: string; intersectionId: number; rsuIp: string }
+  );
 
   console.log("Data", data);
 
@@ -93,20 +96,56 @@ const DecoderPage = () => {
   };
 
   const onItemDeleted = (id: string) => {
-    setData((prevData) => {
-      delete prevData[id];
-      return { ...prevData };
-    });
+    if (data[id]?.text != "") {
+      setData((prevData) => {
+        delete prevData[id];
+        return { ...prevData };
+      });
+    }
   };
 
   const onItemSelected = (id: string) => {
+    const intersectionId = data[id]?.decodedResponse?.processedMap?.properties?.intersectionId;
+    const rsuIp = data[id]?.decodedResponse?.processedMap?.properties?.originIp;
+    if (intersectionId) {
+      setSelectedMapMessage({ id, intersectionId, rsuIp: rsuIp! });
+    }
+  };
+
+  const onFileUploaded = (contents: string[], type: DECODER_MESSAGE_TYPE) => {
     setData((prevData) => {
+      const textToIds: { [text: string]: string } = {};
+      contents.forEach((text) =>
+        submitDecoderRequest(text, type)?.then((response) => {
+          const id = uuidv4();
+          textToIds[text] = id;
+          setData((prevData) => {
+            return {
+              ...prevData,
+              [id]: {
+                ...prevData[text],
+                decodedResponse: response,
+                status: text == "" ? "NOT_STARTED" : response == undefined ? "ERROR" : "COMPLETED",
+              },
+            };
+          });
+        })
+      );
+      let newEntries = {};
+      contents.forEach((text) => {
+        newEntries[textToIds[text]] = {
+          id: textToIds[text],
+          type: type,
+          status: "IN_PROGRESS",
+          text: text,
+          selected: false,
+          isGreyedOut: false,
+          decodedResponse: undefined,
+        };
+      });
       return {
         ...prevData,
-        [id]: {
-          ...prevData[id],
-          selected: !prevData[id].selected,
-        },
+        ...newEntries,
       };
     });
   };
@@ -147,32 +186,29 @@ const DecoderPage = () => {
             />
           </Box>
         </Container> */}
-        <Box
-          sx={{
-            m: -1,
-            mt: 3,
-            mb: 3,
-          }}
-        >
+        <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
           <Button
             color="primary"
             variant="contained"
             onClick={() => {
               setOpenMapDialog(true);
             }}
-            startIcon={<PlusIcon fontSize="small" />}
+            startIcon={<MapIcon fontSize="medium" />}
             sx={{ m: 1 }}
           >
-            Refresh
+            Display Selected Data On Map
           </Button>
-        </Box>
+        </Container>
         <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
           <DecoderTables
             contents={Object.values(data)}
-            selectedIntersectionId={intersectionId}
+            selectedIntersectionId={selectedMapMessage?.intersectionId}
+            selectedMapMessageId={selectedMapMessage?.id}
+            selectedRsuIp={selectedMapMessage?.rsuIp}
             onItemSelected={onItemSelected}
             onTextChanged={onTextChanged}
             onItemDeleted={onItemDeleted}
+            onFileUploaded={onFileUploaded}
           />
         </Container>
       </Box>

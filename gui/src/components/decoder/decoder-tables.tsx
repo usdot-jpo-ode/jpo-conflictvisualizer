@@ -1,18 +1,30 @@
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { Box, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Card, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import React from "react";
 import { DecoderEntry } from "./decoder-entry";
+import DownloadIcon from "@mui/icons-material/Download";
 
 type DecoderTableProps = {
   contents: DecoderDataEntry[];
-  selectedIntersectionId: number;
+  selectedIntersectionId: number | undefined;
+  selectedMapMessageId: string | undefined;
+  selectedRsuIp: string | undefined;
   onItemSelected: (id: string) => void;
   onTextChanged: (id: string, messageText: string, type: DECODER_MESSAGE_TYPE) => void;
   onItemDeleted: (id: string) => void;
+  onFileUploaded: (contents: string[], type: DECODER_MESSAGE_TYPE) => void;
 };
 
 export const DecoderTables = (props: DecoderTableProps) => {
-  const { contents, selectedIntersectionId, onItemSelected, onTextChanged, onItemDeleted } = props;
+  const {
+    contents,
+    selectedIntersectionId,
+    selectedMapMessageId,
+    selectedRsuIp,
+    onItemSelected,
+    onTextChanged,
+    onItemDeleted,
+  } = props;
 
   const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
     if (!decodedResponse) {
@@ -27,25 +39,80 @@ export const DecoderTables = (props: DecoderTableProps) => {
         const spatPayload = decodedResponse.processedSpat;
         return spatPayload?.intersectionId;
       case "BSM":
-        return undefined;
+        const bsmPayload = decodedResponse.bsm;
+        return bsmPayload?.metadata.originIp;
     }
   };
 
   const isGreyedOut = (intersectionId: number | undefined) => {
-    return (
-      intersectionId !== undefined && selectedIntersectionId !== undefined && intersectionId !== selectedIntersectionId
-    );
+    return selectedIntersectionId === undefined || intersectionId !== selectedIntersectionId;
+  };
+
+  const isGreyedOutIp = (rsuIp: string | undefined) => {
+    return (selectedRsuIp === undefined || rsuIp !== selectedRsuIp) && rsuIp != "";
+  };
+
+  const dataFileUploaded = (event, type: DECODER_MESSAGE_TYPE) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          // Split the file content by new lines and remove empty strings
+          const contents = evt.target?.result as string;
+          const lines = contents.split("\n").filter((line) => line.trim() !== "");
+          props.onFileUploaded(lines, type);
+          // Now lines is an array of strings from the file
+        } catch (e) {
+          console.error("Error reading uploaded decoder file", e);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleDownloadClick = (type: DECODER_MESSAGE_TYPE) => {
+    let files = contents.filter((v) => v.type === type && v.decodedResponse != undefined).map((v) => v.decodedResponse);
+    if (files.length > 0) {
+      downloadJsonFile(files, `${type}_decoded_${new Date().toISOString()}.json`);
+    }
+  };
+
+  const downloadJsonFile = (contents: any, name: string) => {
+    const element = document.createElement("a");
+    const file = new Blob([JSON.stringify(contents)], {
+      type: "text/plain",
+    });
+    element.href = URL.createObjectURL(file);
+    element.download = name;
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
   };
 
   return (
     <Card>
       <PerfectScrollbar>
-        <Box display="flex" justifyContent="space-between" sx={{ minWidth: 1050, overflowY: "scroll" }}>
+        <Box display="flex" justifyContent="space-between" sx={{ minWidth: 1050 }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>MAP Messages</TableCell>
+                  <TableCell style={{ position: "relative" }}>
+                    MAP Messages
+                    <input
+                      type="file"
+                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      onChange={(event) => dataFileUploaded(event, "MAP")}
+                      title="Your custom description here"
+                    />
+                    <IconButton
+                      aria-label="download"
+                      onClick={() => handleDownloadClick("MAP")}
+                      style={{ position: "absolute", right: 0, top: 5 }}
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -58,9 +125,9 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         status={entry.status}
                         type={entry.type}
                         text={entry.text}
-                        isGreyedOut={isGreyedOut(getIntersectionId(entry.decodedResponse))}
+                        isGreyedOut={entry.id !== selectedMapMessageId}
                         decodedResponse={entry.decodedResponse}
-                        selected={entry.selected}
+                        selected={entry.id == selectedMapMessageId}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "MAP")}
                         onDeleted={onItemDeleted}
@@ -75,7 +142,22 @@ export const DecoderTables = (props: DecoderTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>SPAT Messages</TableCell>
+                  <TableCell style={{ position: "relative" }}>
+                    SPAT Messages
+                    <input
+                      type="file"
+                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      onChange={(event) => dataFileUploaded(event, "SPAT")}
+                      title="Your custom description here"
+                    />
+                    <IconButton
+                      aria-label="download"
+                      onClick={() => handleDownloadClick("SPAT")}
+                      style={{ position: "absolute", right: 0, top: 5 }}
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -90,7 +172,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         text={entry.text}
                         isGreyedOut={isGreyedOut(getIntersectionId(entry.decodedResponse))}
                         decodedResponse={entry.decodedResponse}
-                        selected={entry.selected}
+                        selected={false}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "SPAT")}
                         onDeleted={onItemDeleted}
@@ -105,7 +187,22 @@ export const DecoderTables = (props: DecoderTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>BSM Messages</TableCell>
+                  <TableCell style={{ position: "relative" }}>
+                    BSM Messages
+                    <input
+                      type="file"
+                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      onChange={(event) => dataFileUploaded(event, "BSM")}
+                      title="Your custom description here"
+                    />
+                    <IconButton
+                      aria-label="download"
+                      onClick={() => handleDownloadClick("BSM")}
+                      style={{ position: "absolute", right: 0, top: 5 }}
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -118,9 +215,9 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         status={entry.status}
                         type={entry.type}
                         text={entry.text}
-                        isGreyedOut={isGreyedOut(getIntersectionId(entry.decodedResponse))}
+                        isGreyedOut={isGreyedOutIp(getIntersectionId(entry.decodedResponse))}
                         decodedResponse={entry.decodedResponse}
-                        selected={entry.selected}
+                        selected={false}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "BSM")}
                         onDeleted={onItemDeleted}

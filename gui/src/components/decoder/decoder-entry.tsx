@@ -19,6 +19,7 @@ import {
 import React from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DownloadIcon from "@mui/icons-material/Download";
 import CircularProgress from "@mui/material/CircularProgress";
 
 // type DecoderApiResponseGeneric = {
@@ -36,7 +37,26 @@ type DecoderEntryProps = {
 };
 
 export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
-  const { id, status, selected, text, isGreyedOut, decodedResponse, onSelected, onTextChanged, onDeleted } = props;
+  const { id, status, selected, text, type, isGreyedOut, decodedResponse, onSelected, onTextChanged, onDeleted } =
+    props;
+
+  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
+    if (!decodedResponse) {
+      return undefined;
+    }
+
+    switch (decodedResponse.type) {
+      case "MAP":
+        const mapPayload = decodedResponse.processedMap;
+        return mapPayload?.properties?.intersectionId;
+      case "SPAT":
+        const spatPayload = decodedResponse.processedSpat;
+        return spatPayload?.intersectionId;
+      case "BSM":
+        const bsmPayload = decodedResponse.bsm;
+        return bsmPayload?.metadata.originIp;
+    }
+  };
 
   const handleCheckboxChange = () => {
     onSelected(id);
@@ -50,18 +70,48 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     onDeleted(id);
   };
 
-  const getCellColor = () => {
-    if (isGreyedOut) {
-      return "lightgray";
+  const handleDownloadClick = () => {
+    let contents = "{}";
+    switch (type) {
+      case "MAP":
+        contents = JSON.stringify(decodedResponse?.processedMap ?? {});
+        break;
+      case "SPAT":
+        contents = JSON.stringify(decodedResponse?.processedSpat ?? {});
+        break;
+      case "BSM":
+        contents = JSON.stringify(decodedResponse?.bsm ?? {});
+        break;
     }
+    if (contents !== "{}") {
+      const key = getIntersectionId(decodedResponse);
+      downloadJsonFile(contents, `${type}_${key}_decoded_${new Date().toISOString()}.json`);
+    }
+  };
 
+  const downloadJsonFile = (contents: any, name: string) => {
+    const element = document.createElement("a");
+    const file = new Blob([JSON.stringify(contents)], {
+      type: "text/plain",
+    });
+    element.href = URL.createObjectURL(file);
+    element.download = name;
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+  };
+
+  const getCellColor = () => {
     switch (status) {
       case "NOT_STARTED":
         return "white";
       case "IN_PROGRESS":
         return "yellow";
       case "COMPLETED":
-        return "green";
+        if (isGreyedOut) {
+          return "#566454";
+        } else {
+          return "#448b3b";
+        }
       case "ERROR":
         return "red";
       default:
@@ -72,14 +122,21 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
   return (
     <TableRow>
       <TableCell style={{ backgroundColor: getCellColor() }}>
-        <Checkbox checked={selected} onChange={handleCheckboxChange} />
-        <TextField value={text} placeholder="Paste data here" onChange={handleTextChange} />
+        {type == "MAP" && <Checkbox checked={selected} onChange={handleCheckboxChange} />}
+        <TextField value={text} placeholder="Paste data here" onChange={handleTextChange} sx={{ width: 160 }} />
         <IconButton aria-label="delete" onClick={handleDeleteClick}>
           <DeleteIcon />
         </IconButton>
+        <IconButton aria-label="download" onClick={handleDownloadClick}>
+          <DownloadIcon />
+        </IconButton>
         {status === "IN_PROGRESS" && <CircularProgress />}
         <Box>
-          <TextField value={decodedResponse?.decodeErrors} InputProps={{ readOnly: true }} fullWidth />
+          <TextField
+            value={"Errors: " + decodedResponse?.decodeErrors == "" ? "None" : decodedResponse?.decodeErrors ?? "None"}
+            InputProps={{ readOnly: true }}
+            fullWidth
+          />
         </Box>
       </TableCell>
     </TableRow>
