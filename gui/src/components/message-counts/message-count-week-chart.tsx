@@ -3,6 +3,7 @@ import {
   Typography,
   CardHeader,
   CardContent,
+  Box,
 } from "@mui/material";
 import React, { useEffect, useState} from "react";
 import MessageMonitorApi from '../../apis/mm-api';
@@ -10,6 +11,7 @@ import {LocalizationProvider } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
+import CircularProgress from '@mui/material/CircularProgress';
 
 export const MessageCountWeekChart = (props: {
   accessToken: string | undefined;
@@ -24,10 +26,12 @@ export const MessageCountWeekChart = (props: {
   type ChartData = { date: string; count: number; dayOfWeek: string };
 
   const [messageCounts, setMessageCounts] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
   let promises: Promise<{ date: string; count: number; dayOfWeek: string; }>[] = [];
 
 useEffect(() => {
   if (accessToken) {
+    setLoading(true);
     const weekCounts: ChartData[] = [];
 
     for (let i = 0; i < 7; i++) {
@@ -60,6 +64,7 @@ useEffect(() => {
     Promise.all(promises)
   .then((weekCounts) => {
     setMessageCounts(weekCounts);
+    setLoading(false);
   })
   .catch((error) => console.error(error));
 
@@ -113,8 +118,17 @@ return (
         sx={{ pb: 0 }}
       />         
       <CardContent sx={{ pt: 1}}>
-        <ResponsiveContainer height={hasData ? 250 : 50}>
-          {hasData ? (
+        <ResponsiveContainer height={loading ? 250 : (hasData ? 250 : 50)}>
+          {loading ? (
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+            >
+              <CircularProgress />
+            </Box>
+          ) : hasData ? (
             <LineChart data={messageCounts} margin={{ top: 5, right: 5}}>
               <XAxis
                 dataKey="date"
