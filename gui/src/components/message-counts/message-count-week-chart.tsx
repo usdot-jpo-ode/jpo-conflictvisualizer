@@ -71,8 +71,6 @@ useEffect(() => {
   }
 }, [intersectionId]);
 
-const emptyChartData: ChartData[] = [];
-
 const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   if (active && payload) {
     const obj = payload[0].payload;

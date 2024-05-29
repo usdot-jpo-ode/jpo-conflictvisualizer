@@ -120,7 +120,7 @@ const hasInvalidEvents = data?.some(item => item.eventCountInvalid > 0);
                   <Legend
                     wrapperStyle={{
                       paddingTop: "10px",
-                      height: "50px",
+                      height: hasValidEvents && hasInvalidEvents && (data?.length ?? 5) <= 4 ? "90px" : "50px",
                     }}
                     payload={[
                       ...(hasValidEvents ? [{
