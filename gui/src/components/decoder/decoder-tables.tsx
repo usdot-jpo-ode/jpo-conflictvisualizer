@@ -78,9 +78,9 @@ export const DecoderTables = (props: DecoderTableProps) => {
     }
   };
 
-  const downloadJsonFile = (contents: any, name: string) => {
+  const downloadJsonFile = (contents: any, name: string, alreadyStringified = false) => {
     const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(contents)], {
+    const file = new Blob([alreadyStringified ? contents : JSON.stringify(contents)], {
       type: "text/plain",
     });
     element.href = URL.createObjectURL(file);
@@ -128,6 +128,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         isGreyedOut={entry.id !== selectedMapMessageId}
                         decodedResponse={entry.decodedResponse}
                         selected={entry.id == selectedMapMessageId}
+                        timestamp={entry.timestamp}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "MAP")}
                         onDeleted={onItemDeleted}
@@ -173,6 +174,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         isGreyedOut={isGreyedOut(getIntersectionId(entry.decodedResponse))}
                         decodedResponse={entry.decodedResponse}
                         selected={false}
+                        timestamp={entry.timestamp}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "SPAT")}
                         onDeleted={onItemDeleted}
@@ -218,6 +220,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         isGreyedOut={isGreyedOutIp(getIntersectionId(entry.decodedResponse))}
                         decodedResponse={entry.decodedResponse}
                         selected={false}
+                        timestamp={entry.timestamp}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "BSM")}
                         onDeleted={onItemDeleted}

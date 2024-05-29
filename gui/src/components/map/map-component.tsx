@@ -176,7 +176,7 @@ const markerLayer: LayerProps = {
   },
 };
 
-const getTimestamp = (dt: any): number => {
+export const getTimestamp = (dt: any): number => {
   try {
     const dtFromString = Date.parse(dt as any as string);
     if (isNaN(dtFromString)) {
@@ -247,6 +247,7 @@ const generateQueryParams = (
     case "exact":
       let startDate = undefined as number | undefined;
       let endDate = undefined as number | undefined;
+
       for (const map of (source as { map: ProcessedMap[] }).map) {
         if (!startDate || getTimestamp(map.properties.odeReceivedAt) < startDate) {
           startDate = getTimestamp(map.properties.odeReceivedAt);
@@ -256,11 +257,11 @@ const generateQueryParams = (
         }
       }
       for (const spat of (source as { spat: ProcessedSpat[] }).spat) {
-        if (!startDate || spat.utcTimeStamp < startDate) {
-          startDate = spat.utcTimeStamp;
+        if (!startDate || getTimestamp(spat.utcTimeStamp) < startDate) {
+          startDate = getTimestamp(spat.utcTimeStamp);
         }
-        if (!endDate || spat.utcTimeStamp > endDate) {
-          endDate = spat.utcTimeStamp;
+        if (!endDate || getTimestamp(spat.utcTimeStamp) > endDate) {
+          endDate = getTimestamp(spat.utcTimeStamp);
         }
       }
       for (const bsm of (source as { bsm: OdeBsmData[] }).bsm) {
@@ -274,7 +275,7 @@ const generateQueryParams = (
       return {
         startDate: new Date(startDate ?? Date.now()),
         endDate: new Date(endDate ?? Date.now() + 1),
-        eventDate: new Date((startDate ?? Date.now(), endDate ?? Date.now() + 1) / 2),
+        eventDate: new Date((startDate ?? Date.now()) / 2 + (endDate ?? Date.now() + 1) / 2),
         vehicleId: undefined,
       };
     default:
@@ -961,7 +962,7 @@ const MapTab = (props: MyProps) => {
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
@@ -977,7 +978,7 @@ const MapTab = (props: MyProps) => {
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     // ######################### BSMs #########################
-    if (!importedMessageData) {
+    if (!importedMessageData && props.sourceDataType != "exact") {
       const rawBsmPromise = MessageMonitorApi.getBsmMessages({
         token: session?.accessToken,
         vehicleId: queryParams.vehicleId,
@@ -1020,7 +1021,7 @@ const MapTab = (props: MyProps) => {
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {

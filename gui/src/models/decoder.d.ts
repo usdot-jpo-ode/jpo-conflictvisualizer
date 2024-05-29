@@ -32,6 +32,7 @@ type DecoderDataEntry = {
   status: DECODER_PROGRESS_TYPE;
   selected: boolean;
   isGreyedOut: boolean;
+  timestamp?: number | undefined;
   text: string;
   decodedResponse: DecoderApiResponseGeneric | undefined;
 };

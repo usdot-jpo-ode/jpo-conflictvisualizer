@@ -21,6 +21,7 @@ import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import CircularProgress from "@mui/material/CircularProgress";
+import { getTimestamp } from "../map/map-component";
 
 // type DecoderApiResponseGeneric = {
 //   type: DECODER_MESSAGE_TYPE;
@@ -37,8 +38,19 @@ type DecoderEntryProps = {
 };
 
 export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
-  const { id, status, selected, text, type, isGreyedOut, decodedResponse, onSelected, onTextChanged, onDeleted } =
-    props;
+  const {
+    id,
+    status,
+    selected,
+    text,
+    type,
+    isGreyedOut,
+    decodedResponse,
+    timestamp,
+    onSelected,
+    onTextChanged,
+    onDeleted,
+  } = props;
 
   const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
     if (!decodedResponse) {
@@ -108,7 +120,7 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
         return "yellow";
       case "COMPLETED":
         if (isGreyedOut) {
-          return "#566454";
+          return "#51634e";
         } else {
           return "#448b3b";
         }
@@ -122,7 +134,9 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
   return (
     <TableRow>
       <TableCell style={{ backgroundColor: getCellColor() }}>
-        {type == "MAP" && <Checkbox checked={selected} onChange={handleCheckboxChange} />}
+        {type == "MAP" && text != "" && <Checkbox checked={selected} onChange={handleCheckboxChange} />}
+        {timestamp && <Typography variant="caption">{format(new Date(timestamp), "yyyy-MM-dd HH:mm:ss")}</Typography>}
+        <br></br>
         <TextField value={text} placeholder="Paste data here" onChange={handleTextChange} sx={{ width: 160 }} />
         <IconButton aria-label="delete" onClick={handleDeleteClick}>
           <DeleteIcon />

@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
-import { Box, Button, Container } from "@mui/material";
+import { Box, Button, Container, Grid, Typography } from "@mui/material";
 import DecoderApi from "../apis/decoder-api";
 import { DashboardLayout } from "../components/dashboard-layout";
-import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
-import MapDialog from "../components/intersection-selector/intersection-selector-dialog";
 import { DecoderTables } from "../components/decoder/decoder-tables";
 import { v4 as uuidv4 } from "uuid";
-import { DecoderMapDialog } from "../components/decoder/decoder-map-dialog";
-import { Plus as PlusIcon } from "../icons/plus";
 import MapIcon from "@mui/icons-material/Map";
+import MapTab, { getTimestamp } from "../components/map/map-component";
 
 const DecoderPage = () => {
   const { data: session } = useSession();
@@ -61,6 +58,7 @@ const DecoderPage = () => {
             [id]: {
               ...prevData[id],
               decodedResponse: response,
+              timestamp: getTimestampFromType(type, response),
               status: text == "" ? "NOT_STARTED" : response == undefined ? "ERROR" : "COMPLETED",
             },
           };
@@ -112,25 +110,37 @@ const DecoderPage = () => {
     }
   };
 
+  const getTimestampFromType = (type: DECODER_MESSAGE_TYPE, decodedResponse: DecoderApiResponseGeneric | undefined) => {
+    switch (type) {
+      case "MAP":
+        return getTimestamp(decodedResponse?.processedMap?.properties.odeReceivedAt);
+      case "SPAT":
+        return getTimestamp(decodedResponse?.processedSpat?.utcTimeStamp);
+      case "BSM":
+        return getTimestamp(decodedResponse?.bsm?.metadata.odeReceivedAt);
+    }
+  };
+
   const onFileUploaded = (contents: string[], type: DECODER_MESSAGE_TYPE) => {
     setData((prevData) => {
       const textToIds: { [text: string]: string } = {};
-      contents.forEach((text) =>
+      contents.forEach((text) => {
+        const id = uuidv4();
+        textToIds[text] = id;
         submitDecoderRequest(text, type)?.then((response) => {
-          const id = uuidv4();
-          textToIds[text] = id;
           setData((prevData) => {
             return {
               ...prevData,
               [id]: {
-                ...prevData[text],
+                ...prevData[id],
                 decodedResponse: response,
+                timestamp: getTimestampFromType(type, response),
                 status: text == "" ? "NOT_STARTED" : response == undefined ? "ERROR" : "COMPLETED",
               },
             };
           });
-        })
-      );
+        });
+      });
       let newEntries = {};
       contents.forEach((text) => {
         newEntries[textToIds[text]] = {
@@ -138,6 +148,7 @@ const DecoderPage = () => {
           type: type,
           status: "IN_PROGRESS",
           text: text,
+          timestamp: undefined,
           selected: false,
           isGreyedOut: false,
           decodedResponse: undefined,
@@ -148,6 +159,32 @@ const DecoderPage = () => {
         ...newEntries,
       };
     });
+  };
+
+  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
+    if (!decodedResponse) {
+      return undefined;
+    }
+
+    switch (decodedResponse.type) {
+      case "MAP":
+        const mapPayload = decodedResponse.processedMap;
+        return mapPayload?.properties?.intersectionId;
+      case "SPAT":
+        const spatPayload = decodedResponse.processedSpat;
+        return spatPayload?.intersectionId;
+      case "BSM":
+        const bsmPayload = decodedResponse.bsm;
+        return bsmPayload?.metadata.originIp;
+    }
+  };
+
+  const isGreyedOut = (intersectionId: number | undefined) => {
+    return selectedMapMessage?.intersectionId === undefined || intersectionId !== selectedMapMessage?.intersectionId;
+  };
+
+  const isGreyedOutIp = (rsuIp: string | undefined) => {
+    return (selectedMapMessage?.rsuIp === undefined || rsuIp !== selectedMapMessage?.rsuIp) && rsuIp != "";
   };
 
   return (
@@ -163,41 +200,57 @@ const DecoderPage = () => {
           py: 8,
         }}
       >
-        {/* <Container maxWidth={false}>
+        <Container maxWidth={false}>
+          <Box
+            sx={{
+              alignItems: "center",
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              m: -1,
+            }}
+          >
+            <Grid container justifyContent="space-between" spacing={3}>
+              <Grid item>
+                <Typography sx={{ m: 1, mb: 2 }} variant="h4">
+                  ASN.1 Decoder
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
           <Box
             sx={{
               alignItems: "center",
               display: "flex",
               overflow: "hidden",
+              height: "50vh",
             }}
           >
-            <div>
-              <Typography noWrap variant="h4">
-                Query
-              </Typography>
-            </div>
-          </Box>
-          <Box mt={3}>
-            <DataSelectorEditForm
-              onQuery={query}
-              onVisualize={onVisualize}
-              roadRegulatorIntersectionIds={roadRegulatorIntersectionIds}
-              dbIntersectionId={intersectionId}
+            <MapTab
+              sourceData={{
+                map: Object.values(data)
+                  .filter((v) => v.type === "MAP" && v.status == "COMPLETED" && v.id == selectedMapMessage?.id)
+                  .map((v) => v.decodedResponse?.processedMap!),
+                spat: Object.values(data)
+                  .filter(
+                    (v) =>
+                      v.type === "SPAT" && v.status == "COMPLETED" && !isGreyedOut(getIntersectionId(v.decodedResponse))
+                  )
+                  .map((v) => v.decodedResponse?.processedSpat!),
+                bsm: Object.values(data)
+                  .filter(
+                    (v) =>
+                      v.type === "BSM" &&
+                      v.status == "COMPLETED" &&
+                      !isGreyedOutIp(getIntersectionId(v.decodedResponse))
+                  )
+                  .map((v) => v.decodedResponse?.bsm!),
+              }}
+              sourceDataType={"exact"}
+              intersectionId={-1}
+              roadRegulatorId={-1}
             />
           </Box>
-        </Container> */}
-        <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={() => {
-              setOpenMapDialog(true);
-            }}
-            startIcon={<MapIcon fontSize="medium" />}
-            sx={{ m: 1 }}
-          >
-            Display Selected Data On Map
-          </Button>
         </Container>
         <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
           <DecoderTables
@@ -212,23 +265,6 @@ const DecoderPage = () => {
           />
         </Container>
       </Box>
-      <DecoderMapDialog
-        open={openMapDialog}
-        onClose={() => {
-          setOpenMapDialog(false);
-        }}
-        intersectionId={-1}
-        roadRegulatorId={-1}
-        map={Object.values(data)
-          .filter((v) => v.type === "MAP" && v.status == "COMPLETED")
-          .map((v) => v.decodedResponse?.processedMap!)}
-        spat={Object.values(data)
-          .filter((v) => v.type === "SPAT" && v.status == "COMPLETED")
-          .map((v) => v.decodedResponse?.processedSpat!)}
-        bsm={Object.values(data)
-          .filter((v) => v.type === "BSM" && v.status == "COMPLETED")
-          .map((v) => v.decodedResponse?.bsm!)}
-      />
     </>
   );
 };
