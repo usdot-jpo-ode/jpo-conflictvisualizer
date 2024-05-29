@@ -131,23 +131,47 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     }
   };
 
+  const getIconColor = () => {
+    switch (status) {
+      case "NOT_STARTED":
+        return "#555555";
+      default:
+        return "#ffffff";
+    }
+  };
+
   return (
     <TableRow>
-      <TableCell style={{ backgroundColor: getCellColor() }}>
-        {type == "MAP" && text != "" && <Checkbox checked={selected} onChange={handleCheckboxChange} />}
-        {timestamp && <Typography variant="caption">{format(new Date(timestamp), "yyyy-MM-dd HH:mm:ss")}</Typography>}
+      <TableCell style={{ backgroundColor: getCellColor(), border: "1px solid white" }}>
+        <div style={{ display: "flex" }}>
+          {(type == "MAP" || type == "BSM") && text != "" && (
+            <Checkbox
+              checked={selected}
+              onChange={handleCheckboxChange}
+              sx={{ m: 0, p: 0, mr: 1, ml: 1 }}
+              style={{ color: getIconColor() }}
+            />
+          )}
+          {timestamp && (
+            <Typography variant="subtitle1" color="white">
+              {format(new Date(timestamp), "yyyy-MM-dd HH:mm:ss")}
+            </Typography>
+          )}
+        </div>
         <br></br>
         <TextField value={text} placeholder="Paste data here" onChange={handleTextChange} sx={{ width: 160 }} />
-        <IconButton aria-label="delete" onClick={handleDeleteClick}>
+        <IconButton aria-label="delete" onClick={handleDeleteClick} style={{ color: getIconColor() }}>
           <DeleteIcon />
         </IconButton>
-        <IconButton aria-label="download" onClick={handleDownloadClick}>
+        <IconButton aria-label="download" onClick={handleDownloadClick} style={{ color: getIconColor() }}>
           <DownloadIcon />
         </IconButton>
         {status === "IN_PROGRESS" && <CircularProgress />}
         <Box>
           <TextField
-            value={"Errors: " + decodedResponse?.decodeErrors == "" ? "None" : decodedResponse?.decodeErrors ?? "None"}
+            value={
+              "Errors: " + (decodedResponse?.decodeErrors == "" ? "None" : decodedResponse?.decodeErrors) ?? "None"
+            }
             InputProps={{ readOnly: true }}
             fullWidth
           />

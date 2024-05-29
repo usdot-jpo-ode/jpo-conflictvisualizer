@@ -1,5 +1,16 @@
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { Box, Card, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import {
+  Box,
+  Card,
+  Checkbox,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
 import React from "react";
 import { DecoderEntry } from "./decoder-entry";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -9,6 +20,8 @@ type DecoderTableProps = {
   selectedIntersectionId: number | undefined;
   selectedMapMessageId: string | undefined;
   selectedRsuIp: string | undefined;
+  selectedBsms: string[];
+  setSelectedBsms: (bsms: string[]) => void;
   onItemSelected: (id: string) => void;
   onTextChanged: (id: string, messageText: string, type: DECODER_MESSAGE_TYPE) => void;
   onItemDeleted: (id: string) => void;
@@ -21,6 +34,8 @@ export const DecoderTables = (props: DecoderTableProps) => {
     selectedIntersectionId,
     selectedMapMessageId,
     selectedRsuIp,
+    selectedBsms,
+    setSelectedBsms,
     onItemSelected,
     onTextChanged,
     onItemDeleted,
@@ -89,6 +104,14 @@ export const DecoderTables = (props: DecoderTableProps) => {
     element.click();
   };
 
+  const toggleBsmSelection = () => {
+    if (selectedBsms.length == contents.filter((v) => v.type === "BSM").length) {
+      setSelectedBsms([]);
+    } else {
+      setSelectedBsms(contents.filter((v) => v.type === "BSM").map((v) => v.id));
+    }
+  };
+
   return (
     <Card>
       <PerfectScrollbar>
@@ -97,11 +120,11 @@ export const DecoderTables = (props: DecoderTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell style={{ position: "relative" }}>
+                  <TableCell style={{ position: "relative", height: "60px" }}>
                     MAP Messages
                     <input
                       type="file"
-                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      style={{ position: "absolute", right: 10, top: 18, width: 200 }}
                       onChange={(event) => dataFileUploaded(event, "MAP")}
                       title="Your custom description here"
                     />
@@ -143,11 +166,11 @@ export const DecoderTables = (props: DecoderTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell style={{ position: "relative" }}>
+                  <TableCell style={{ position: "relative", height: "60px" }}>
                     SPAT Messages
                     <input
                       type="file"
-                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      style={{ position: "absolute", right: 10, top: 18, width: 200 }}
                       onChange={(event) => dataFileUploaded(event, "SPAT")}
                       title="Your custom description here"
                     />
@@ -189,11 +212,16 @@ export const DecoderTables = (props: DecoderTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell style={{ position: "relative" }}>
+                  <TableCell style={{ position: "relative", height: "60px" }}>
+                    <Checkbox
+                      checked={selectedBsms.length == contents.filter((v) => v.type === "BSM").length}
+                      onChange={toggleBsmSelection}
+                      sx={{ m: 0, p: 0 }}
+                    />
                     BSM Messages
                     <input
                       type="file"
-                      style={{ position: "absolute", right: 10, top: 12, width: 200 }}
+                      style={{ position: "absolute", right: 10, top: 18, width: 200 }}
                       onChange={(event) => dataFileUploaded(event, "BSM")}
                       title="Your custom description here"
                     />
@@ -219,7 +247,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         text={entry.text}
                         isGreyedOut={isGreyedOutIp(getIntersectionId(entry.decodedResponse))}
                         decodedResponse={entry.decodedResponse}
-                        selected={false}
+                        selected={selectedBsms.includes(entry.id)}
                         timestamp={entry.timestamp}
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "BSM")}

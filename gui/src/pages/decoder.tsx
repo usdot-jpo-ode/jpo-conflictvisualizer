@@ -17,14 +17,20 @@ const DecoderPage = () => {
   const [selectedMapMessage, setSelectedMapMessage] = useState(
     undefined as undefined | { id: string; intersectionId: number; rsuIp: string }
   );
+  const [selectedBsms, setSelectedBsms] = useState([] as string[]);
 
   console.log("Data", data);
 
   useEffect(() => {
     const freshData = [] as DecoderDataEntry[];
     for (let i = 0; i < 3; i++) {
+      const id = uuidv4();
+      if (i % 3 == 2) {
+        // bsm
+        setSelectedBsms((prevBsms) => [...prevBsms, id]);
+      }
       freshData.push({
-        id: uuidv4(),
+        id: id,
         type: i % 3 == 0 ? "MAP" : i % 3 == 1 ? "SPAT" : "BSM",
         status: "NOT_STARTED",
         text: "",
@@ -52,6 +58,9 @@ const DecoderPage = () => {
   const onTextChanged = (id: string, text: string, type: DECODER_MESSAGE_TYPE) => {
     setData((prevData) => {
       submitDecoderRequest(text, type)?.then((response) => {
+        if (type == "BSM") {
+          setSelectedBsms((prevBsms) => [...prevBsms, id]);
+        }
         setData((prevData) => {
           return {
             ...prevData,
@@ -103,10 +112,24 @@ const DecoderPage = () => {
   };
 
   const onItemSelected = (id: string) => {
-    const intersectionId = data[id]?.decodedResponse?.processedMap?.properties?.intersectionId;
-    const rsuIp = data[id]?.decodedResponse?.processedMap?.properties?.originIp;
-    if (intersectionId) {
-      setSelectedMapMessage({ id, intersectionId, rsuIp: rsuIp! });
+    const type = data[id].type;
+    switch (type) {
+      case "MAP":
+        const intersectionId = data[id]?.decodedResponse?.processedMap?.properties?.intersectionId;
+        const rsuIp = data[id]?.decodedResponse?.processedMap?.properties?.originIp;
+        if (intersectionId) {
+          setSelectedMapMessage({ id, intersectionId, rsuIp: rsuIp! });
+        }
+        return;
+      case "BSM":
+        setSelectedBsms((prevBsms) => {
+          if (prevBsms.includes(id)) {
+            return prevBsms.filter((bsmId) => bsmId !== id);
+          } else {
+            return [...prevBsms, id];
+          }
+        });
+        return;
     }
   };
 
@@ -128,6 +151,9 @@ const DecoderPage = () => {
         const id = uuidv4();
         textToIds[text] = id;
         submitDecoderRequest(text, type)?.then((response) => {
+          if (type == "BSM") {
+            setSelectedBsms((prevBsms) => [...prevBsms, id]);
+          }
           setData((prevData) => {
             return {
               ...prevData,
@@ -197,10 +223,10 @@ const DecoderPage = () => {
         sx={{
           backgroundColor: "background.default",
           flexGrow: 1,
-          py: 8,
+          py: 4,
         }}
       >
-        <Container maxWidth={false}>
+        <Container maxWidth={false} style={{ minWidth: "1000px" }}>
           <Box
             sx={{
               alignItems: "center",
@@ -212,7 +238,7 @@ const DecoderPage = () => {
           >
             <Grid container justifyContent="space-between" spacing={3}>
               <Grid item>
-                <Typography sx={{ m: 1, mb: 2 }} variant="h4">
+                <Typography sx={{ m: 1 }} variant="h4">
                   ASN.1 Decoder
                 </Typography>
               </Grid>
@@ -251,8 +277,19 @@ const DecoderPage = () => {
               roadRegulatorId={-1}
             />
           </Box>
+          <Grid container justifyContent="space-between" spacing={3}>
+            <Grid item>
+              <Typography sx={{ m: 1 }} variant="h6">
+                1. Upload data, either by uploading individual files or pasting the data directly into the text box.
+                <br />
+                2. Select an uploaded MAP message to view the decoded data. SPAT data is filtered by intersection ID.
+                <br />
+                3. Select BSM messages to view the decoded data. All selected BSM data is shown.
+              </Typography>
+            </Grid>
+          </Grid>
         </Container>
-        <Container sx={{ mt: 5, alignItems: "center", display: "flex" }}>
+        <Container sx={{ mt: 1, alignItems: "center", display: "flex" }}>
           <DecoderTables
             contents={Object.values(data)}
             selectedIntersectionId={selectedMapMessage?.intersectionId}
@@ -262,6 +299,8 @@ const DecoderPage = () => {
             onTextChanged={onTextChanged}
             onItemDeleted={onItemDeleted}
             onFileUploaded={onFileUploaded}
+            selectedBsms={selectedBsms}
+            setSelectedBsms={setSelectedBsms}
           />
         </Container>
       </Box>

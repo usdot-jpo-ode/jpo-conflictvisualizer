@@ -248,28 +248,12 @@ const generateQueryParams = (
       let startDate = undefined as number | undefined;
       let endDate = undefined as number | undefined;
 
-      for (const map of (source as { map: ProcessedMap[] }).map) {
-        if (!startDate || getTimestamp(map.properties.odeReceivedAt) < startDate) {
-          startDate = getTimestamp(map.properties.odeReceivedAt);
-        }
-        if (!endDate || getTimestamp(map.properties.odeReceivedAt) > endDate) {
-          endDate = getTimestamp(map.properties.odeReceivedAt);
-        }
-      }
       for (const spat of (source as { spat: ProcessedSpat[] }).spat) {
         if (!startDate || getTimestamp(spat.utcTimeStamp) < startDate) {
           startDate = getTimestamp(spat.utcTimeStamp);
         }
         if (!endDate || getTimestamp(spat.utcTimeStamp) > endDate) {
           endDate = getTimestamp(spat.utcTimeStamp);
-        }
-      }
-      for (const bsm of (source as { bsm: OdeBsmData[] }).bsm) {
-        if (!startDate || getTimestamp(bsm.metadata.odeReceivedAt) < startDate) {
-          startDate = getTimestamp(bsm.metadata.odeReceivedAt);
-        }
-        if (!endDate || getTimestamp(bsm.metadata.odeReceivedAt) > endDate) {
-          endDate = getTimestamp(bsm.metadata.odeReceivedAt);
         }
       }
       return {
@@ -1327,36 +1311,41 @@ const MapTab = (props: MyProps) => {
       setSignalStateData(undefined);
     }
 
-    // retrieve filtered BSMs
-    const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
-      (feature) =>
-        feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
-        feature.properties?.odeReceivedAt <= renderTimeInterval[1]
-    );
-    const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
-    // Update BSM legend colors
-    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id).sort());
-    const colors = generateColorDictionary(uniqueIds);
-    setMapLegendColors((prevValue) => ({
-      ...prevValue,
-      bsmColors: colors,
-    }));
-    const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
+    if (props.sourceDataType == "exact") {
+      // In "exact" mode, always show all BSMs. Timestamps are meaningless.
+      setCurrentBsms(bsmData);
+    } else {
+      // retrieve filtered BSMs
+      const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
+        (feature) =>
+          feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
+          feature.properties?.odeReceivedAt <= renderTimeInterval[1]
+      );
+      const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
+      // Update BSM legend colors
+      const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id).sort());
+      const colors = generateColorDictionary(uniqueIds);
+      setMapLegendColors((prevValue) => ({
+        ...prevValue,
+        bsmColors: colors,
+      }));
+      const bsmLayerStyle = generateMapboxStyleExpression(colors);
+      setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
 
-    const lastBsms: BsmFeature[] = [];
-    const bsmCounts: { [id: string]: number } = {};
-    for (let i = 0; i < sortedBsms.length; i++) {
-      const id = sortedBsms[i].properties?.id;
-      if (bsmCounts[id] == undefined) {
-        bsmCounts[id] = 0;
+      const lastBsms: BsmFeature[] = [];
+      const bsmCounts: { [id: string]: number } = {};
+      for (let i = 0; i < sortedBsms.length; i++) {
+        const id = sortedBsms[i].properties?.id;
+        if (bsmCounts[id] == undefined) {
+          bsmCounts[id] = 0;
+        }
+        if (bsmCounts[id] < bsmTrailLength) {
+          lastBsms.push(sortedBsms[i]);
+          bsmCounts[id]++;
+        }
       }
-      if (bsmCounts[id] < bsmTrailLength) {
-        lastBsms.push(sortedBsms[i]);
-        bsmCounts[id]++;
-      }
+      setCurrentBsms({ ...bsmData, features: lastBsms });
     }
-    setCurrentBsms({ ...bsmData, features: lastBsms });
 
     const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
       (event) =>
