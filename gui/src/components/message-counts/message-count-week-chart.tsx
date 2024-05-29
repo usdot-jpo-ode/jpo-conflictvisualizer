@@ -24,6 +24,7 @@ export const MessageCountWeekChart = (props: {
   type ChartData = { date: string; count: number; dayOfWeek: string };
 
   const [messageCounts, setMessageCounts] = useState<ChartData[]>([]);
+  let promises: Promise<{ date: string; count: number; dayOfWeek: string; }>[] = [];
 
 useEffect(() => {
   if (accessToken) {
@@ -45,20 +46,23 @@ useEffect(() => {
         dayStart,
         dayEnd
       );
-      messageCountPromise
-        .then((count) => {
-          weekCounts[i] = { 
-            date: dayStart.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' }), 
+      promises.push(
+        messageCountPromise.then((count) => {
+          return {
+            date: dayStart.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' }),
             count: count,
             dayOfWeek: dayStart.toLocaleDateString(undefined, { weekday: 'long' })
           };
-          if (i === 6) {
-            setMessageCounts(weekCounts);
-        }
         })
-        .catch((error) => console.error(error));
-
+      );
     }
+
+    Promise.all(promises)
+  .then((weekCounts) => {
+    setMessageCounts(weekCounts);
+  })
+  .catch((error) => console.error(error));
+
   }
 }, [intersectionId]);
 
