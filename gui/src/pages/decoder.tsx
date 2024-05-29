@@ -264,12 +264,7 @@ const DecoderPage = () => {
                   )
                   .map((v) => v.decodedResponse?.processedSpat!),
                 bsm: Object.values(data)
-                  .filter(
-                    (v) =>
-                      v.type === "BSM" &&
-                      v.status == "COMPLETED" &&
-                      !isGreyedOutIp(getIntersectionId(v.decodedResponse))
-                  )
+                  .filter((v) => v.type === "BSM" && v.status == "COMPLETED" && v.selected)
                   .map((v) => v.decodedResponse?.bsm!),
               }}
               sourceDataType={"exact"}

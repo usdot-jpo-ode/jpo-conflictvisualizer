@@ -63,10 +63,6 @@ export const DecoderTables = (props: DecoderTableProps) => {
     return selectedIntersectionId === undefined || intersectionId !== selectedIntersectionId;
   };
 
-  const isGreyedOutIp = (rsuIp: string | undefined) => {
-    return (selectedRsuIp === undefined || rsuIp !== selectedRsuIp) && rsuIp != "";
-  };
-
   const dataFileUploaded = (event, type: DECODER_MESSAGE_TYPE) => {
     const file = event.target.files[0];
     if (file) {
@@ -245,7 +241,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         status={entry.status}
                         type={entry.type}
                         text={entry.text}
-                        isGreyedOut={isGreyedOutIp(getIntersectionId(entry.decodedResponse))}
+                        isGreyedOut={false}
                         decodedResponse={entry.decodedResponse}
                         selected={selectedBsms.includes(entry.id)}
                         timestamp={entry.timestamp}
