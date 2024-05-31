@@ -16,18 +16,24 @@ class MessageMonitorApi {
     roadRegulatorId,
     startTime,
     endTime,
+    latest,
+    compact,
   }: {
     token: string;
     intersectionId: number;
     roadRegulatorId: number;
     startTime?: Date;
     endTime?: Date;
+    latest?: boolean;
+    compact?: boolean;
   }): Promise<ProcessedSpat[]> {
     const queryParams: Record<string, string> = {};
     queryParams["intersection_id"] = intersectionId.toString();
     queryParams["road_regulator_id"] = roadRegulatorId.toString();
     if (startTime) queryParams["start_time_utc_millis"] = startTime.getTime().toString();
     if (endTime) queryParams["end_time_utc_millis"] = endTime.getTime().toString();
+    if (latest) queryParams["latest"] = latest.toString();
+    if (compact) queryParams["compact"] = compact.toString();
 
     var response = await authApiHelper.invokeApi({
       path: "/spat/json",
