@@ -268,6 +268,7 @@ const generateQueryParams = (
         endDate: new Date(Date.now() + endOffset),
         eventDate: new Date(Date.now()),
         vehicleId: undefined,
+        default: true,
       };
   }
 };
@@ -304,6 +305,7 @@ const MapTab = (props: MyProps) => {
     vehicleId?: string;
     intersectionId?: number;
     roadRegulatorId?: number;
+    default?: boolean;
   }>({
     ...generateQueryParams(props.sourceData, props.sourceDataType),
     intersectionId: props.intersectionId,
@@ -845,7 +847,23 @@ const MapTab = (props: MyProps) => {
           odeReceivedAt: getTimestamp(bsm.metadata.odeReceivedAt),
         },
       }));
-    } else if (importedMessageData == undefined) {
+    }
+    else if (queryParams.default == true) {
+      const latestSpats = await MessageMonitorApi.getSpatMessages({
+        token: session?.accessToken,
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
+        latest: true,
+      });
+      if (latestSpats && latestSpats.length > 0) {
+        setQueryParams({
+          ...generateQueryParams({ timestamp: getTimestamp(latestSpats.at(-1)?.utcTimeStamp) }, "timestamp"),
+          intersectionId: queryParams.intersectionId,
+          roadRegulatorId: queryParams.roadRegulatorId,
+        });
+      }
+    }
+    else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
@@ -890,11 +908,6 @@ const MapTab = (props: MyProps) => {
         queryParams.startDate,
         queryParams.endDate
       );
-      toast.promise(surroundingEventsPromise, {
-        loading: `Loading Event Data`,
-        success: `Successfully got Event Data`,
-        error: `Failed to get Event data. Please see console`,
-      });
       surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
       // ######################### BSM Events By Minute #########################
@@ -919,11 +932,6 @@ const MapTab = (props: MyProps) => {
         roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
-      });
-      toast.promise(surroundingNotificationsPromise, {
-        loading: `Loading Notification Data`,
-        success: `Successfully got Notification Data`,
-        error: `Failed to get Notification data. Please see console`,
       });
       surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
     } else {
