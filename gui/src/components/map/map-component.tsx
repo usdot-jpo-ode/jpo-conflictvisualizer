@@ -176,7 +176,7 @@ const markerLayer: LayerProps = {
   },
 };
 
-const getTimestamp = (dt: any): number => {
+export const getTimestamp = (dt: any): number => {
   try {
     const dtFromString = Date.parse(dt as any as string);
     if (isNaN(dtFromString)) {
@@ -195,8 +195,18 @@ const getTimestamp = (dt: any): number => {
 };
 
 const generateQueryParams = (
-  source: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined,
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+  source:
+    | MessageMonitor.Notification
+    | MessageMonitor.Event
+    | Assessment
+    | timestamp
+    | {
+        map: ProcessedMap[];
+        spat: ProcessedSpat[];
+        bsm: OdeBsmData[];
+      }
+    | undefined,
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined
 ) => {
   const startOffset = 1000 * 60 * 1;
   const endOffset = 1000 * 60 * 1;
@@ -234,6 +244,24 @@ const generateQueryParams = (
         eventDate: new Date(ts),
         vehicleId: undefined,
       };
+    case "exact":
+      let startDate = undefined as number | undefined;
+      let endDate = undefined as number | undefined;
+
+      for (const spat of (source as { spat: ProcessedSpat[] }).spat) {
+        if (!startDate || getTimestamp(spat.utcTimeStamp) < startDate) {
+          startDate = getTimestamp(spat.utcTimeStamp);
+        }
+        if (!endDate || getTimestamp(spat.utcTimeStamp) > endDate) {
+          endDate = getTimestamp(spat.utcTimeStamp);
+        }
+      }
+      return {
+        startDate: new Date(startDate ?? Date.now()),
+        endDate: new Date(endDate ?? Date.now() + 1),
+        eventDate: new Date((startDate ?? Date.now()) / 2 + (endDate ?? Date.now() + 1) / 2),
+        vehicleId: undefined,
+      };
     default:
       return {
         startDate: new Date(Date.now() - startOffset),
@@ -250,8 +278,18 @@ type timestamp = {
 };
 
 type MyProps = {
-  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | timestamp | undefined;
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+  sourceData:
+    | MessageMonitor.Notification
+    | MessageMonitor.Event
+    | Assessment
+    | timestamp
+    | {
+        map: ProcessedMap[];
+        spat: ProcessedSpat[];
+        bsm: OdeBsmData[];
+      }
+    | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined;
   intersectionId: number | undefined;
   roadRegulatorId: number | undefined;
   loadOnNull?: boolean;
@@ -790,7 +828,27 @@ const MapTab = (props: MyProps) => {
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
-    if (queryParams.default == true) {
+    if (props.sourceDataType == "exact") {
+      rawMap = (props.sourceData as { map: ProcessedMap[] }).map.map((map) => ({
+        ...map,
+        properties: {
+          ...map.properties,
+          odeReceivedAt: getTimestamp(map.properties.odeReceivedAt),
+        },
+      }));
+      rawSpat = (props.sourceData as { spat: ProcessedSpat[] }).spat.map((spat) => ({
+        ...spat,
+        utcTimeStamp: getTimestamp(spat.utcTimeStamp),
+      }));
+      rawBsm = (props.sourceData as { bsm: OdeBsmData[] }).bsm.map((bsm) => ({
+        ...bsm,
+        metadata: {
+          ...bsm.metadata,
+          odeReceivedAt: getTimestamp(bsm.metadata.odeReceivedAt),
+        },
+      }));
+    }
+    else if (queryParams.default == true) {
       const latestSpats = await MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
@@ -805,7 +863,7 @@ const MapTab = (props: MyProps) => {
         });
       }
     }
-    if (importedMessageData == undefined) {
+    else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
@@ -896,7 +954,7 @@ const MapTab = (props: MyProps) => {
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
@@ -912,7 +970,7 @@ const MapTab = (props: MyProps) => {
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     // ######################### BSMs #########################
-    if (!importedMessageData) {
+    if (!importedMessageData && props.sourceDataType != "exact") {
       const rawBsmPromise = MessageMonitorApi.getBsmMessages({
         token: session?.accessToken,
         vehicleId: queryParams.vehicleId,
@@ -942,7 +1000,7 @@ const MapTab = (props: MyProps) => {
     currentSpatData: ProcessedSpat[],
     currentBsmData: BsmFeatureCollection
   ) => {
-    if (currentMapData.length == 0) {
+    if (currentMapData.length == 0 && props.sourceDataType != "exact") {
       console.error("Did not attempt to render map, no map messages available:", currentMapData);
       return;
     }
@@ -955,7 +1013,7 @@ const MapTab = (props: MyProps) => {
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
-      mapTime: latestMapMessage.properties.odeReceivedAt as unknown as number,
+      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
@@ -1261,36 +1319,41 @@ const MapTab = (props: MyProps) => {
       setSignalStateData(undefined);
     }
 
-    // retrieve filtered BSMs
-    const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
-      (feature) =>
-        feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
-        feature.properties?.odeReceivedAt <= renderTimeInterval[1]
-    );
-    const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
-    // Update BSM legend colors
-    const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id).sort());
-    const colors = generateColorDictionary(uniqueIds);
-    setMapLegendColors((prevValue) => ({
-      ...prevValue,
-      bsmColors: colors,
-    }));
-    const bsmLayerStyle = generateMapboxStyleExpression(colors);
-    setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
+    if (props.sourceDataType == "exact") {
+      // In "exact" mode, always show all BSMs. Timestamps are meaningless.
+      setCurrentBsms(bsmData);
+    } else {
+      // retrieve filtered BSMs
+      const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
+        (feature) =>
+          feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
+          feature.properties?.odeReceivedAt <= renderTimeInterval[1]
+      );
+      const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
+      // Update BSM legend colors
+      const uniqueIds = new Set(filteredBsms.map((bsm) => bsm.properties?.id).sort());
+      const colors = generateColorDictionary(uniqueIds);
+      setMapLegendColors((prevValue) => ({
+        ...prevValue,
+        bsmColors: colors,
+      }));
+      const bsmLayerStyle = generateMapboxStyleExpression(colors);
+      setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
 
-    const lastBsms: BsmFeature[] = [];
-    const bsmCounts: { [id: string]: number } = {};
-    for (let i = 0; i < sortedBsms.length; i++) {
-      const id = sortedBsms[i].properties?.id;
-      if (bsmCounts[id] == undefined) {
-        bsmCounts[id] = 0;
+      const lastBsms: BsmFeature[] = [];
+      const bsmCounts: { [id: string]: number } = {};
+      for (let i = 0; i < sortedBsms.length; i++) {
+        const id = sortedBsms[i].properties?.id;
+        if (bsmCounts[id] == undefined) {
+          bsmCounts[id] = 0;
+        }
+        if (bsmCounts[id] < bsmTrailLength) {
+          lastBsms.push(sortedBsms[i]);
+          bsmCounts[id]++;
+        }
       }
-      if (bsmCounts[id] < bsmTrailLength) {
-        lastBsms.push(sortedBsms[i]);
-        bsmCounts[id]++;
-      }
+      setCurrentBsms({ ...bsmData, features: lastBsms });
     }
-    setCurrentBsms({ ...bsmData, features: lastBsms });
 
     const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
       (event) =>

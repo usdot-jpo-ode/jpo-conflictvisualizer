@@ -93,9 +93,10 @@ const Page = () => {
       >
         <Container maxWidth={false}>
           <Grid container spacing={3} alignItems="flex-start">
+            { /*
             <Box mt={3} mr={-3}>
               <MessageCountWidget accessToken={session?.accessToken} intersectionId={intersectionId} />
-            </Box>
+      </Box> 
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
               <MessageCountWeekChart
               accessToken={session?.accessToken}
@@ -114,6 +115,7 @@ const Page = () => {
               barColor="#10B981"
               disclaimer=""/>
             </Grid>
+            
             <Grid item xs={12} md={3} style={{ minWidth: 324 }}>
               <MessageCountWeekChart
               accessToken={session?.accessToken}
@@ -123,6 +125,7 @@ const Page = () => {
               barColor="#900bae"
               disclaimer="duplicate messages not included"/>
             </Grid>
+            */}
             <ConnectionOfTravelAssessmentCard assessment={connectionOfTravelAssessment} />
             <StopLineStopAssessmentCard assessment={stopLineStopAssessment} />
             <SignalStateEventAssessmentCard assessment={signalStateEventAssessment} />
