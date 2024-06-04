@@ -5,6 +5,7 @@ services:
       context: gui
       dockerfile: Dockerfile
       args:
+        PROFILE_NAME: ${PROFILE_NAME}
         NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
         NEXTAUTH_URL: ${NEXTAUTH_URL}
         KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}

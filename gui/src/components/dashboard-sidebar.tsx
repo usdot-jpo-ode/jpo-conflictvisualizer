@@ -23,6 +23,7 @@ import React from "react";
 import { DashboardSidebarSection } from "./dashboard-sidebar-section";
 import { useDashboardContext } from "../contexts/dashboard-context";
 import { useSession } from "next-auth/react";
+import { CellPhoneIcon } from "../icons/cell-phone";
 
 const generalItems = [
   {
@@ -64,6 +65,11 @@ const generalItems = [
     path: "/settings",
     icon: <CogIcon fontSize="small" />,
     title: "Settings",
+  },
+  {
+    path: "/lamp",
+    icon: <CellPhoneIcon fontSize="small" />,
+    title: "LAMP",
   },
 ];
 

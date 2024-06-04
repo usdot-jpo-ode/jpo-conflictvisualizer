@@ -23,3 +23,12 @@ type KeycloakRole = {
   id: string;
   name: string;
 };
+
+type LAMPProfile = {
+  name: string;
+  keycloak_endpoint: string;
+  cimms_broker: string;
+  realm: string;
+  client: string;
+  client_secret: string;
+}
