@@ -75,6 +75,7 @@ public class ReportRepositoryImpl implements ReportRepository {
 
     @Override
     public void add(ReportDocument item) {
+        System.out.println("Saving Document to DB");
         mongoTemplate.save(item, collectionName);
     }
 
