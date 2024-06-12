@@ -3,7 +3,7 @@ import Map, { Source, Layer } from "react-map-gl";
 
 import { Container, Col } from "reactstrap";
 
-import { Paper, Box, Typography } from "@mui/material";
+import { Paper, Box } from "@mui/material";
 
 // import mapMessageData from "./processed_map_v4.json";
 import type { CircleLayer, LayerProps, LineLayer, SymbolLayer } from "react-map-gl";
@@ -23,8 +23,7 @@ import FileSaver from "file-saver";
 import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
-import { set } from "date-fns";
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import mbStyle from "../../intersectionMapStyle.json";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -847,8 +846,7 @@ const MapTab = (props: MyProps) => {
           odeReceivedAt: getTimestamp(bsm.metadata.odeReceivedAt),
         },
       }));
-    }
-    else if (queryParams.default == true) {
+    } else if (queryParams.default == true) {
       const latestSpats = await MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
@@ -862,8 +860,7 @@ const MapTab = (props: MyProps) => {
           roadRegulatorId: queryParams.roadRegulatorId,
         });
       }
-    }
-    else if (importedMessageData == undefined) {
+    } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
@@ -1747,8 +1744,31 @@ const MapTab = (props: MyProps) => {
         <Map
           {...viewState}
           ref={mapRef}
-          onLoad={() => {}}
-          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
+          mapStyle={mbStyle as mapboxgl.Style}
+          onLoad={(e: mapboxgl.MapboxEvent<undefined>) => {
+            const map = e.target;
+            console.log("MAP LOADED", mapRef.current, map, e.target);
+            if (!map) return;
+            const images = [
+              "traffic-light-icon-unknown",
+              "traffic-light-icon-red-flashing",
+              "traffic-light-icon-red-1",
+              "traffic-light-icon-yellow-red-1",
+              "traffic-light-icon-green-1",
+              "traffic-light-icon-yellow-1",
+            ];
+            for (const image_name of images) {
+              map.loadImage(`/icons/${image_name}.png`, (error, image) => {
+                if (error) throw error;
+                if (image == undefined) {
+                  console.error("Error loading image:", image_name, error, image, map.hasImage(image_name));
+                  return;
+                }
+                console.log("MAP IMAGE", image_name, map.hasImage(image_name));
+                if (!map.hasImage(image_name)) map.addImage(image_name, image);
+              });
+            }
+          }}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
