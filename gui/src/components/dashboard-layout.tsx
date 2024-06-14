@@ -66,13 +66,6 @@ export const DashboardLayout = (props) => {
     if (session?.accessToken) {
       MessageMonitorApi.getIntersections({ token: session?.accessToken }).then(
         (intersections: IntersectionReferenceData[]) => {
-          intersections.push({
-            intersectionID: -1,
-            roadRegulatorID: -1,
-            rsuIP: "0.0.0.0",
-            latitude: 0,
-            longitude: 0,
-          });
           setIntersections(intersections);
           setIntersection(intersections?.[0]?.intersectionID);
         }

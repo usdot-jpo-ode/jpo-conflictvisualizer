@@ -16,6 +16,7 @@ import MapIcon from "@mui/icons-material/Map";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArticleIcon from "@mui/icons-material/Article";
+import SubtitlesIcon from "@mui/icons-material/Subtitles";
 import { Logo } from "./logo";
 import { NavItem } from "./nav-item";
 import React from "react";
@@ -48,6 +49,11 @@ const generalItems = [
     path: "/data-selector",
     icon: <ChartBarIcon fontSize="small" />,
     title: "Data Selector",
+  },
+  {
+    path: "/decoder",
+    icon: <SubtitlesIcon fontSize="small" />,
+    title: "ASN.1 Decoder",
   },
   {
     path: "/configuration",

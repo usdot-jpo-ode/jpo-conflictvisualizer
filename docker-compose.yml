@@ -65,6 +65,11 @@ services:
       SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
       CM_SERVER_URL: ${CM_SERVER_URL}
       load: "false"
+      KAFKA_TYPE: "ON-PREM"
+      ACM_CONFIG_FILE: adm.properties
+      ACM_LOG_TO_CONSOLE: true
+      ACM_LOG_TO_FILE: false
+      ACM_LOG_LEVEL: DEBUG
       #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
     logging:

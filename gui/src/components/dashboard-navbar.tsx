@@ -122,14 +122,20 @@ export const DashboardNavbar = (props: Props) => {
                 onChange={(e) => {
                   setIntersection(
                     e.target.value as number | undefined,
-                    intersections.find((v) => v?.intersectionID == e.target.value)?.roadRegulatorID
+                    intersections.find((v) => v?.intersectionID == e.target.value)?.roadRegulatorID ?? -1
                   );
                 }}
               >
+                <MenuItem value={-1} key={-1}>
+                  No Intersection
+                </MenuItem>
                 {intersections.map((intersection) => {
                   return (
                     <MenuItem value={intersection?.intersectionID} key={intersection?.intersectionID}>
-                      {intersection?.intersectionID == -1 ? "No Intersection" : intersection?.intersectionID}
+                      {intersection?.intersectionID == -1
+                        ? "No Intersection"
+                        : intersection?.intersectionID +
+                          (intersection?.intersectionName ? ": " + intersection?.intersectionName : "")}
                     </MenuItem>
                   );
                 })}
