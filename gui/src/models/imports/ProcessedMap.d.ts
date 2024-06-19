@@ -59,6 +59,7 @@ type MapProperties = {
   egressPath: boolean;
   maneuvers?: J2735AllowedManeuvers;
   connectsTo?: J2735Connection[];
+  angle?: number;
 };
 
 type MapNode = {

@@ -1,24 +1,21 @@
 import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import Slider from "@mui/material/Slider";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { Box, Typography, TextField, Button, Checkbox, InputAdornment, Chip } from "@mui/material";
+import { Box, Typography, TextField, Button, Checkbox, InputAdornment, Chip, Select, MenuItem } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import { styled, SxProps, Theme } from "@mui/material/styles";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import JSZip from "jszip";
-import { getSelectedLayerPopupContent } from "./popup";
-import { LayerProps } from "react-map-gl";
-import ScrollBar from "react-perfect-scrollbar";
-import pauseIcon from '../../../public/pause.png';
-import playIcon from '../../../public/play.png';
+import pauseIcon from "../../../public/pause.png";
+import playIcon from "../../../public/play.png";
 
-import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, Bar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const Accordion = styled((props: AccordionProps) => <MuiAccordion disableGutters elevation={0} square {...props} />)(
   ({ theme }) => ({
@@ -89,6 +86,8 @@ interface ControlPanelProps {
   bsmEventsByMinute: MessageMonitor.MinuteCount[];
   bsmByMinuteUpdated: boolean;
   setBsmByMinuteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
+  intersectionLayout: IntersectionSHLayoutType;
+  setIntersectionLayout: React.Dispatch<React.SetStateAction<IntersectionSHLayoutType>>;
   rawData: {
     map?: ProcessedMap[];
     spat?: ProcessedSpat[];
@@ -139,7 +138,7 @@ function ControlPanel(props: ControlPanelProps) {
   const [timeWindowSeconds, setTimeWindowSeconds] = useState<string | undefined>(
     getQueryParams(props.timeQueryParams).timeWindowSeconds.toString()
   );
-  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number; }[];
+  type BarChartData = { minutesAfterMidnight: number; timestamp: string; minute: number; count: number }[];
   const [reformattedTimelineData, setReformattedTimelineData] = useState<BarChartData>([]);
 
   useEffect(() => {
@@ -277,52 +276,47 @@ function ControlPanel(props: ControlPanelProps) {
     return num;
   };
 
-  const timelineTicks = [
-    120,
-    240,
-    360,
-    480,
-    600,
-    720,
-    840,
-    960,
-    1080,
-    1200,
-    1320
-  ];
-  
+  const timelineTicks = [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
+
   const formatMinutesAfterMidnightTime = useMemo(() => {
     return (minutes) => {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
     };
   }, []);
 
-    useEffect(() => {
-      const newBsmEventsByMinute = (props.bsmEventsByMinute || []).map(item => {
-        const date = new Date(item.minute);
-        const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
-        return {
-          ...item,
-          minutesAfterMidnight,
-          timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
-        };
-      });
+  useEffect(() => {
+    const newBsmEventsByMinute = (props.bsmEventsByMinute || []).map((item) => {
+      const date = new Date(item.minute);
+      const minutesAfterMidnight = date.getHours() * 60 + date.getMinutes();
+      return {
+        ...item,
+        minutesAfterMidnight,
+        timestamp: formatMinutesAfterMidnightTime(minutesAfterMidnight),
+      };
+    });
 
-    
-      setReformattedTimelineData(newBsmEventsByMinute);
-      props.setBsmByMinuteUpdated(false);
-    }, [props.bsmByMinuteUpdated]);
-    
-    useEffect(() => {
-    }, [reformattedTimelineData]);
+    setReformattedTimelineData(newBsmEventsByMinute);
+    props.setBsmByMinuteUpdated(false);
+  }, [props.bsmByMinuteUpdated]);
+
+  useEffect(() => {}, [reformattedTimelineData]);
   const TimelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="custom-tooltip" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc', position: 'relative', bottom: '15px' }}>
-          <p className="label" style={{ color: '#333' }}>{`Time: ${payload[0].payload.timestamp}`}</p>
-          <p className="intro" style={{ color: '#333' }}>{`Events: ${payload[0].payload.count}`}</p>
+        <div
+          className="custom-tooltip"
+          style={{
+            backgroundColor: "#fff",
+            padding: "10px",
+            border: "1px solid #ccc",
+            position: "relative",
+            bottom: "15px",
+          }}
+        >
+          <p className="label" style={{ color: "#333" }}>{`Time: ${payload[0].payload.timestamp}`}</p>
+          <p className="intro" style={{ color: "#333" }}>{`Events: ${payload[0].payload.count}`}</p>
         </div>
       );
     }
@@ -339,12 +333,12 @@ function ControlPanel(props: ControlPanelProps) {
   const TimelineCursor: React.FC<TimelineCursorProps> = ({ x = 0, y = 0, width = 0, height = 0 }) => {
     return (
       <rect
-        x={(x+width/2)-6}
-        y={y-1}
+        x={x + width / 2 - 6}
+        y={y - 1}
         width={12}
-        height={height+3}
-        fill={(reformattedTimelineData != null && reformattedTimelineData.length > 0)? "#10B981" : "transparent"}
-        style={{ pointerEvents: 'none' }}
+        height={height + 3}
+        fill={reformattedTimelineData != null && reformattedTimelineData.length > 0 ? "#10B981" : "transparent"}
+        style={{ pointerEvents: "none" }}
       />
     );
   };
@@ -472,8 +466,7 @@ function ControlPanel(props: ControlPanelProps) {
                 type="number"
                 sx={{ mt: 1 }}
                 onChange={(e) => {
-                  if(e.target.value === "" || Number.isInteger(Number(e.target.value)))
-                  {
+                  if (e.target.value === "" || Number.isInteger(Number(e.target.value))) {
                     setTimeWindowSeconds(e.target.value);
                   }
                 }}
@@ -524,23 +517,31 @@ function ControlPanel(props: ControlPanelProps) {
                 ? "No Data"
                 : format(props.mapSpatTimes.spatTime * 1000, "MM/dd/yyyy HH:mm:ss")}
             </h4>
-            <h4>
-              Activity Chart for {format(props.sliderTimeValue.start, "MM/dd/yyyy")}:
-            </h4>
+            <h4>Activity Chart for {format(props.sliderTimeValue.start, "MM/dd/yyyy")}:</h4>
 
             <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={reformattedTimelineData} barGap={0} barCategoryGap={0} onClick={(data) => {
-                if(data !== null && data.activePayload !== undefined && data.activePayload !== null){
-                  setEventTime(dayjs(data.activePayload[0].payload.minute));
-                }
-              }}>
-                <XAxis dataKey="minutesAfterMidnight" type="number" domain={[0,1440]} tick={<TimelineAxisTick />} ticks={timelineTicks}/>
-                <Bar dataKey="count" fill="#D14343" barSize={10} minPointSize={10}>
-                </Bar>
+              <BarChart
+                data={reformattedTimelineData}
+                barGap={0}
+                barCategoryGap={0}
+                onClick={(data) => {
+                  if (data !== null && data.activePayload !== undefined && data.activePayload !== null) {
+                    setEventTime(dayjs(data.activePayload[0].payload.minute));
+                  }
+                }}
+              >
+                <XAxis
+                  dataKey="minutesAfterMidnight"
+                  type="number"
+                  domain={[0, 1440]}
+                  tick={<TimelineAxisTick />}
+                  ticks={timelineTicks}
+                />
+                <Bar dataKey="count" fill="#D14343" barSize={10} minPointSize={10}></Bar>
                 <Tooltip
                   cursor={<TimelineCursor />}
                   content={({ active, payload, label }) => (
-                    <TimelineTooltip active={active} payload={payload} label={label}/>
+                    <TimelineTooltip active={active} payload={payload} label={label} />
                   )}
                 />
               </BarChart>
@@ -636,12 +637,36 @@ function ControlPanel(props: ControlPanelProps) {
                 value={bsmTrailLengthLocal}
               />
             </div>
+            <div>
+              <h4 style={{ float: "left", marginTop: "10px" }}>Estimate Signal Head Locations </h4>
+              <Select
+                value={props.intersectionLayout}
+                onChange={(event) => {
+                  props.setIntersectionLayout(event.target.value as IntersectionSHLayoutType);
+                }}
+                displayEmpty
+                inputProps={{ "aria-label": "Without label" }}
+              >
+                <MenuItem key={"EDGES"} value={"EDGES"}>
+                  {"EDGES"}
+                </MenuItem>
+                <MenuItem key={"ACROSS"} value={"ACROSS"}>
+                  {"ACROSS"}
+                </MenuItem>
+                <MenuItem key={"ACROSS_AND_EDGES"} value={"ACROSS_AND_EDGES"}>
+                  {"ACROSS_AND_EDGES"}
+                </MenuItem>
+                {/* <MenuItem key={"DIAGONAL"} value={"DIAGONAL"}>
+                  {"DIAGONAL"}
+                </MenuItem> */}
+              </Select>
+            </div>
           </div>
         </AccordionDetails>
       </Accordion>
-      <div style={{ display: 'flex', alignItems: 'center' , marginTop: '1rem'}}>
+      <div style={{ display: "flex", alignItems: "center", marginTop: "1rem" }}>
         <button
-          style={{ marginLeft: '1rem', border: 'none', background: 'none' }}
+          style={{ marginLeft: "1rem", border: "none", background: "none" }}
           onClick={() => {
             props.setPlaybackModeActive((prevValue) => !prevValue);
           }}

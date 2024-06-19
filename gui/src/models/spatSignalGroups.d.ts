@@ -28,7 +28,7 @@ type SignalStateFeatureCollection = {
 type SignalStateFeature = {
   type: "Feature";
   properties: SignalStateProperties;
-  geometry: PointGemetry;
+  geometry: PointGeometry;
 };
 
 type SignalStateProperties = {
@@ -38,7 +38,7 @@ type SignalStateProperties = {
   orientation: number;
 };
 
-type PointGemetry = {
+type PointGeometry = {
   type: "Point";
   coordinates: number[];
 };

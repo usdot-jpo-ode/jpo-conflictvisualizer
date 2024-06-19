@@ -24,6 +24,7 @@ import * as turf from "@turf/turf";
 
 import { CompatClient, IMessage, Stomp } from "@stomp/stompjs";
 import mbStyle from "../../intersectionMapStyle.json";
+import { getSignalHeadLocations } from "./utilities/intersection_layouts";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -292,6 +293,7 @@ type MyProps = {
   intersectionId: number | undefined;
   roadRegulatorId: number | undefined;
   loadOnNull?: boolean;
+  layoutType?: IntersectionSHLayoutType;
 };
 
 const MapTab = (props: MyProps) => {
@@ -450,6 +452,7 @@ const MapTab = (props: MyProps) => {
   const [sigGroupLabelsVisible, setSigGroupLabelsVisible] = useState<boolean>(false);
   const [laneLabelsVisible, setLaneLabelsVisible] = useState<boolean>(false);
   const [showPopupOnHover, setShowPopupOnHover] = useState<boolean>(false);
+  const [intersectionLayout, setIntersectionLayout] = useState<IntersectionSHLayoutType>("EDGES");
   const [bsmTrailLength, setBsmTrailLength] = useState<number>(5);
   const [importedMessageData, setImportedMessageData] = useState<
     | {
@@ -469,7 +472,7 @@ const MapTab = (props: MyProps) => {
   const [liveDataActive, setLiveDataActive] = useState<boolean>(false);
   const [liveDataRestart, setLiveDataRestart] = useState<number>(-1);
   const [liveDataRestartTimeoutId, setLiveDataRestartTimeoutId] = useState<NodeJS.Timeout | undefined>(undefined);
-  const [_, setCurrentMapData] = useState<ProcessedMap[]>([]);
+  const [currentMapData, setCurrentMapData] = useState<ProcessedMap[]>([]);
   const [__, setCurrentSpatData] = useState<SpatSignalGroups>([]);
   const [currentProcessedSpatData, setCurrentProcessedSpatData] = useState<ProcessedSpat[]>([]);
   const [playbackModeActive, setPlaybackModeActive] = useState<boolean>(false);
@@ -483,56 +486,54 @@ const MapTab = (props: MyProps) => {
     console.debug("SELECTED FEATURE", selectedFeature);
   }, [selectedFeature]);
 
-  function deg2rad(deg: number) {
-    return deg * (Math.PI / 180);
-  }
-
-  function rad2deg(rad: number) {
-    return rad * (180 / Math.PI);
-  }
-
-  // get bearing between two lat/long points
-  function getBearingBetweenPoints(start: number[], end: number[]) {
-    if (!start || !end) return 0;
-    const lat1 = deg2rad(start[1]!);
-    const lon1 = deg2rad(start[0]!);
-    const lat2 = deg2rad(end[1]!);
-    const lon2 = deg2rad(end[0]!);
-    const dLon = lon2 - lon1;
-    const y = Math.sin(dLon) * Math.cos(lat2);
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    const brng = Math.atan2(y, x);
-    return rad2deg(brng);
-  }
-
-  const parseMapSignalGroups = (mapMessage: ProcessedMap): SignalStateFeatureCollection => {
+  const parseMapSignalGroups = (
+    mapMessage: ProcessedMap,
+    layoutType: IntersectionSHLayoutType
+  ): SignalStateFeatureCollection => {
     const features: SignalStateFeature[] = [];
 
-    mapMessage?.mapFeatureCollection?.features?.forEach((mapFeature: MapFeature) => {
-      // Find non-null signal group. connectsTo can have multiple entries, but only 1 may be non-null
-      var signalGroup: number | undefined = undefined;
-      mapFeature?.properties?.connectsTo?.forEach((connection: J2735Connection) => {
-        if (connection?.signalGroup) signalGroup = connection?.signalGroup;
-      });
-
-      if (!mapFeature.properties.ingressApproach || !signalGroup) {
-        return;
-      }
-      const coords = mapFeature.geometry.coordinates.slice(0, 2);
+    const signalHeadLocations = getSignalHeadLocations(mapMessage, layoutType);
+    signalHeadLocations.forEach((signalHead) => {
+      const signalGroup = mapMessage?.connectingLanesFeatureCollection?.features?.find(
+        (connectingLane: ConnectingLanesFeature) => {
+          return connectingLane.properties.ingressLaneId === signalHead.properties.laneId;
+        }
+      )?.properties.signalGroupId;
+      if (!signalGroup) return;
       features.push({
         type: "Feature",
         properties: {
           signalGroup: signalGroup,
           intersectionId: mapMessage.properties.intersectionId,
-          orientation: getBearingBetweenPoints(coords[1], coords[0]),
+          orientation: signalHead.properties.angle!,
           signalState: "UNAVAILABLE",
         },
         geometry: {
           type: "Point",
-          coordinates: mapFeature.geometry.coordinates[0],
+          coordinates: signalHead.geometry.coordinates,
         },
       });
     });
+
+    // mapMessage?.connectingLanesFeatureCollection?.features?.forEach((connectingLane: ConnectingLanesFeature) => {
+    //   if (!connectingLane.properties.signalGroupId) return;
+    //   features.push({
+    //     type: "Feature",
+    //     properties: {
+    //       signalGroup: connectingLane.properties.signalGroupId,
+    //       intersectionId: mapMessage.properties.intersectionId,
+    //       orientation: getBearingBetweenPoints(
+    //         connectingLane.geometry.coordinates[0],
+    //         connectingLane.geometry.coordinates[1]
+    //       ),
+    //       signalState: "UNAVAILABLE",
+    //     },
+    //     geometry: {
+    //       type: "Point",
+    //       coordinates: connectingLane.geometry.coordinates[0],
+    //     },
+    //   });
+    // });
 
     return {
       type: "FeatureCollection" as "FeatureCollection",
@@ -940,6 +941,7 @@ const MapTab = (props: MyProps) => {
       console.info("NO MAP MESSAGES WITHIN TIME");
       return;
     }
+    setCurrentMapData(rawMap);
 
     // ######################### MAP Data #########################
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
@@ -947,7 +949,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, intersectionLayout);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -1006,7 +1008,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, intersectionLayout);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -1083,6 +1085,10 @@ const MapTab = (props: MyProps) => {
     }
   }, [sliderValue]);
 
+  useEffect(() => {
+    setMapSignalGroups(parseMapSignalGroups(currentMapData.at(-1)!, intersectionLayout));
+  }, [intersectionLayout]);
+
   const resetMapView = () => {
     setMapSignalGroups(undefined);
     setSignalStateData(undefined);
@@ -1128,7 +1134,7 @@ const MapTab = (props: MyProps) => {
 
     // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage, intersectionLayout);
     setMapData(latestMapMessage);
     setMapSpatTimes((prevValue) => ({
       ...prevValue,
@@ -1713,6 +1719,8 @@ const MapTab = (props: MyProps) => {
                 bsmEventsByMinute={bsmEventsByMinute}
                 bsmByMinuteUpdated={bsmByMinuteUpdated}
                 setBsmByMinuteUpdated={setBsmByMinuteUpdated}
+                intersectionLayout={intersectionLayout}
+                setIntersectionLayout={setIntersectionLayout}
                 rawData={rawData}
               />
             </Paper>
