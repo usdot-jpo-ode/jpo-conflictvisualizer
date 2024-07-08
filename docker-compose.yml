@@ -30,6 +30,8 @@ services:
       dockerfile: Dockerfile
     container_name: jpo-conflictvisualizer-keycloak
     restart: always
+    depends_on:
+      - postgres
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -37,12 +39,24 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
       KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
-      DB_PORT: 5432
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: kc
+      
+      # DB_VENDOR: POSTGRES
+      # DB_ADDR: postgres
+      # DB_PORT: 5432
+      # DB_DATABASE: keycloak
+      # DB_USER: keycloak
+      # DB_PASSWORD: kc
+      
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://${PG_DB_HOST}/postgres?currentSchema=keycloak
+      KC_DB_URL_PROVIDER: jdbc:postgresql://${PG_DB_HOST}/postgres
+      KC_DB_USERNAME: ${PG_DB_USER}
+      KC_DB_PASSWORD: ${PG_DB_PASS}
+      KC_HOSTNAME: ${AUTH_SERVER_URL}
+
+      KC_PROXY: edge
+
+
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
 
@@ -52,39 +66,40 @@ services:
       - --log-level=INFO
       - --import-realm
       - --proxy edge
-      - --db postgres
-      - --db-url-host postgres
-      - --db-username $POSTGRES_USER
-      - --db-password $POSTGRES_PASSWORD
+      # - --db postgres
+      # - --db-url-host postgres
+      # - --db-username $PG_DB_USER
+      # - --db-password $PG_DB_PASS
     volumes:
-      - keycloak:/opt/keycloak/data/
       - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
 
   postgres:
-    container_name: postgres
-    image: "postgres:latest"
+    image: postgis/postgis:15-master
+    restart: always
+    ports:
+      - '5432:5432'
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      POSTGRES_USER: ${PG_DB_USER}
+      POSTGRES_PASSWORD: ${PG_DB_PASS}
     volumes:
-      - postgres:/data
-    ports:
-      - "5432:5432"
+      - pgdb:/var/lib/postgresql/data
+      - ./postgres/sql_scripts:/docker-entrypoint-initdb.d
+    logging:
+      options:
+        max-size: '10m'
 
-  pgadmin:
-    container_name: pgadmin
-    image: "dpage/pgadmin4:latest"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
+  # pgadmin:
+  #   container_name: pgadmin
+  #   image: "dpage/pgadmin4:latest"
+  #   environment:
+  #     POSTGRES_USER: ${PG_DB_USER}
+  #     POSTGRES_PASSWORD: ${PG_DB_PASS}
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - "5050:80"
 
   conflictvisualizer-api:
     build:
@@ -123,5 +138,5 @@ services:
         condition: service_started
 
 volumes:
-  keycloak:
-  postgres:
+  pgdb:
+    driver: local
