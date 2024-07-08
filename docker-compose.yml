@@ -35,42 +35,29 @@ services:
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
-      KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
-      
-      # DB_VENDOR: POSTGRES
-      # DB_ADDR: postgres
-      # DB_PORT: 5432
-      # DB_DATABASE: keycloak
-      # DB_USER: keycloak
-      # DB_PASSWORD: kc
-      
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://${PG_DB_HOST}/postgres?currentSchema=keycloak
-      KC_DB_URL_PROVIDER: jdbc:postgresql://${PG_DB_HOST}/postgres
-      KC_DB_USERNAME: ${PG_DB_USER}
-      KC_DB_PASSWORD: ${PG_DB_PASS}
-      KC_HOSTNAME: ${AUTH_SERVER_URL}
-
-      KC_PROXY: edge
-
-
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
-
-      
+      # WEBAPP_ORIGIN: ${AUTH_SERVER_URL}
+      # WEBAPP_CM_ORIGIN: ${AUTH_SERVER_URL}
+      # KC_HEALTH_ENABLED: true
+      # KC_DB: postgres
+      # KC_DB_URL: jdbc:postgresql://${PG_DB_HOST}/postgres?currentSchema=keycloak
+      # KC_DB_URL_PROVIDER: jdbc:postgresql://${PG_DB_HOST}/postgres
+      # KC_DB_USERNAME: ${PG_DB_USER}
+      # KC_DB_PASSWORD: ${PG_DB_PASS}
+      # KC_HOSTNAME: ${KEYCLOAK_DOMAIN}
+      # KEYCLOAK_API_CLIENT_SECRET_KEY: ${KEYCLOAK_API_CLIENT_SECRET_KEY}
+      # KEYCLOAK_CM_API_CLIENT_SECRET_KEY: ${KEYCLOAK_CM_API_CLIENT_SECRET_KEY}
+      # GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      # GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     command:
-      - start
+      - start-dev
       - --log-level=INFO
       - --import-realm
       - --proxy edge
-      # - --db postgres
-      # - --db-url-host postgres
-      # - --db-username $PG_DB_USER
-      # - --db-password $PG_DB_PASS
     volumes:
+      - keycloak:/opt/keycloak/data/
       - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
@@ -138,5 +125,6 @@ services:
         condition: service_started
 
 volumes:
+  keycloak:
   pgdb:
     driver: local
