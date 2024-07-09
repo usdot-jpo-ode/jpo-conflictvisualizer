@@ -35,22 +35,17 @@ services:
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      
+      KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
+      KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
+      
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
-      # WEBAPP_ORIGIN: ${AUTH_SERVER_URL}
-      # WEBAPP_CM_ORIGIN: ${AUTH_SERVER_URL}
-      # KC_HEALTH_ENABLED: true
-      # KC_DB: postgres
-      # KC_DB_URL: jdbc:postgresql://${PG_DB_HOST}/postgres?currentSchema=keycloak
-      # KC_DB_URL_PROVIDER: jdbc:postgresql://${PG_DB_HOST}/postgres
-      # KC_DB_USERNAME: ${PG_DB_USER}
-      # KC_DB_PASSWORD: ${PG_DB_PASS}
-      # KC_HOSTNAME: ${KEYCLOAK_DOMAIN}
-      # KEYCLOAK_API_CLIENT_SECRET_KEY: ${KEYCLOAK_API_CLIENT_SECRET_KEY}
-      # KEYCLOAK_CM_API_CLIENT_SECRET_KEY: ${KEYCLOAK_CM_API_CLIENT_SECRET_KEY}
-      # GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      # GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     command:
       - start-dev
       - --log-level=INFO
@@ -76,17 +71,6 @@ services:
     logging:
       options:
         max-size: '10m'
-
-  # pgadmin:
-  #   container_name: pgadmin
-  #   image: "dpage/pgadmin4:latest"
-  #   environment:
-  #     POSTGRES_USER: ${PG_DB_USER}
-  #     POSTGRES_PASSWORD: ${PG_DB_PASS}
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   ports:
-  #     - "5050:80"
 
   conflictvisualizer-api:
     build:
@@ -114,8 +98,8 @@ services:
       KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
       KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
       
-      #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
-      #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
+      KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
+      KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
     logging:
       options:
         max-size: "10m"
