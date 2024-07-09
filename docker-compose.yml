@@ -52,7 +52,7 @@ services:
       - --import-realm
       - --proxy edge
     volumes:
-      - keycloak:/opt/keycloak/data/
+      # - keycloak:/opt/keycloak/data/
       - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
@@ -109,6 +109,6 @@ services:
         condition: service_started
 
 volumes:
-  keycloak:
+  # keycloak:
   pgdb:
     driver: local
