@@ -35,24 +35,23 @@ services:
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      
       KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
       KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
-      
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
+      POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
+      KEYCLOAK_DB_USERNAME: ${PG_DB_USER}
+      KEYCLOAK_DB_PASSWORD: ${PG_DB_PASS} 
     command:
       - start-dev
       - --log-level=INFO
       - --import-realm
       - --proxy edge
     volumes:
-      # - keycloak:/opt/keycloak/data/
+      - keycloak:/opt/keycloak/data/
       - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
@@ -109,6 +108,6 @@ services:
         condition: service_started
 
 volumes:
-  # keycloak:
+  keycloak:
   pgdb:
     driver: local
