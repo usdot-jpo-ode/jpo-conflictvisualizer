@@ -99,6 +99,10 @@ services:
       
       KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
+
+      PG_DB_USER: ${PG_DB_USER} 
+      PG_DB_HOST: ${PG_DB_PASS}
+      POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
     logging:
       options:
         max-size: "10m"
