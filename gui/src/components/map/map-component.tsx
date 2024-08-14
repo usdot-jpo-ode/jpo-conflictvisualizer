@@ -874,13 +874,12 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           queryParams.roadRegulatorId
         );
         return;
-        // } else if (queryParams.intersectionId === -1) {
-        //   console.error("Intersection ID is -1. Not attempting to pull initial map data.");
-        //   cleanUpMappedData();
-        //   return;
+      } else if (queryParams.intersectionId === -1 && props.sourceDataType !== "exact") {
+        console.error("Intersection ID is -1. Not attempting to pull initial map data.");
+        resetMapView();
+        return;
       }
       console.debug("Pulling Initial Data");
-      cleanUpMappedData();
       pullInitialDataAbortControllers.forEach((abortController) => abortController.abort());
       let rawMap: ProcessedMap[] = [];
       let rawSpat: ProcessedSpat[] = [];
@@ -953,6 +952,14 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         rawMap = importedMessageData.mapData;
         rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
         rawBsm = importedMessageData.bsmData;
+      }
+      if (props.sourceDataType == "exact") {
+        let bsmGeojson = parseBsmToGeojson(rawBsm);
+        bsmGeojson = {
+          ...bsmGeojson,
+          features: [...bsmGeojson.features.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt)],
+        };
+        renderEntireMap([], [], bsmGeojson);
       }
       if (!rawMap || rawMap.length == 0) {
         console.info("NO MAP MESSAGES WITHIN TIME");
@@ -1086,8 +1093,24 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       currentSpatData: ProcessedSpat[],
       currentBsmData: BsmFeatureCollection
     ) => {
-      if (currentMapData.length == 0 && props.sourceDataType != "exact") {
-        console.error("Did not attempt to render map, no map messages available:", currentMapData);
+      if (props.sourceDataType == "exact") {
+        const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
+        // generate equally spaced unique colors for each uniqueId
+        const colors = generateColorDictionary(uniqueIds);
+        setMapLegendColors((prevValue) => ({
+          ...prevValue,
+          bsmColors: colors,
+        }));
+        // add color to each feature
+        const bsmLayerStyle = generateMapboxStyleExpression(colors);
+        setBsmLayerStyle((prevValue) => ({
+          ...prevValue,
+          paint: { ...prevValue.paint, "circle-color": bsmLayerStyle },
+        }));
+        setBsmData(currentBsmData);
+      }
+      if (currentMapData.length == 0) {
+        console.log("Did not attempt to render map, no map messages available:", currentMapData);
         return;
       }
       // ######################### MAP Data #########################
@@ -1113,17 +1136,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       const spatSignalGroupsLocal = parseSpatSignalGroups(currentSpatData);
 
       setSpatSignalGroups(spatSignalGroupsLocal);
-      const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
-      // generate equally spaced unique colors for each uniqueId
-      const colors = generateColorDictionary(uniqueIds);
-      setMapLegendColors((prevValue) => ({
-        ...prevValue,
-        bsmColors: colors,
-      }));
-      // add color to each feature
-      const bsmLayerStyle = generateMapboxStyleExpression(colors);
-      setBsmLayerStyle((prevValue) => ({ ...prevValue, paint: { ...prevValue.paint, "circle-color": bsmLayerStyle } }));
-      setBsmData(currentBsmData);
 
       // ######################### Message Data #########################
       rawData["map"] = currentMapData;
@@ -1146,6 +1158,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         )
       );
     };
+
     // Increment sliderValue by 1 every second when playbackModeActive is true
     useEffect(() => {
       if (playbackModeActive) {
@@ -1184,6 +1197,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       setFilteredSurroundingNotifications([]);
       setBsmData({ type: "FeatureCollection", features: [] });
       setCurrentBsms({ type: "FeatureCollection", features: [] });
+      console.log("1191 setCurrentBsms", { type: "FeatureCollection", features: [] });
       setMapSpatTimes({ mapTime: 0, spatTime: 0 });
       setRawData({});
       setSliderValue(0);
@@ -1380,6 +1394,11 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
     }, [queryParams]);
 
     useEffect(() => {
+      if (props.sourceDataType == "exact") {
+        // In "exact" mode, always show all BSMs. Timestamps are meaningless.
+        setCurrentBsms(bsmData);
+        console.log("1391 setCurrentBsms", bsmData);
+      }
       if (!mapSignalGroups || !spatSignalGroups) {
         console.debug("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
         return;
@@ -1408,10 +1427,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         setSignalStateData(undefined);
       }
 
-      if (props.sourceDataType == "exact") {
-        // In "exact" mode, always show all BSMs. Timestamps are meaningless.
-        setCurrentBsms(bsmData);
-      } else {
+      if (props.sourceDataType !== "exact") {
         // retrieve filtered BSMs
         const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
           (feature) =>
@@ -1445,6 +1461,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           }
         }
         setCurrentBsms({ ...bsmData, features: lastBsms });
+        console.log("1455 setCurrentBsms", { ...bsmData, features: lastBsms });
       }
 
       const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
@@ -1676,26 +1693,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       setLiveDataRestart(-1);
       setWsClient(undefined);
       setTimeWindowSeconds(60);
-    };
-
-    const cleanUpMappedData = () => {
-      setMapData(undefined);
-      setMapSignalGroups(undefined);
-      setSpatSignalGroups(undefined);
-      setConnectingLanes(undefined);
-      setSignalStateData(undefined);
-      setRawData({});
-      setFilteredSurroundingEvents([]);
-      setFilteredSurroundingNotifications([]);
-      setBsmData({ type: "FeatureCollection", features: [] });
-      setCurrentBsms({ type: "FeatureCollection", features: [] });
-      setCurrentSignalGroups(undefined);
-      setMapSpatTimes({ mapTime: 0, spatTime: 0 });
-      setSliderValue(0);
-      setPlaybackModeActive(false);
-      setCurrentSpatData([]);
-      setCurrentProcessedSpatData([]);
-      setCurrentBsmData({ type: "FeatureCollection", features: [] });
     };
 
     useEffect(() => {

@@ -21,25 +21,4 @@ type MAP_REFERENCE_TYPE = {
     heading?: number;
     animationDurationMs?: number;
   }) => void;
-
-  /**
-   * Render specified MAP data on map
-   *
-   * @param mapData - MAPs to be rendered
-   */
-  setRenderedMapData: (mapData: ProcessedMap) => void;
-
-  /**
-   * Render specified SPAT data on map
-   *
-   * @param spatData - SPATs to be rendered
-   */
-  setRenderedSpatData: (spatData: ProcessedSpat[]) => void;
-
-  /**
-   * Render specified BSM data on map
-   *
-   * @param bsmData - BSMs to be rendered
-   */
-  setRenderedBsmData: (bsmData: OdeBsmData[]) => void;
 };

@@ -95,7 +95,7 @@ class EventsApi {
     intersectionId: number;
     startTime: Date;
     endTime: Date;
-    test: boolean;
+    test?: boolean;
     abortController?: AbortController;
   }): Promise<MessageMonitor.MinuteCount[]> {
     const queryParams = {

@@ -19,7 +19,6 @@ const DecoderPage = () => {
   );
   const [selectedBsms, setSelectedBsms] = useState([] as string[]);
   const mapRef = useRef<MAP_REFERENCE_TYPE | null>(null);
-  const [trigger, setTrigger] = useState(0); // Trigger state
 
   console.log("Data", data);
 
@@ -42,7 +41,6 @@ const DecoderPage = () => {
       });
     }
     setData(freshData.reduce((acc, entry) => ({ ...acc, [entry.id]: entry }), {}));
-    setTrigger((prev) => prev + 1);
   }, []);
 
   const submitDecoderRequest = (data: string, type: DECODER_MESSAGE_TYPE) => {
@@ -75,7 +73,6 @@ const DecoderPage = () => {
             },
           };
         });
-        setTrigger((prev) => prev + 1);
       });
       let newEntry = {};
       if (prevData[id].text != undefined) {
@@ -89,7 +86,6 @@ const DecoderPage = () => {
           isGreyedOut: false,
           decodedResponse: undefined,
         };
-        setTrigger((prev) => prev + 1);
       }
       return {
         ...prevData,
@@ -113,7 +109,6 @@ const DecoderPage = () => {
         delete prevData[id];
         return { ...prevData };
       });
-      setTrigger((prev) => prev + 1);
     }
   };
 
@@ -125,7 +120,6 @@ const DecoderPage = () => {
         const rsuIp = data[id]?.decodedResponse?.processedMap?.properties?.originIp;
         if (intersectionId) {
           setSelectedMapMessage({ id, intersectionId, rsuIp: rsuIp! });
-          setTrigger((prev) => prev + 1);
         }
         return;
       case "BSM":
@@ -136,7 +130,6 @@ const DecoderPage = () => {
             return [...prevBsms, id];
           }
         });
-        setTrigger((prev) => prev + 1);
         return;
     }
   };
@@ -195,7 +188,7 @@ const DecoderPage = () => {
     });
   };
 
-  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
+  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined): number | undefined => {
     if (!decodedResponse) {
       return undefined;
     }
@@ -207,9 +200,8 @@ const DecoderPage = () => {
       case "SPAT":
         const spatPayload = decodedResponse.processedSpat;
         return spatPayload?.intersectionId;
-      case "BSM":
-        const bsmPayload = decodedResponse.bsm;
-        return bsmPayload?.metadata.originIp;
+      default:
+        return undefined;
     }
   };
 
@@ -220,15 +212,6 @@ const DecoderPage = () => {
   const isGreyedOutIp = (rsuIp: string | undefined) => {
     return (selectedMapMessage?.rsuIp === undefined || rsuIp !== selectedMapMessage?.rsuIp) && rsuIp != "";
   };
-
-  useEffect(() => {
-    mapRef.current?.setRenderedBsmData(
-      Object.values(data)
-        .filter((v) => v.type === "BSM" && v.status == "COMPLETED" && selectedBsms.includes(v.id))
-        .map((v) => v.decodedResponse?.bsm!)
-    );
-    console.log("Setting rendered BSM data", Object.values(data));
-  }, [data, trigger, selectedBsms]);
 
   return (
     <>
