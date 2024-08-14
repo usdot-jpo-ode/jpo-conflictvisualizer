@@ -26,6 +26,7 @@ type DecoderTableProps = {
   onTextChanged: (id: string, messageText: string, type: DECODER_MESSAGE_TYPE) => void;
   onItemDeleted: (id: string) => void;
   onFileUploaded: (contents: string[], type: DECODER_MESSAGE_TYPE) => void;
+  centerMapOnLocation: (lat: number, long: number) => void;
 };
 
 export const DecoderTables = (props: DecoderTableProps) => {
@@ -151,6 +152,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "MAP")}
                         onDeleted={onItemDeleted}
+                        centerMapOnLocation={props.centerMapOnLocation}
                       />
                     );
                   })}
@@ -197,6 +199,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "SPAT")}
                         onDeleted={onItemDeleted}
+                        centerMapOnLocation={props.centerMapOnLocation}
                       />
                     );
                   })}
@@ -248,6 +251,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         onSelected={onItemSelected}
                         onTextChanged={(id, text) => onTextChanged(id, text, "BSM")}
                         onDeleted={onItemDeleted}
+                        centerMapOnLocation={props.centerMapOnLocation}
                       />
                     );
                   })}

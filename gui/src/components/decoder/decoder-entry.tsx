@@ -35,6 +35,7 @@ type DecoderEntryProps = {
   onSelected: (id: string) => void;
   onTextChanged: (id: string, messageText: string) => void;
   onDeleted: (id: string) => void;
+  centerMapOnLocation: (lat: number, long: number) => void;
 };
 
 export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
@@ -103,7 +104,7 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
 
   const downloadJsonFile = (contents: any, name: string) => {
     const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(contents)], {
+    const file = new Blob([contents], {
       type: "text/plain",
     });
     element.href = URL.createObjectURL(file);
@@ -140,6 +141,21 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     }
   };
 
+  const zoomToObject = () => {
+    if (decodedResponse == undefined) return;
+    if (type == "MAP") {
+      const mapPayload = decodedResponse.processedMap;
+      const refPoint = mapPayload?.properties?.refPoint;
+      console.log("refPoint", refPoint);
+      if (refPoint) props.centerMapOnLocation(refPoint?.latitude, refPoint.longitude);
+    } else if (type == "BSM") {
+      const bsmPayload = decodedResponse.bsm;
+      const position = bsmPayload?.payload.data.coreData.position;
+      console.log("position", position);
+      if (position) props.centerMapOnLocation(position?.latitude, position.longitude);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell style={{ backgroundColor: getCellColor(), border: "1px solid white" }}>
@@ -166,6 +182,11 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
         <IconButton aria-label="download" onClick={handleDownloadClick} style={{ color: getIconColor() }}>
           <DownloadIcon />
         </IconButton>
+        {(type == "BSM" || type == "MAP") && (
+          <IconButton aria-label="map" onClick={zoomToObject} style={{ color: getIconColor() }}>
+            <MapRoundedIcon />
+          </IconButton>
+        )}
         {status === "IN_PROGRESS" && <CircularProgress />}
         <Box>
           <TextField
