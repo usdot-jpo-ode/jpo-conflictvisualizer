@@ -88,6 +88,7 @@ class GraphsApi {
     event_types,
     startTime,
     endTime,
+    abortController,
   }: {
     token: string;
     intersectionId: number;
@@ -95,6 +96,7 @@ class GraphsApi {
     event_types: string[];
     startTime: Date;
     endTime: Date;
+    abortController?: AbortController;
   }): Promise<Array<GraphArrayDataType>> {
     const queryParams: Record<string, string> = {};
     queryParams["intersection_id"] = intersectionId.toString();
@@ -110,6 +112,7 @@ class GraphsApi {
           path: `/events/${event_type}/daily_counts`,
           token: token,
           queryParams,
+          abortController,
           failureMessage: "Failed to generate graph data",
         });
         graphData.forEach((data) => {

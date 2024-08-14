@@ -30,7 +30,7 @@ class EventsApi {
     roadRegulatorId: number,
     startTime: Date,
     endTime: Date,
-    { latest = false }: { latest?: boolean } = {}
+    { latest = false, abortController }: { latest?: boolean; abortController?: AbortController } = {}
   ): Promise<MessageMonitor.Event[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
@@ -45,6 +45,7 @@ class EventsApi {
       path: `/events/${eventType}`,
       token: token,
       queryParams: queryParams,
+      abortController,
       failureMessage: `Failed to retrieve events of type ${eventType}`,
     });
     return response ?? ([] as MessageMonitor.Event[]);
@@ -55,7 +56,8 @@ class EventsApi {
     intersectionId: number,
     roadRegulatorId: number,
     startTime: Date,
-    endTime: Date
+    endTime: Date,
+    abortController?: AbortController
   ): Promise<MessageMonitor.Event[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
@@ -73,6 +75,7 @@ class EventsApi {
           path: `/events/${eventTypeObj.value}`,
           token: token,
           queryParams: queryParams,
+          abortController,
           failureMessage: `Failed to retrieve events of type ${eventTypeObj.value}`,
         })) ?? [];
       events.push(...response);
@@ -80,13 +83,19 @@ class EventsApi {
     return events;
   }
 
-  async getBsmByMinuteEvents(
-    token: string,
-    intersectionId: number,
-    startTime: Date,
-    endTime: Date,
-    { test = false }: { test?: boolean } = {}
-  ): Promise<MessageMonitor.MinuteCount[]> {
+  async getBsmByMinuteEvents({
+    token,
+    intersectionId,
+    startTime,
+    endTime,
+    abortController,
+  }: {
+    token: string;
+    intersectionId: number;
+    startTime: Date;
+    endTime: Date;
+    abortController?: AbortController;
+  }): Promise<MessageMonitor.MinuteCount[]> {
     const queryParams = {
       intersection_id: intersectionId.toString(),
       start_time_utc_millis: startTime.getTime().toString(),
@@ -99,6 +108,7 @@ class EventsApi {
       path: `/events/bsm_events_by_minute`,
       token: token,
       queryParams: queryParams,
+      abortController,
       failureMessage: `Failed to retrieve bsm events by minute`,
     });
     return response ?? ([] as MessageMonitor.MinuteCount[]);

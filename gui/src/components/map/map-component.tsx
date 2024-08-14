@@ -913,13 +913,12 @@ const MapTab = (props: MyProps) => {
       const dayEnd = new Date(queryParams.startDate);
       dayEnd.setHours(23, 59, 59, 0);
 
-      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
-        session?.accessToken,
-        queryParams.intersectionId,
-        dayStart,
-        dayEnd,
-        { test: false }
-      );
+      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents({
+        token: session?.accessToken,
+        intersectionId: queryParams.intersectionId,
+        startTime: dayStart,
+        endTime: dayEnd,
+      });
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
 
       // ######################### Surrounding Notifications #########################
