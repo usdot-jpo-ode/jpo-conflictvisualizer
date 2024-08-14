@@ -859,6 +859,14 @@ const MapTab = (props: MyProps) => {
           intersectionId: queryParams.intersectionId,
           roadRegulatorId: queryParams.roadRegulatorId,
         });
+        return;
+      } else {
+        setQueryParams({
+          ...generateQueryParams({ timestamp: Date.now() }, "timestamp"),
+          intersectionId: queryParams.intersectionId,
+          roadRegulatorId: queryParams.roadRegulatorId,
+        });
+        return;
       }
     } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
@@ -876,7 +884,30 @@ const MapTab = (props: MyProps) => {
         error: `Failed to get MAP data. Please see console`,
       });
       rawMap = await rawMapPromise;
+    } else {
+      rawMap = importedMessageData.mapData;
+      rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
+      rawBsm = importedMessageData.bsmData;
+    }
+    if (!rawMap || rawMap.length == 0) {
+      console.info("NO MAP MESSAGES WITHIN TIME");
+      return;
+    }
 
+    // ######################### MAP Data #########################
+    const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
+    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
+
+    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
+    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
+    setMapData(latestMapMessage);
+    setMapSpatTimes((prevValue) => ({
+      ...prevValue,
+      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
+    }));
+    setMapSignalGroups(mapSignalGroupsLocal);
+
+    if (importedMessageData == undefined) {
       // ######################### Retrieve SPAT Data #########################
       const rawSpatPromise = MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
@@ -930,29 +961,9 @@ const MapTab = (props: MyProps) => {
         endTime: queryParams.endDate,
       });
       surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
-    } else {
-      rawMap = importedMessageData.mapData;
-      rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
-      rawBsm = importedMessageData.bsmData;
     }
-    if (!rawMap || rawMap.length == 0) {
-      console.info("NO MAP MESSAGES WITHIN TIME");
-      return;
-    }
-
-    // ######################### MAP Data #########################
-    const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
-    const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
 
     // ######################### SPAT Signal Groups #########################
-    setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
-    const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
-    setMapData(latestMapMessage);
-    setMapSpatTimes((prevValue) => ({
-      ...prevValue,
-      mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
-    }));
-    setMapSignalGroups(mapSignalGroupsLocal);
     if (latestMapMessage != null) {
       setViewState({
         latitude: latestMapMessage?.properties.refPoint.latitude,
