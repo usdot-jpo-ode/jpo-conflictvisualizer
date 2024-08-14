@@ -823,8 +823,13 @@ const MapTab = (props: MyProps) => {
         queryParams.roadRegulatorId
       );
       return;
+    } else if (queryParams.intersectionId === -1) {
+      console.error("Intersection ID is -1. Not attempting to pull initial map data.");
+      cleanUpMappedData();
+      return;
     }
     console.debug("Pulling Initial Data");
+    cleanUpMappedData();
     pullInitialDataAbortControllers.forEach((abortController) => abortController.abort());
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
@@ -1614,6 +1619,26 @@ const MapTab = (props: MyProps) => {
     setLiveDataRestart(-1);
     setWsClient(undefined);
     setTimeWindowSeconds(60);
+  };
+
+  const cleanUpMappedData = () => {
+    setMapData(undefined);
+    setMapSignalGroups(undefined);
+    setSpatSignalGroups(undefined);
+    setConnectingLanes(undefined);
+    setSignalStateData(undefined);
+    setRawData({});
+    setFilteredSurroundingEvents([]);
+    setFilteredSurroundingNotifications([]);
+    setBsmData({ type: "FeatureCollection", features: [] });
+    setCurrentBsms({ type: "FeatureCollection", features: [] });
+    setCurrentSignalGroups(undefined);
+    setMapSpatTimes({ mapTime: 0, spatTime: 0 });
+    setSliderValue(0);
+    setPlaybackModeActive(false);
+    setCurrentSpatData([]);
+    setCurrentProcessedSpatData([]);
+    setCurrentBsmData({ type: "FeatureCollection", features: [] });
   };
 
   useEffect(() => {
