@@ -20,6 +20,8 @@ const DecoderPage = () => {
   const [selectedBsms, setSelectedBsms] = useState([] as string[]);
   const mapRef = useRef<MAP_REFERENCE_TYPE | null>(null);
 
+  const [currentBsms, setCurrentBsms] = useState([] as OdeBsmData[]);
+
   console.log("Data", data);
 
   useEffect(() => {
@@ -62,6 +64,7 @@ const DecoderPage = () => {
         if (type == "BSM") {
           setSelectedBsms((prevBsms) => [...prevBsms, id]);
         }
+        console.log("Response", response);
         setData((prevData) => {
           return {
             ...prevData,
@@ -69,13 +72,28 @@ const DecoderPage = () => {
               ...prevData[id],
               decodedResponse: response,
               timestamp: getTimestampFromType(type, response),
-              status: text == "" ? "NOT_STARTED" : response == undefined ? "ERROR" : "COMPLETED",
+              status: text == "" ? "NOT_STARTED" : response?.decodeErrors !== "" ? "ERROR" : "COMPLETED",
             },
           };
         });
       });
+      prevData = {
+        ...prevData,
+        [id]: {
+          id: id,
+          type: type,
+          status: "IN_PROGRESS",
+          selected: false,
+          isGreyedOut: false,
+          text: text,
+          decodedResponse: undefined,
+        },
+      };
       let newEntry = {};
-      if (prevData[id].text != undefined) {
+      if (
+        prevData[id].text != undefined &&
+        Object.values(prevData).find((v) => v.type == type && v.text == "") == undefined
+      ) {
         let newId = uuidv4();
         newEntry[newId] = {
           id: newId,
@@ -88,17 +106,8 @@ const DecoderPage = () => {
         };
       }
       return {
-        ...prevData,
         ...newEntry,
-        [id]: {
-          id: id,
-          type: type,
-          status: "IN_PROGRESS",
-          selected: false,
-          isGreyedOut: false,
-          text: text,
-          decodedResponse: undefined,
-        },
+        ...prevData,
       };
     });
   };
@@ -213,6 +222,14 @@ const DecoderPage = () => {
     return (selectedMapMessage?.rsuIp === undefined || rsuIp !== selectedMapMessage?.rsuIp) && rsuIp != "";
   };
 
+  useEffect(() => {
+    const newBsmData = Object.values(data)
+      .filter((v) => v.type === "BSM" && v.status === "COMPLETED" && selectedBsms.includes(v.id))
+      .map((v) => v.decodedResponse?.bsm);
+    setCurrentBsms(newBsmData.filter((v) => v !== undefined) as OdeBsmData[]);
+    console.log("Current BSMs", newBsmData.length);
+  }, [data, selectedBsms]);
+
   return (
     <>
       <Head>
@@ -264,9 +281,7 @@ const DecoderPage = () => {
                       v.type === "SPAT" && v.status == "COMPLETED" && !isGreyedOut(getIntersectionId(v.decodedResponse))
                   )
                   .map((v) => v.decodedResponse?.processedSpat!),
-                bsm: Object.values(data)
-                  .filter((v) => v.type === "BSM" && v.status == "COMPLETED" && selectedBsms.includes(v.id))
-                  .map((v) => v.decodedResponse?.bsm!),
+                bsm: currentBsms,
               }}
               sourceDataType={"exact"}
               intersectionId={-1}

@@ -54,9 +54,8 @@ export const DecoderTables = (props: DecoderTableProps) => {
       case "SPAT":
         const spatPayload = decodedResponse.processedSpat;
         return spatPayload?.intersectionId;
-      case "BSM":
-        const bsmPayload = decodedResponse.bsm;
-        return bsmPayload?.metadata.originIp;
+      default:
+        return undefined;
     }
   };
 

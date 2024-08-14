@@ -292,6 +292,7 @@ type MapProps = {
   intersectionId: number | undefined;
   roadRegulatorId: number | undefined;
   loadOnNull?: boolean;
+  timeFilterBsms?: boolean;
 };
 
 const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
@@ -313,7 +314,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         heading?: number;
         animationDurationMs?: number;
       }) => {
-        console.log("Centering map on point", latitude, longitude);
+        console.debug("Centering map on point", latitude, longitude);
         if (mapRef.current) {
           mapRef.current.flyTo({
             center: [longitude, latitude],
@@ -322,28 +323,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
             duration: animationDurationMs ?? 1000,
           });
         }
-      },
-      setRenderedMapData: (mapMessage: ProcessedMap) => {
-        const mapCoordinates: OdePosition3D = mapMessage?.properties.refPoint;
-
-        setConnectingLanes(mapMessage.connectingLanesFeatureCollection);
-        const mapSignalGroupsLocal = parseMapSignalGroups(mapMessage);
-        setMapData(mapMessage);
-        setMapSpatTimes((prevValue) => ({
-          ...prevValue,
-          mapTime: getTimestamp(mapMessage.properties.odeReceivedAt) / 1000,
-        }));
-        setMapSignalGroups(mapSignalGroupsLocal);
-      },
-      setRenderedSpatData: (spatData: ProcessedSpat[]) => {
-        console.log("Rendering SPAT data", spatData?.length);
-        const spatSignalGroups = parseSpatSignalGroups(spatData);
-        setSpatSignalGroups(spatSignalGroups);
-      },
-      setRenderedBsmData: (bsmData: OdeBsmData[]) => {
-        console.log("Rendering BSM data", bsmData?.length);
-        const bsmGeojson = parseBsmToGeojson(bsmData);
-        setBsmData(bsmGeojson);
       },
     }));
 
@@ -874,12 +853,17 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           queryParams.roadRegulatorId
         );
         return;
-      } else if (queryParams.intersectionId === -1 && props.sourceDataType !== "exact") {
-        console.error("Intersection ID is -1. Not attempting to pull initial map data.");
+      } else if (
+        queryParams.intersectionId === -1 &&
+        (props.sourceDataType !== "exact" || (props.sourceData as { map: ProcessedMap[] })?.map?.length === 0)
+      ) {
         resetMapView();
-        return;
+        if (props.sourceDataType !== "exact") {
+          console.log("Intersection ID is -1. Not attempting to pull initial map data.");
+          return;
+        }
       }
-      console.debug("Pulling Initial Data");
+      console.log("Pulling Initial Data");
       pullInitialDataAbortControllers.forEach((abortController) => abortController.abort());
       let rawMap: ProcessedMap[] = [];
       let rawSpat: ProcessedSpat[] = [];
@@ -979,7 +963,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       }));
       setMapSignalGroups(mapSignalGroupsLocal);
 
-      if (importedMessageData == undefined) {
+      if (importedMessageData == undefined && props.sourceDataType != "exact") {
         // ######################### Retrieve SPAT Data #########################
         let abortController = new AbortController();
         setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
@@ -1060,9 +1044,9 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       setSpatSignalGroups(spatSignalGroupsLocal);
 
       // ######################### BSMs #########################
-      abortController = new AbortController();
-      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       if (!importedMessageData && props.sourceDataType != "exact") {
+        abortController = new AbortController();
+        setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
         const rawBsmPromise = MessageMonitorApi.getBsmMessages({
           token: session?.accessToken,
           vehicleId: queryParams.vehicleId,
@@ -1197,7 +1181,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       setFilteredSurroundingNotifications([]);
       setBsmData({ type: "FeatureCollection", features: [] });
       setCurrentBsms({ type: "FeatureCollection", features: [] });
-      console.log("1191 setCurrentBsms", { type: "FeatureCollection", features: [] });
       setMapSpatTimes({ mapTime: 0, spatTime: 0 });
       setRawData({});
       setSliderValue(0);
@@ -1343,7 +1326,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       };
       setBsmData(currentBsmGeojson);
       setRawData((prevValue) => ({ ...prevValue, bsm: currentBsmGeojson }));
-      console.debug("BSM RENDER TIME:", Date.now() - start, "ms");
       return currentBsmGeojson;
     };
 
@@ -1391,13 +1373,11 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         clearTimeout(loadInitialDataTimeoutId);
       }
       setLoadInitialdataTimeoutId(setTimeout(pullInitialData, 500));
-    }, [queryParams]);
+    }, [queryParams, props.sourceData]);
 
     useEffect(() => {
-      if (props.sourceDataType == "exact") {
-        // In "exact" mode, always show all BSMs. Timestamps are meaningless.
+      if (props.timeFilterBsms == false) {
         setCurrentBsms(bsmData);
-        console.log("1391 setCurrentBsms", bsmData);
       }
       if (!mapSignalGroups || !spatSignalGroups) {
         console.debug("BSM Loading: No map or SPAT data", mapSignalGroups, spatSignalGroups);
@@ -1427,7 +1407,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         setSignalStateData(undefined);
       }
 
-      if (props.sourceDataType !== "exact") {
+      if (props.timeFilterBsms == false) {
         // retrieve filtered BSMs
         const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
           (feature) =>
@@ -1461,7 +1441,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           }
         }
         setCurrentBsms({ ...bsmData, features: lastBsms });
-        console.log("1455 setCurrentBsms", { ...bsmData, features: lastBsms });
       }
 
       const filteredEvents: MessageMonitor.Event[] = surroundingEvents.filter(
@@ -1562,7 +1541,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       let protocols = ["v10.stomp", "v11.stomp"];
       protocols.push(token);
       const url = `${publicRuntimeConfig.API_WS_URL}/stomp`;
-      console.debug("Connecting to STOMP endpoint: " + url + " with token: " + token);
+      console.debug("Connecting to STOMP endpoint: " + url);
 
       // Stomp Client Documentation: https://stomp-js.github.io/stomp-websocket/codo/extra/docs-src/Usage.md.html
       let client = Stomp.client(url, protocols);
@@ -1861,7 +1840,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
             mapStyle={mbStyle as mapboxgl.Style}
             onLoad={(e: mapboxgl.MapboxEvent<undefined>) => {
               const map = e.target;
-              console.log("MAP LOADED", mapRef.current, map, e.target);
+              console.debug("MAP LOADED", mapRef.current, map, e.target);
               if (!map) return;
               const images = [
                 "traffic-light-icon-unknown",
@@ -1878,7 +1857,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
                     console.error("Error loading image:", image_name, error, image, map.hasImage(image_name));
                     return;
                   }
-                  console.log("MAP IMAGE", image_name, map.hasImage(image_name));
+                  console.debug("MAP IMAGE", image_name, map.hasImage(image_name));
                   if (!map.hasImage(image_name)) map.addImage(image_name, image);
                 });
               }
