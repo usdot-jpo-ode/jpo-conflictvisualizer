@@ -478,6 +478,7 @@ const MapTab = (props: MyProps) => {
     features: [],
   });
   const [____, setLastSliderUpdate] = useState<number | undefined>(undefined);
+  const [pullInitialDataAbortControllers, setPullInitialDataAbortControllers] = useState<AbortController[]>([]);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
@@ -824,9 +825,11 @@ const MapTab = (props: MyProps) => {
       return;
     }
     console.debug("Pulling Initial Data");
+    pullInitialDataAbortControllers.forEach((abortController) => abortController.abort());
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
+    let abortController = new AbortController();
     if (props.sourceDataType == "exact") {
       rawMap = (props.sourceData as { map: ProcessedMap[] }).map.map((map) => ({
         ...map,
@@ -847,11 +850,14 @@ const MapTab = (props: MyProps) => {
         },
       }));
     } else if (queryParams.default == true) {
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const latestSpats = await MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         latest: true,
+        abortController,
       });
       if (latestSpats && latestSpats.length > 0) {
         setQueryParams({
@@ -870,6 +876,8 @@ const MapTab = (props: MyProps) => {
       }
     } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
@@ -877,6 +885,7 @@ const MapTab = (props: MyProps) => {
         //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
         endTime: queryParams.endDate,
         latest: true,
+        abortController,
       });
       toast.promise(rawMapPromise, {
         loading: `Loading MAP Data`,
@@ -909,12 +918,15 @@ const MapTab = (props: MyProps) => {
 
     if (importedMessageData == undefined) {
       // ######################### Retrieve SPAT Data #########################
+      let abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const rawSpatPromise = MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
+        abortController,
       });
       toast.promise(rawSpatPromise, {
         loading: `Loading SPAT Data`,
@@ -928,13 +940,16 @@ const MapTab = (props: MyProps) => {
           utcTimeStamp: getTimestamp(spat.utcTimeStamp),
         }));
 
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       // ######################### Surrounding Events #########################
       const surroundingEventsPromise = EventsApi.getAllEvents(
         session?.accessToken,
         queryParams.intersectionId,
         queryParams.roadRegulatorId,
         queryParams.startDate,
-        queryParams.endDate
+        queryParams.endDate,
+        abortController
       );
       surroundingEventsPromise.then((events) => setSurroundingEvents(events));
 
@@ -944,21 +959,27 @@ const MapTab = (props: MyProps) => {
       const dayEnd = new Date(queryParams.startDate);
       dayEnd.setHours(23, 59, 59, 0);
 
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
         startTime: dayStart,
         endTime: dayEnd,
+        abortController,
       });
       bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
 
       // ######################### Surrounding Notifications #########################
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         startTime: queryParams.startDate,
         endTime: queryParams.endDate,
+        abortController,
       });
       surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
     }
@@ -977,6 +998,8 @@ const MapTab = (props: MyProps) => {
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     // ######################### BSMs #########################
+    abortController = new AbortController();
+    setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
     if (!importedMessageData && props.sourceDataType != "exact") {
       const rawBsmPromise = MessageMonitorApi.getBsmMessages({
         token: session?.accessToken,
@@ -986,6 +1009,7 @@ const MapTab = (props: MyProps) => {
         long: mapCoordinates.longitude,
         lat: mapCoordinates.latitude,
         distance: 500,
+        abortController,
       });
       toast.promise(rawBsmPromise, {
         loading: `Loading BSM Data`,
