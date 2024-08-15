@@ -284,6 +284,7 @@ const DecoderPage = () => {
                 bsm: currentBsms,
               }}
               sourceDataType={"exact"}
+              timeFilterBsms={false}
               intersectionId={-1}
               roadRegulatorId={-1}
             />
