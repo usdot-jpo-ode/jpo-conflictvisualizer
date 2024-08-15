@@ -1407,7 +1407,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
         setSignalStateData(undefined);
       }
 
-      if (props.timeFilterBsms == false) {
+      if (props.timeFilterBsms !== false) {
         // retrieve filtered BSMs
         const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
           (feature) =>
