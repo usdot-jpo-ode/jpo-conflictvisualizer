@@ -243,7 +243,7 @@ export const DecoderTables = (props: DecoderTableProps) => {
                         status={entry.status}
                         type={entry.type}
                         text={entry.text}
-                        isGreyedOut={false}
+                        isGreyedOut={!selectedBsms.includes(entry.id)}
                         decodedResponse={entry.decodedResponse}
                         selected={selectedBsms.includes(entry.id)}
                         timestamp={entry.timestamp}
