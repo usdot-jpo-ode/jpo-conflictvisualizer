@@ -478,6 +478,7 @@ const MapTab = (props: MyProps) => {
     features: [],
   });
   const [____, setLastSliderUpdate] = useState<number | undefined>(undefined);
+  const [pullInitialDataAbortControllers, setPullInitialDataAbortControllers] = useState<AbortController[]>([]);
 
   useEffect(() => {
     console.debug("SELECTED FEATURE", selectedFeature);
@@ -822,11 +823,18 @@ const MapTab = (props: MyProps) => {
         queryParams.roadRegulatorId
       );
       return;
+    } else if (queryParams.intersectionId === -1) {
+      console.error("Intersection ID is -1. Not attempting to pull initial map data.");
+      cleanUpMappedData();
+      return;
     }
     console.debug("Pulling Initial Data");
+    cleanUpMappedData();
+    pullInitialDataAbortControllers.forEach((abortController) => abortController.abort());
     let rawMap: ProcessedMap[] = [];
     let rawSpat: ProcessedSpat[] = [];
     let rawBsm: OdeBsmData[] = [];
+    let abortController = new AbortController();
     if (props.sourceDataType == "exact") {
       rawMap = (props.sourceData as { map: ProcessedMap[] }).map.map((map) => ({
         ...map,
@@ -847,11 +855,14 @@ const MapTab = (props: MyProps) => {
         },
       }));
     } else if (queryParams.default == true) {
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const latestSpats = await MessageMonitorApi.getSpatMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
         roadRegulatorId: queryParams.roadRegulatorId,
         latest: true,
+        abortController,
       });
       if (latestSpats && latestSpats.length > 0) {
         setQueryParams({
@@ -859,9 +870,19 @@ const MapTab = (props: MyProps) => {
           intersectionId: queryParams.intersectionId,
           roadRegulatorId: queryParams.roadRegulatorId,
         });
+        return;
+      } else {
+        setQueryParams({
+          ...generateQueryParams({ timestamp: Date.now() }, "timestamp"),
+          intersectionId: queryParams.intersectionId,
+          roadRegulatorId: queryParams.roadRegulatorId,
+        });
+        return;
       }
     } else if (importedMessageData == undefined) {
       // ######################### Retrieve MAP Data #########################
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
       const rawMapPromise = MessageMonitorApi.getMapMessages({
         token: session?.accessToken,
         intersectionId: queryParams.intersectionId,
@@ -869,6 +890,7 @@ const MapTab = (props: MyProps) => {
         //startTime: new Date(queryParams.startDate.getTime() - 1000 * 60 * 60 * 1),
         endTime: queryParams.endDate,
         latest: true,
+        abortController,
       });
       toast.promise(rawMapPromise, {
         loading: `Loading MAP Data`,
@@ -876,61 +898,6 @@ const MapTab = (props: MyProps) => {
         error: `Failed to get MAP data. Please see console`,
       });
       rawMap = await rawMapPromise;
-
-      // ######################### Retrieve SPAT Data #########################
-      const rawSpatPromise = MessageMonitorApi.getSpatMessages({
-        token: session?.accessToken,
-        intersectionId: queryParams.intersectionId,
-        roadRegulatorId: queryParams.roadRegulatorId,
-        startTime: queryParams.startDate,
-        endTime: queryParams.endDate,
-      });
-      toast.promise(rawSpatPromise, {
-        loading: `Loading SPAT Data`,
-        success: `Successfully got SPAT Data`,
-        error: `Failed to get SPAT data. Please see console`,
-      });
-      rawSpat = (await rawSpatPromise)
-        .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
-        .map((spat) => ({
-          ...spat,
-          utcTimeStamp: getTimestamp(spat.utcTimeStamp),
-        }));
-
-      // ######################### Surrounding Events #########################
-      const surroundingEventsPromise = EventsApi.getAllEvents(
-        session?.accessToken,
-        queryParams.intersectionId,
-        queryParams.roadRegulatorId,
-        queryParams.startDate,
-        queryParams.endDate
-      );
-      surroundingEventsPromise.then((events) => setSurroundingEvents(events));
-
-      // ######################### BSM Events By Minute #########################
-      const dayStart = new Date(queryParams.startDate);
-      dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(queryParams.startDate);
-      dayEnd.setHours(23, 59, 59, 0);
-
-      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents(
-        session?.accessToken,
-        queryParams.intersectionId,
-        dayStart,
-        dayEnd,
-        { test: false }
-      );
-      bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
-
-      // ######################### Surrounding Notifications #########################
-      const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
-        token: session?.accessToken,
-        intersectionId: queryParams.intersectionId,
-        roadRegulatorId: queryParams.roadRegulatorId,
-        startTime: queryParams.startDate,
-        endTime: queryParams.endDate,
-      });
-      surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
     } else {
       rawMap = importedMessageData.mapData;
       rawSpat = importedMessageData.spatData.sort((a, b) => a.utcTimeStamp - b.utcTimeStamp);
@@ -945,7 +912,6 @@ const MapTab = (props: MyProps) => {
     const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
     const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
 
-    // ######################### SPAT Signal Groups #########################
     setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
     const mapSignalGroupsLocal = parseMapSignalGroups(latestMapMessage);
     setMapData(latestMapMessage);
@@ -954,6 +920,76 @@ const MapTab = (props: MyProps) => {
       mapTime: getTimestamp(latestMapMessage.properties.odeReceivedAt) / 1000,
     }));
     setMapSignalGroups(mapSignalGroupsLocal);
+
+    if (importedMessageData == undefined) {
+      // ######################### Retrieve SPAT Data #########################
+      let abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
+      const rawSpatPromise = MessageMonitorApi.getSpatMessages({
+        token: session?.accessToken,
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
+        startTime: queryParams.startDate,
+        endTime: queryParams.endDate,
+        abortController,
+      });
+      toast.promise(rawSpatPromise, {
+        loading: `Loading SPAT Data`,
+        success: `Successfully got SPAT Data`,
+        error: `Failed to get SPAT data. Please see console`,
+      });
+      rawSpat = (await rawSpatPromise)
+        .sort((a, b) => a.utcTimeStamp - b.utcTimeStamp)
+        .map((spat) => ({
+          ...spat,
+          utcTimeStamp: getTimestamp(spat.utcTimeStamp),
+        }));
+
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
+      // ######################### Surrounding Events #########################
+      const surroundingEventsPromise = EventsApi.getAllEvents(
+        session?.accessToken,
+        queryParams.intersectionId,
+        queryParams.roadRegulatorId,
+        queryParams.startDate,
+        queryParams.endDate,
+        abortController
+      );
+      surroundingEventsPromise.then((events) => setSurroundingEvents(events));
+
+      // ######################### BSM Events By Minute #########################
+      const dayStart = new Date(queryParams.startDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(queryParams.startDate);
+      dayEnd.setHours(23, 59, 59, 0);
+
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
+      const bsmEventsByMinutePromise = EventsApi.getBsmByMinuteEvents({
+        token: session?.accessToken,
+        intersectionId: queryParams.intersectionId,
+        startTime: dayStart,
+        endTime: dayEnd,
+        abortController,
+      });
+      bsmEventsByMinutePromise.then((events) => setBsmEventsByMinute(events));
+
+      // ######################### Surrounding Notifications #########################
+      abortController = new AbortController();
+      setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
+      const surroundingNotificationsPromise = NotificationApi.getAllNotifications({
+        token: session?.accessToken,
+        intersectionId: queryParams.intersectionId,
+        roadRegulatorId: queryParams.roadRegulatorId,
+        startTime: queryParams.startDate,
+        endTime: queryParams.endDate,
+        abortController,
+      });
+      surroundingNotificationsPromise.then((notifications) => setSurroundingNotifications(notifications));
+    }
+
+    // ######################### SPAT Signal Groups #########################
     if (latestMapMessage != null) {
       setViewState({
         latitude: latestMapMessage?.properties.refPoint.latitude,
@@ -967,6 +1003,8 @@ const MapTab = (props: MyProps) => {
     setSpatSignalGroups(spatSignalGroupsLocal);
 
     // ######################### BSMs #########################
+    abortController = new AbortController();
+    setPullInitialDataAbortControllers((prevValue) => [...prevValue, abortController]);
     if (!importedMessageData && props.sourceDataType != "exact") {
       const rawBsmPromise = MessageMonitorApi.getBsmMessages({
         token: session?.accessToken,
@@ -976,6 +1014,7 @@ const MapTab = (props: MyProps) => {
         long: mapCoordinates.longitude,
         lat: mapCoordinates.latitude,
         distance: 500,
+        abortController,
       });
       toast.promise(rawBsmPromise, {
         loading: `Loading BSM Data`,
@@ -1580,6 +1619,26 @@ const MapTab = (props: MyProps) => {
     setLiveDataRestart(-1);
     setWsClient(undefined);
     setTimeWindowSeconds(60);
+  };
+
+  const cleanUpMappedData = () => {
+    setMapData(undefined);
+    setMapSignalGroups(undefined);
+    setSpatSignalGroups(undefined);
+    setConnectingLanes(undefined);
+    setSignalStateData(undefined);
+    setRawData({});
+    setFilteredSurroundingEvents([]);
+    setFilteredSurroundingNotifications([]);
+    setBsmData({ type: "FeatureCollection", features: [] });
+    setCurrentBsms({ type: "FeatureCollection", features: [] });
+    setCurrentSignalGroups(undefined);
+    setMapSpatTimes({ mapTime: 0, spatTime: 0 });
+    setSliderValue(0);
+    setPlaybackModeActive(false);
+    setCurrentSpatData([]);
+    setCurrentProcessedSpatData([]);
+    setCurrentBsmData({ type: "FeatureCollection", features: [] });
   };
 
   useEffect(() => {
