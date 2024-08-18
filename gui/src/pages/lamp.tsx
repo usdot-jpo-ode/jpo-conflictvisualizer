@@ -18,7 +18,7 @@ const lampProfile: LAMPProfile = {
 
 let jsonString = JSON.stringify({
   name: lampProfile.name,
-  keyCloakEndpoint: lampProfile.keycloak_endpoint,
+  keycloakEndpoint: lampProfile.keycloak_endpoint,
   cimmsBroker: lampProfile.cimms_broker,
   realm: lampProfile.realm,
   client: lampProfile.client,
@@ -43,7 +43,7 @@ const Page = () => {
             Light Activity Monitoring Platform
           </Typography>
           <Typography sx={{ mb: 3, textAlign: 'center' }} variant="body1">
-            Use the LAMP app to reasearch further into the alignement of signal lights with their messages. Use this QR code to create a profile in the LAMP app:
+            Use the LAMP app to research further into the alignment of traffic lights with their MAP and SPaT messages. Simply scan this QR code in LAMP to create a profile:
           </Typography>
           <Box
             sx={{
