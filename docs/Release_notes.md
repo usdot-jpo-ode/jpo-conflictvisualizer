@@ -1,5 +1,24 @@
 ## JPO COnflict Visualizer Release Notes
 
+## Version 1.3.0
+
+### **Summary**
+
+Enhancements in this release:
+
+- Added vehicle activity chart to map page
+- Added message count API endpoints
+- Added message count widgets
+- Improved chart rendering
+- Added auto reconnect to web sockets
+- Fixed time serialization on STOMP endpoints
+- Added deterministic vehicle color rendering
+- Removed public keycloak client secrets
+- Fixed Swagger Dashboard compatibility issues with updated Spring Versions
+- Added endpoint to get BSM events
+- Added intersection names to UI
+- Bug Fixes
+
 ## Version 1.2.0
 
 ### **Summary**

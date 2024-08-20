@@ -6,7 +6,7 @@ type ProcessedMap = {
 
 type MapSharedProperties = {
   messageType: string;
-  odeReceivedAt: string;
+  odeReceivedAt: number;
   originIp: string;
   intersectionName?: string;
   region?: number;

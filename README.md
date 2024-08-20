@@ -121,7 +121,7 @@ The below section provides additional instruction on how to setup the conflict v
 
 The conflict visualizer API requires the following dependencies be installed to run locally
 
-- Java 11
+- Java 21
 - Maven
 
 Additionally there are other dependencies installed through maven.

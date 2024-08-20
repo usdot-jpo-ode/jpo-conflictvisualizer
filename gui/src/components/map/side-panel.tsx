@@ -48,8 +48,18 @@ interface SidePanelProps {
   bsms: BsmFeatureCollection;
   events: MessageMonitor.Event[];
   notifications: MessageMonitor.Notification[];
-  sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
-  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+  sourceData:
+    | MessageMonitor.Notification
+    | MessageMonitor.Event
+    | Assessment
+    | { timestamp: number }
+    | {
+        map: ProcessedMap[];
+        spat: ProcessedSpat[];
+        bsm: OdeBsmData[];
+      }
+    | undefined;
+  sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined;
 }
 
 export const SidePanel = (props: SidePanelProps) => {
@@ -67,15 +77,35 @@ export const SidePanel = (props: SidePanelProps) => {
     bsms: BsmFeatureCollection;
     events: MessageMonitor.Event[];
     notifications: MessageMonitor.Notification[];
-    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined;
-    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined;
+    sourceData:
+      | MessageMonitor.Notification
+      | MessageMonitor.Event
+      | Assessment
+      | { timestamp: number }
+      | {
+          map: ProcessedMap[];
+          spat: ProcessedSpat[];
+          bsm: OdeBsmData[];
+        }
+      | undefined;
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined;
   } = props;
 
   const [open, setOpen] = useState(false);
 
   const getDataTable = (
-    sourceData: MessageMonitor.Notification | MessageMonitor.Event | Assessment | { timestamp: number } | undefined,
-    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | undefined
+    sourceData:
+      | MessageMonitor.Notification
+      | MessageMonitor.Event
+      | Assessment
+      | { timestamp: number }
+      | {
+          map: ProcessedMap[];
+          spat: ProcessedSpat[];
+          bsm: OdeBsmData[];
+        }
+      | undefined,
+    sourceDataType: "notification" | "event" | "assessment" | "timestamp" | "exact" | undefined
   ) => {
     switch (sourceDataType) {
       case "notification":

@@ -1,29 +1,28 @@
 version: "3"
 services:
-  # conflictvisualizer-gui:
-  #   build:
-  #     context: gui
-  #     dockerfile: Dockerfile
-  #     args:
-  #       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-  #       NEXTAUTH_URL: ${NEXTAUTH_URL}
-  #       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-  #       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-  #       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-  #       MAPBOX_TOKEN: ${MAPBOX_TOKEN}
-  #       MAPBOX_STYLE_URL: ${MAPBOX_STYLE_URL}
-  #       GUI_SERVER_URL: ${GUI_SERVER_URL}
-  #       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
-  #       API_SERVER_URL: ${API_SERVER_URL}
-  #       API_WS_URL: ${API_WS_URL}
-  #   restart: always
-  #   ports:
-  #     - "3000:3000"
-  #   image: jpo-conflictvisualizer-gui:latest
-  #   logging:
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "5"
+  conflictvisualizer-gui:
+    build:
+      context: gui
+      dockerfile: Dockerfile
+      args:
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        NEXTAUTH_URL: ${NEXTAUTH_URL}
+        KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+        KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+        KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+        MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+        GUI_SERVER_URL: ${GUI_SERVER_URL}
+        AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+        API_SERVER_URL: ${API_SERVER_URL}
+        API_WS_URL: ${API_WS_URL}
+    restart: always
+    ports:
+      - "3000:3000"
+    image: jpo-conflictvisualizer-gui:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   # keycloak:
   #   build:
@@ -65,6 +64,14 @@ services:
       SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
       CM_SERVER_URL: ${CM_SERVER_URL}
       load: "false"
+      KAFKA_TYPE: "ON-PREM"
+      ACM_CONFIG_FILE: adm.properties
+      ACM_LOG_TO_CONSOLE: true
+      ACM_LOG_TO_FILE: false
+      ACM_LOG_LEVEL: DEBUG
+      CM_MONGO_API_USERNAME: ${CM_MONGO_API_USERNAME}
+      CM_MONGO_API_PASSWORD: ${CM_MONGO_API_PASSWORD}
+
       #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
     logging:
