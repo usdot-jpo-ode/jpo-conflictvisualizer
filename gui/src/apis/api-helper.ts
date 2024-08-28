@@ -18,6 +18,7 @@ class AuthApiHelper {
     body,
     token,
     timeout,
+    abortController,
     responseType = "json",
     booleanResponse = false,
     toastOnFailure = true,
@@ -33,6 +34,7 @@ class AuthApiHelper {
     body?: Object;
     token?: string;
     timeout?: number;
+    abortController?: AbortController;
     responseType?: string;
     booleanResponse?: boolean;
     toastOnFailure?: boolean;
@@ -48,11 +50,12 @@ class AuthApiHelper {
       localHeaders["Content-Type"] = "application/json";
     }
 
-    let controller: AbortController | undefined = undefined;
     let id: NodeJS.Timeout | undefined = undefined;
     if (timeout) {
-      controller = new AbortController();
-      id = setTimeout(() => controller?.abort(), timeout);
+      if (!abortController) {
+        abortController = new AbortController();
+      }
+      id = setTimeout(() => abortController?.abort(), timeout);
     }
 
     const options: RequestInit = {
@@ -64,7 +67,7 @@ class AuthApiHelper {
           : JSON.stringify(body)
         : undefined,
       mode: "cors",
-      signal: controller?.signal,
+      signal: abortController?.signal,
     };
 
     console.debug("MAKING REQUEST TO " + url + " WITH OPTIONS", options);
@@ -96,8 +99,12 @@ class AuthApiHelper {
       })
       .catch((error: Error) => {
         const errorMessage = failureMessage ?? "Fetch request failed";
-        toast.error(errorMessage + ". Error: " + error.message);
-        console.error(error.message);
+        if (error.name !== "AbortError") {
+          toast.error(errorMessage + ". Error: " + error.message);
+          console.error(error.message);
+        } else {
+          console.log("Request aborted");
+        }
       });
     if (id) clearTimeout(id);
     return resp;

@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -35,6 +35,7 @@ type DecoderEntryProps = {
   onSelected: (id: string) => void;
   onTextChanged: (id: string, messageText: string) => void;
   onDeleted: (id: string) => void;
+  centerMapOnLocation: (lat: number, long: number) => void;
 };
 
 export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
@@ -51,6 +52,14 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     onTextChanged,
     onDeleted,
   } = props;
+
+  const [localText, setLocalText] = React.useState(text);
+  const [previouslySubmittedText, setPreviouslySubmittedText] = React.useState(text);
+
+  useEffect(() => {
+    setLocalText(text);
+    setPreviouslySubmittedText("");
+  }, [id]);
 
   const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
     if (!decodedResponse) {
@@ -74,8 +83,18 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     onSelected(id);
   };
 
-  const handleTextChange = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    onTextChanged(id, event.target.value);
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && previouslySubmittedText !== localText) {
+      onTextChanged(id, localText);
+      setPreviouslySubmittedText(localText);
+    }
+  };
+
+  const handleBlur = () => {
+    if (previouslySubmittedText !== localText) {
+      onTextChanged(id, localText);
+      setPreviouslySubmittedText(localText);
+    }
   };
 
   const handleDeleteClick = () => {
@@ -103,7 +122,7 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
 
   const downloadJsonFile = (contents: any, name: string) => {
     const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(contents)], {
+    const file = new Blob([contents], {
       type: "text/plain",
     });
     element.href = URL.createObjectURL(file);
@@ -140,6 +159,21 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
     }
   };
 
+  const zoomToObject = () => {
+    if (decodedResponse == undefined) return;
+    if (type == "MAP") {
+      const mapPayload = decodedResponse.processedMap;
+      const refPoint = mapPayload?.properties?.refPoint;
+      console.log("refPoint", refPoint);
+      if (refPoint) props.centerMapOnLocation(refPoint?.latitude, refPoint.longitude);
+    } else if (type == "BSM") {
+      const bsmPayload = decodedResponse.bsm;
+      const position = bsmPayload?.payload.data.coreData.position;
+      console.log("position", position);
+      if (position) props.centerMapOnLocation(position?.latitude, position.longitude);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell style={{ backgroundColor: getCellColor(), border: "1px solid white" }}>
@@ -159,23 +193,42 @@ export const DecoderEntry = (props: DecoderDataEntry & DecoderEntryProps) => {
           )}
         </div>
         <br></br>
-        <TextField value={text} placeholder="Paste data here" onChange={handleTextChange} sx={{ width: 160 }} />
+        <TextField
+          value={localText}
+          placeholder="Paste data here"
+          onChange={(e) => setLocalText(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          sx={{ width: 160 }}
+        />
         <IconButton aria-label="delete" onClick={handleDeleteClick} style={{ color: getIconColor() }}>
           <DeleteIcon />
         </IconButton>
         <IconButton aria-label="download" onClick={handleDownloadClick} style={{ color: getIconColor() }}>
           <DownloadIcon />
         </IconButton>
+        {(type == "BSM" || type == "MAP") && (
+          <IconButton aria-label="map" onClick={zoomToObject} style={{ color: getIconColor() }}>
+            <MapRoundedIcon />
+          </IconButton>
+        )}
         {status === "IN_PROGRESS" && <CircularProgress />}
-        <Box>
-          <TextField
-            value={
-              "Errors: " + (decodedResponse?.decodeErrors == "" ? "None" : decodedResponse?.decodeErrors) ?? "None"
-            }
-            InputProps={{ readOnly: true }}
-            fullWidth
-          />
-        </Box>
+        {decodedResponse?.decodeErrors !== "" && decodedResponse?.decodeErrors !== undefined && (
+          <Box>
+            <Typography
+              variant="subtitle1"
+              color="black"
+              sx={{
+                display: "flex",
+                whiteSpace: "normal",
+                overflowWrap: "break-word",
+                wordBreak: "break-all",
+              }}
+            >
+              {"Errors: " + (decodedResponse?.decodeErrors == "" ? "None" : decodedResponse?.decodeErrors) ?? "None"}
+            </Typography>
+          </Box>
+        )}
       </TableCell>
     </TableRow>
   );
