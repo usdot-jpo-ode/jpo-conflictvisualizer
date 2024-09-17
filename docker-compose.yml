@@ -43,8 +43,8 @@ services:
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
       POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
-      KEYCLOAK_DB_USERNAME: ${PG_DB_USER}
-      KEYCLOAK_DB_PASSWORD: ${PG_DB_PASS} 
+      KEYCLOAK_DB_USERNAME: ${POSTGRES_USER}
+      KEYCLOAK_DB_PASSWORD: ${POSTGRES_PASSWORD} 
     command:
       - start-dev
       - --log-level=INFO
@@ -62,8 +62,8 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: ${PG_DB_USER}
-      POSTGRES_PASSWORD: ${PG_DB_PASS}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdb:/var/lib/postgresql/data
       - ./postgres/sql_scripts:/docker-entrypoint-initdb.d
@@ -100,8 +100,8 @@ services:
       KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
 
-      PG_DB_USER: ${PG_DB_USER} 
-      PG_DB_HOST: ${PG_DB_PASS}
+      PG_DB_USER: ${POSTGRES_USER} 
+      PG_DB_HOST: ${POSTGRES_PASSWORD}
       POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
     logging:
       options:
