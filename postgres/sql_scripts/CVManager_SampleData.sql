@@ -37,7 +37,7 @@ INSERT INTO public.rsus(
 
 INSERT INTO public.organizations(
 	name)
-	VALUES ('Test Org'), ('Test Org 2');
+	VALUES ('Test Org');
 
 INSERT INTO public.roles(
 	name)
@@ -49,12 +49,12 @@ INSERT INTO public.rsu_organization(
 
 -- Replace user with a real gmail to test GCP OAuth2.0 support
 INSERT INTO public.users(
-	user_id, email, first_name, last_name, created_timestamp, super_user, receive_error_emails)
-	VALUES ('fc3d8729-8526-4aaa-805b-d64bf3b93860'::UUID, 'test@gmail.com', 'Test', 'User', (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000),'1', '1');
+	email, first_name, last_name, super_user)
+	VALUES ('test@gmail.com', 'Test', 'User', '1');
 
 INSERT INTO public.user_organization(
 	user_id, organization_id, role_id)
-	VALUES ('fc3d8729-8526-4aaa-805b-d64bf3b93860'::UUID, 1, 1), ('fc3d8729-8526-4aaa-805b-d64bf3b93860'::UUID, 2, 3);
+	VALUES (1, 1, 1);
 
 INSERT INTO public.snmp_msgfwd_type(
 	name)
@@ -69,3 +69,19 @@ INSERT INTO public.snmp_msgfwd_config(
 	(2, 2, 2, 'BSM', '10.0.0.81', 46800, '2024/04/01T00:00:00', '2034/04/01T00:00:00', '1'),
 	(2, 3, 1, 'MAP', '10.0.0.80', 44920, '2024/04/01T00:00:00', '2034/04/01T00:00:00', '1'),
 	(2, 3, 2, 'SPAT', '10.0.0.80', 44910, '2024/04/01T00:00:00', '2034/04/01T00:00:00', '1');
+
+INSERT INTO public.email_type(
+	email_type)
+	VALUES ('Support Requests'), ('Firmware Upgrade Failures'), ('Daily Message Counts');
+
+INSERT INTO public.intersections(
+	intersection_number, ref_pt, intersection_name)
+	VALUES (1, ST_GeomFromText('POINT(-105.014182 39.740422)'), 'Test Intersection');
+
+INSERT INTO public.intersection_organization(
+	intersection_id, organization_id)
+	VALUES (1, 1);
+
+INSERT INTO public.rsu_intersection(
+	rsu_id, intersection_id)
+	VALUES (1, 1);

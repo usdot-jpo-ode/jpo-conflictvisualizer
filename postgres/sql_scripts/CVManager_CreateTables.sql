@@ -223,15 +223,20 @@ CREATE TABLE IF NOT EXISTS public.roles
    CONSTRAINT roles_name UNIQUE (name)
 );
 
+CREATE SEQUENCE public.users_user_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
 CREATE TABLE IF NOT EXISTS public.users
 (
-   user_id UUID NOT NULL,
+   user_id integer NOT NULL DEFAULT nextval('users_user_id_seq'::regclass),
    email character varying(128) COLLATE pg_catalog.default NOT NULL,
-   first_name character varying(128),
-   last_name character varying(128),
-   created_timestamp bigint NOT NULL,
-   super_user bit(1) DEFAULT 0::bit NOT NULL,
-   receive_error_emails bit(1) DEFAULT 0::bit NOT NULL,
+   first_name character varying(128) NOT NULL,
+   last_name character varying(128) NOT NULL,
+   super_user bit(1) NOT NULL,
    CONSTRAINT users_pkey PRIMARY KEY (user_id),
    CONSTRAINT users_email UNIQUE (email)
 );
@@ -247,6 +252,7 @@ CREATE TABLE IF NOT EXISTS public.organizations
 (
    organization_id integer NOT NULL DEFAULT nextval('organizations_organization_id_seq'::regclass),
    name character varying(128) COLLATE pg_catalog.default NOT NULL,
+   email character varying(128) COLLATE pg_catalog.default,
    CONSTRAINT organizations_pkey PRIMARY KEY (organization_id),
    CONSTRAINT organizations_name UNIQUE (name)
 );
@@ -261,7 +267,7 @@ CREATE SEQUENCE public.user_organization_user_organization_id_seq
 CREATE TABLE IF NOT EXISTS public.user_organization
 (
    user_organization_id integer NOT NULL DEFAULT nextval('user_organization_user_organization_id_seq'::regclass),
-   user_id UUID NOT NULL,
+   user_id integer NOT NULL,
    organization_id integer NOT NULL,
    role_id integer NOT NULL,
    CONSTRAINT user_organization_pkey PRIMARY KEY (user_organization_id),
@@ -302,6 +308,7 @@ CREATE TABLE IF NOT EXISTS public.rsu_organization
       ON DELETE NO ACTION
 );
 
+-- TODO: should combine with intersection table?
 CREATE TABLE IF NOT EXISTS public.map_info
 (
    ipv4_address inet NOT NULL,
@@ -395,4 +402,128 @@ CREATE TABLE IF NOT EXISTS public.snmp_msgfwd_config
 		ON DELETE NO ACTION
 );
 
+CREATE SEQUENCE public.email_type_email_type_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.email_type
+(
+   email_type_id integer NOT NULL DEFAULT nextval('email_type_email_type_id_seq'::regclass),
+   CONSTRAINT email_type_pkey PRIMARY KEY (email_type_id),
+   email_type character varying(128) COLLATE pg_catalog.default NOT NULL,
+   CONSTRAINT email_type_unique UNIQUE (email_type)
+);
+
+CREATE SEQUENCE public.user_email_notification_user_email_notification_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.user_email_notification
+(
+   user_email_notification_id integer NOT NULL DEFAULT nextval('user_email_notification_user_email_notification_id_seq'::regclass),
+   user_id integer NOT NULL,
+   email_type_id integer NOT NULL,
+   CONSTRAINT user_email_notification_pkey PRIMARY KEY (user_email_notification_id),
+   CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+      REFERENCES public.users (user_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION,
+   CONSTRAINT fk_email_type_id FOREIGN KEY (email_type_id)
+      REFERENCES public.email_type (email_type_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION
+);
+
+CREATE SEQUENCE public.obu_ota_request_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.obu_ota_requests (
+   request_id integer NOT NULL DEFAULT nextval('obu_ota_request_id_seq'::regclass),
+	obu_sn character varying(128) NOT NULL,
+	request_datetime timestamp NOT NULL,
+	origin_ip inet NOT NULL,
+   obu_firmware_version varchar(128) NOT NULL,
+   requested_firmware_version varchar(128) NOT NULL,
+	error_status bit(1) NOT NULL,
+   error_message varchar(128) NOT NULL,
+   manufacturer int4 NOT NULL,
+	CONSTRAINT fk_manufacturer FOREIGN KEY (manufacturer) REFERENCES public.manufacturers(manufacturer_id)
+);
+
 CREATE SCHEMA IF NOT EXISTS keycloak;
+
+-- Intersections
+CREATE SEQUENCE public.intersections_intersection_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.intersections
+(
+   intersection_id integer NOT NULL DEFAULT nextval('intersections_intersection_id_seq'::regclass),
+   intersection_number character varying(128) NOT NULL,
+   ref_pt GEOGRAPHY(POINT, 4326) NOT NULL,
+   bbox GEOGRAPHY(POLYGON, 4326),
+   intersection_name character varying(128),
+   origin_ip inet,
+   CONSTRAINT intersection_pkey PRIMARY KEY (intersection_id),
+   CONSTRAINT intersection_intersection_number UNIQUE (intersection_number)
+);
+
+CREATE SEQUENCE public.intersection_organization_intersection_organization_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.intersection_organization
+(
+   intersection_organization_id integer NOT NULL DEFAULT nextval('intersection_organization_intersection_organization_id_seq'::regclass),
+   intersection_id integer NOT NULL,
+   organization_id integer NOT NULL,
+   CONSTRAINT intersection_organization_pkey PRIMARY KEY (intersection_organization_id),
+   CONSTRAINT fk_intersection_id FOREIGN KEY (intersection_id)
+      REFERENCES public.intersections (intersection_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION,
+   CONSTRAINT fk_organization_id FOREIGN KEY (organization_id)
+      REFERENCES public.organizations (organization_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION
+);
+
+CREATE SEQUENCE public.rsu_intersection_rsu_intersection_id_seq
+   INCREMENT 1
+   START 1
+   MINVALUE 1
+   MAXVALUE 2147483647
+   CACHE 1;
+
+CREATE TABLE IF NOT EXISTS public.rsu_intersection
+(
+   rsu_intersection_id integer NOT NULL DEFAULT nextval('rsu_intersection_rsu_intersection_id_seq'::regclass),
+   rsu_id integer NOT NULL,
+   intersection_id integer NOT NULL,
+   CONSTRAINT rsu_intersection_pkey PRIMARY KEY (rsu_intersection_id),
+   CONSTRAINT fk_rsu_id FOREIGN KEY (rsu_id)
+      REFERENCES public.rsus (rsu_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION,
+   CONSTRAINT fk_intersection_id FOREIGN KEY (intersection_id)
+      REFERENCES public.intersections (intersection_id) MATCH SIMPLE
+      ON UPDATE NO ACTION
+      ON DELETE NO ACTION
+);
