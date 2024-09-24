@@ -1077,7 +1077,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       currentSpatData: ProcessedSpat[],
       currentBsmData: BsmFeatureCollection
     ) => {
-      if (props.sourceDataType == "exact") {
+      if (props.sourceDataType == "exact" && currentMapData.length == 0) {
         const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
         // generate equally spaced unique colors for each uniqueId
         const colors = generateColorDictionary(uniqueIds);
@@ -1092,8 +1092,9 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           paint: { ...prevValue.paint, "circle-color": bsmLayerStyle },
         }));
         setBsmData(currentBsmData);
+        return;
       }
-      if (currentMapData.length == 0) {
+      else if (currentMapData.length == 0) {
         console.log("Did not attempt to render map, no map messages available:", currentMapData);
         return;
       }
@@ -1120,6 +1121,21 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       const spatSignalGroupsLocal = parseSpatSignalGroups(currentSpatData);
 
       setSpatSignalGroups(spatSignalGroupsLocal);
+      
+      const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
+      // generate equally spaced unique colors for each uniqueId
+      const colors = generateColorDictionary(uniqueIds);
+      setMapLegendColors((prevValue) => ({
+        ...prevValue,
+        bsmColors: colors,
+      }));
+      // add color to each feature
+      const bsmLayerStyle = generateMapboxStyleExpression(colors);
+      setBsmLayerStyle((prevValue) => ({
+        ...prevValue,
+        paint: { ...prevValue.paint, "circle-color": bsmLayerStyle },
+      }));
+      setBsmData(currentBsmData);
 
       // ######################### Message Data #########################
       rawData["map"] = currentMapData;
@@ -1410,8 +1426,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       if (props.timeFilterBsms !== false) {
         // retrieve filtered BSMs
         const filteredBsms: BsmFeature[] = bsmData?.features?.filter(
-          (feature) =>
-            feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
+          (feature) => feature.properties?.odeReceivedAt >= renderTimeInterval[0] &&
             feature.properties?.odeReceivedAt <= renderTimeInterval[1]
         );
         const sortedBsms = filteredBsms.sort((a, b) => b.properties.odeReceivedAt - a.properties.odeReceivedAt);
@@ -1464,7 +1479,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       const filteredStartTime = startTime + sliderValue / 10 - timeWindowSeconds;
       const filteredEndTime = startTime + sliderValue / 10;
 
-      console.log("Filtered Time Interval:", filteredStartTime, filteredEndTime, sliderValue, timeWindowSeconds);
       setRenderTimeInterval([filteredStartTime, filteredEndTime]);
     }, [sliderValue, queryParams, timeWindowSeconds]);
 
