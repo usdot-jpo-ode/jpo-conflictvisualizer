@@ -175,6 +175,7 @@ const markerLayer: LayerProps = {
   },
 };
 
+// TS in milliseconds
 export const getTimestamp = (dt: any): number => {
   try {
     const dtFromString = Date.parse(dt as any as string);
@@ -192,6 +193,44 @@ export const getTimestamp = (dt: any): number => {
     return 0;
   }
 };
+
+// algorithm:
+// 1. Convert odeReceivedAt to a unix timestamp, in milliseconds
+// 2. Convert the secMarkMs to seconds
+// 3. Pull out the second and minute from the odeReceivedAt timestamp
+// case 1: odeReceivedAtSecondOfMinute < secMarkSecondOfMinute
+//   - decrement the minute by 1
+//   - set the second to secMarkSecond
+//   # Logic: Assume clocks are relatively in sync, so if the secMark is in the future, it must be in the next minute
+// case 2: Math.abs((odeReceivedAtSecondOfMinute - 60) - secMarkSecondOfMinute) < 30
+//   - increment the minute by 1
+//   - set the second to secMarkSecond
+//   # Logic: We know the odeReceivedAt is
+export const getTimestampWithSecMark = (odeReceivedAt: any, secMarkMs: number): number => {
+  const dt: number = getTimestamp(odeReceivedAt);
+  const odeReceivedAtDate = new Date(dt);
+  const odeReceivedAtSecondOfMinute = odeReceivedAtDate.getUTCSeconds();
+  const secMarkSecondOfMinute = Math.floor(secMarkMs / 1000);
+
+  const diff = odeReceivedAtSecondOfMinute - secMarkSecondOfMinute; // delay, in seconds
+
+  let adjustedDate = new Date(dt);
+
+  if (diff < 0) {
+    adjustedDate.setUTCMinutes(adjustedDate.getUTCMinutes() - 1);
+  }
+
+  adjustedDate.setUTCSeconds(secMarkSecondOfMinute);
+  return adjustedDate.getTime();
+};
+// test cases
+// odeReceivedAtSecondOfMinute = 10, secMarkSecondOfMinute = 15 -> odeReceivedAt is 55 seconds ahead. Subtract 1 minute and set seconds to secMarkSecondOfMinute
+// odeReceivedAtSecondOfMinute = 10, secMarkSecondOfMinute = 5 -> odeReceivedAt is 5 seconds behind. Set seconds to secMarkSecondOfMinute
+// odeReceivedAtSecondOfMinute = 5, secMarkSecondOfMinute = 59 -> odeReceivedAt is 6 seconds behind. Set seconds to secMarkSecondOfMinute
+// odeReceivedAtSecondOfMinute = 59, secMarkSecondOfMinute = 55 -> odeReceivedAt is 4 seconds ahead. Add 1 minute and set seconds to secMarkSecondOfMinute
+
+// const diff_normal = odeReceivedAtSecondOfMinute - secMarkSecondOfMinute // delay, in seconds
+// const diff_ode = (odeReceivedAtSecondOfMinute + 60) - (secMarkSecondOfMinute) // delay, in seconds
 
 const generateQueryParams = (
   source:
@@ -694,7 +733,8 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
             type: "Feature",
             properties: {
               ...bsm.payload.data.coreData,
-              odeReceivedAt: new Date(bsm.metadata.odeReceivedAt as string).getTime() / 1000,
+              odeReceivedAt:
+                getTimestampWithSecMark(bsm.metadata.odeReceivedAt, bsm.payload.data.coreData.secMark) / 1000,
             },
             geometry: {
               type: "Point",
@@ -885,7 +925,8 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           ...bsm,
           metadata: {
             ...bsm.metadata,
-            odeReceivedAt: getTimestamp(bsm.metadata.odeReceivedAt),
+            odeReceivedAt:
+              getTimestampWithSecMark(bsm.metadata.odeReceivedAt, bsm.payload.data.coreData.secMark) / 1000,
           },
         }));
       } else if (queryParams.default == true) {
@@ -1077,7 +1118,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       currentSpatData: ProcessedSpat[],
       currentBsmData: BsmFeatureCollection
     ) => {
-      if (props.sourceDataType == "exact") {
+      if (props.sourceDataType == "exact" && currentMapData.length == 0) {
         const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
         // generate equally spaced unique colors for each uniqueId
         const colors = generateColorDictionary(uniqueIds);
@@ -1092,8 +1133,8 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
           paint: { ...prevValue.paint, "circle-color": bsmLayerStyle },
         }));
         setBsmData(currentBsmData);
-      }
-      if (currentMapData.length == 0) {
+        return;
+      } else if (currentMapData.length == 0) {
         console.log("Did not attempt to render map, no map messages available:", currentMapData);
         return;
       }
@@ -1120,6 +1161,21 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       const spatSignalGroupsLocal = parseSpatSignalGroups(currentSpatData);
 
       setSpatSignalGroups(spatSignalGroupsLocal);
+
+      const uniqueIds = new Set(currentBsmData.features.map((bsm) => bsm.properties?.id).sort());
+      // generate equally spaced unique colors for each uniqueId
+      const colors = generateColorDictionary(uniqueIds);
+      setMapLegendColors((prevValue) => ({
+        ...prevValue,
+        bsmColors: colors,
+      }));
+      // add color to each feature
+      const bsmLayerStyle = generateMapboxStyleExpression(colors);
+      setBsmLayerStyle((prevValue) => ({
+        ...prevValue,
+        paint: { ...prevValue.paint, "circle-color": bsmLayerStyle },
+      }));
+      setBsmData(currentBsmData);
 
       // ######################### Message Data #########################
       rawData["map"] = currentMapData;
@@ -1464,7 +1520,6 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       const filteredStartTime = startTime + sliderValue / 10 - timeWindowSeconds;
       const filteredEndTime = startTime + sliderValue / 10;
 
-      console.log("Filtered Time Interval:", filteredStartTime, filteredEndTime, sliderValue, timeWindowSeconds);
       setRenderTimeInterval([filteredStartTime, filteredEndTime]);
     }, [sliderValue, queryParams, timeWindowSeconds]);
 
