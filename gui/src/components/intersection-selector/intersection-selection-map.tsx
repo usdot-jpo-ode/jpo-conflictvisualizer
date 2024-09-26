@@ -3,6 +3,7 @@ import Map, { Layer, MapRef, Marker, Popup, Source, SymbolLayer } from "react-ma
 
 import { Container, Col } from "reactstrap";
 import getConfig from "next/config";
+import mbStyle from "../../intersectionMapStyle.json";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -146,7 +147,7 @@ const IntersectionMap = (props: Props) => {
         <Map
           {...viewState}
           ref={myRef}
-          mapStyle={publicRuntimeConfig.MAPBOX_STYLE_URL!}
+          mapStyle={mbStyle as mapboxgl.Style}
           mapboxAccessToken={MAPBOX_API_TOKEN}
           attributionControl={true}
           customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
