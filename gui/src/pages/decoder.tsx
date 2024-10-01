@@ -22,8 +22,6 @@ const DecoderPage = () => {
 
   const [currentBsms, setCurrentBsms] = useState([] as OdeBsmData[]);
 
-  console.log("Data", data);
-
   useEffect(() => {
     const freshData = [] as DecoderDataEntry[];
     for (let i = 0; i < 3; i++) {
@@ -64,7 +62,6 @@ const DecoderPage = () => {
         if (type == "BSM") {
           setSelectedBsms((prevBsms) => [...prevBsms, id]);
         }
-        console.log("Response", response);
         setData((prevData) => {
           return {
             ...prevData,
@@ -227,7 +224,6 @@ const DecoderPage = () => {
       .filter((v) => v.type === "BSM" && v.status === "COMPLETED" && selectedBsms.includes(v.id))
       .map((v) => v.decodedResponse?.bsm);
     setCurrentBsms(newBsmData.filter((v) => v !== undefined) as OdeBsmData[]);
-    console.log("Current BSMs", newBsmData.length);
   }, [data, selectedBsms]);
 
   return (
@@ -314,7 +310,6 @@ const DecoderPage = () => {
             selectedBsms={selectedBsms}
             setSelectedBsms={setSelectedBsms}
             centerMapOnLocation={(lat: number, long: number) => {
-              console.log("Centering map on location", lat, long, mapRef.current);
               if (mapRef.current) {
                 mapRef.current?.centerMapOnPoint({ latitude: lat, longitude: long });
               }
