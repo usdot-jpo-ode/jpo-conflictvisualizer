@@ -1,5 +1,20 @@
 ## JPO COnflict Visualizer Release Notes
 
+## Version 1.4.0
+
+### **Summary**
+
+Enhancements in this release:
+- Added new Page for Decoding Raw ASN.1 data and plotting it on a map
+- Removed requirement for external mapbox style
+- Added endpoints for getting MAP messages from coordinate pairs
+- Updated Mock Event Generation to include Dark Events from Conflict Monitor
+- Updated calls to Conflict Monitor configuration page to use proper content-types
+- UI automatically cancels rest requests if user switches pages
+- Enable displaying BSM's even if SPaT and MAP data are missing
+- Fixed decoder logic not properly identifying certain message types
+
+
 ## Version 1.3.0
 
 ### **Summary**
