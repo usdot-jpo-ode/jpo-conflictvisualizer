@@ -7,7 +7,7 @@ type DecoderApiResponseGeneric = {
   decodeErrors: string;
   asn1Text: string;
   processedMap: ProcessedMap | undefined;
-  processedSpat: processedSpat | undefined;
+  processedSpat: ProcessedSpat | undefined;
   bsm: OdeBsmData | undefined;
 };
 

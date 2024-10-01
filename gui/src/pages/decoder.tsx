@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import { Box, Button, Container, Grid, Typography } from "@mui/material";
 import DecoderApi from "../apis/decoder-api";
@@ -8,18 +8,19 @@ import { DecoderTables } from "../components/decoder/decoder-tables";
 import { v4 as uuidv4 } from "uuid";
 import MapIcon from "@mui/icons-material/Map";
 import MapTab, { getTimestamp } from "../components/map/map-component";
+import { number } from "prop-types";
 
 const DecoderPage = () => {
   const { data: session } = useSession();
 
-  const [openMapDialog, setOpenMapDialog] = useState(false);
   const [data, setData] = useState({} as { [id: string]: DecoderDataEntry });
   const [selectedMapMessage, setSelectedMapMessage] = useState(
     undefined as undefined | { id: string; intersectionId: number; rsuIp: string }
   );
   const [selectedBsms, setSelectedBsms] = useState([] as string[]);
+  const mapRef = useRef<MAP_REFERENCE_TYPE | null>(null);
 
-  console.log("Data", data);
+  const [currentBsms, setCurrentBsms] = useState([] as OdeBsmData[]);
 
   useEffect(() => {
     const freshData = [] as DecoderDataEntry[];
@@ -68,13 +69,28 @@ const DecoderPage = () => {
               ...prevData[id],
               decodedResponse: response,
               timestamp: getTimestampFromType(type, response),
-              status: text == "" ? "NOT_STARTED" : response == undefined ? "ERROR" : "COMPLETED",
+              status: text == "" ? "NOT_STARTED" : response?.decodeErrors !== "" ? "ERROR" : "COMPLETED",
             },
           };
         });
       });
+      prevData = {
+        ...prevData,
+        [id]: {
+          id: id,
+          type: type,
+          status: "IN_PROGRESS",
+          selected: false,
+          isGreyedOut: false,
+          text: text,
+          decodedResponse: undefined,
+        },
+      };
       let newEntry = {};
-      if (prevData[id].text != undefined) {
+      if (
+        prevData[id].text != undefined &&
+        Object.values(prevData).find((v) => v.type == type && v.text == "") == undefined
+      ) {
         let newId = uuidv4();
         newEntry[newId] = {
           id: newId,
@@ -87,17 +103,8 @@ const DecoderPage = () => {
         };
       }
       return {
-        ...prevData,
         ...newEntry,
-        [id]: {
-          id: id,
-          type: type,
-          status: "IN_PROGRESS",
-          selected: false,
-          isGreyedOut: false,
-          text: text,
-          decodedResponse: undefined,
-        },
+        ...prevData,
       };
     });
   };
@@ -187,7 +194,7 @@ const DecoderPage = () => {
     });
   };
 
-  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined) => {
+  const getIntersectionId = (decodedResponse: DecoderApiResponseGeneric | undefined): number | undefined => {
     if (!decodedResponse) {
       return undefined;
     }
@@ -199,9 +206,8 @@ const DecoderPage = () => {
       case "SPAT":
         const spatPayload = decodedResponse.processedSpat;
         return spatPayload?.intersectionId;
-      case "BSM":
-        const bsmPayload = decodedResponse.bsm;
-        return bsmPayload?.metadata.originIp;
+      default:
+        return undefined;
     }
   };
 
@@ -212,6 +218,13 @@ const DecoderPage = () => {
   const isGreyedOutIp = (rsuIp: string | undefined) => {
     return (selectedMapMessage?.rsuIp === undefined || rsuIp !== selectedMapMessage?.rsuIp) && rsuIp != "";
   };
+
+  useEffect(() => {
+    const newBsmData = Object.values(data)
+      .filter((v) => v.type === "BSM" && v.status === "COMPLETED" && selectedBsms.includes(v.id))
+      .map((v) => v.decodedResponse?.bsm);
+    setCurrentBsms(newBsmData.filter((v) => v !== undefined) as OdeBsmData[]);
+  }, [data, selectedBsms]);
 
   return (
     <>
@@ -249,10 +262,11 @@ const DecoderPage = () => {
               alignItems: "center",
               display: "flex",
               overflow: "hidden",
-              height: "50vh",
+              height: "80vh",
             }}
           >
             <MapTab
+              ref={mapRef}
               sourceData={{
                 map: Object.values(data)
                   .filter((v) => v.type === "MAP" && v.status == "COMPLETED" && v.id == selectedMapMessage?.id)
@@ -263,11 +277,10 @@ const DecoderPage = () => {
                       v.type === "SPAT" && v.status == "COMPLETED" && !isGreyedOut(getIntersectionId(v.decodedResponse))
                   )
                   .map((v) => v.decodedResponse?.processedSpat!),
-                bsm: Object.values(data)
-                  .filter((v) => v.type === "BSM" && v.status == "COMPLETED" && v.selected)
-                  .map((v) => v.decodedResponse?.bsm!),
+                bsm: currentBsms,
               }}
               sourceDataType={"exact"}
+              timeFilterBsms={false}
               intersectionId={-1}
               roadRegulatorId={-1}
             />
@@ -296,6 +309,11 @@ const DecoderPage = () => {
             onFileUploaded={onFileUploaded}
             selectedBsms={selectedBsms}
             setSelectedBsms={setSelectedBsms}
+            centerMapOnLocation={(lat: number, long: number) => {
+              if (mapRef.current) {
+                mapRef.current?.centerMapOnPoint({ latitude: lat, longitude: long });
+              }
+            }}
           />
         </Container>
       </Box>
