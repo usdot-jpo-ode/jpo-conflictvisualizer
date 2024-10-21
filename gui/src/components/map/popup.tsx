@@ -5,6 +5,7 @@ import { Container, Col } from "reactstrap";
 
 import { Paper, Box, Typography } from "@mui/material";
 import { CustomTable } from "./custom-table";
+import { format } from "date-fns";
 
 export const getSelectedLayerPopupContent = (feature: any) => {
   switch (feature?.layer?.id) {
@@ -18,7 +19,7 @@ export const getSelectedLayerPopupContent = (feature: any) => {
             data={[
               ["Id", bsm.id],
               ["Message Count", bsm.msgCnt],
-              ["Time", bsm.secMark / 1000],
+              ["Time", format(bsm.odeReceivedAt * 1000, "MM/dd/yyyy HH:mm:ss.SSS")],
               ["Speed", bsm.speed],
               ["Heading", bsm.heading],
             ]}
