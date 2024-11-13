@@ -1,4 +1,9 @@
 version: "3"
+
+include:
+  - docker-compose-ode.yml
+
+
 services:
   conflictvisualizer-gui:
     profiles:
@@ -86,8 +91,8 @@ services:
       ACM_LOG_TO_CONSOLE: true
       ACM_LOG_TO_FILE: false
       ACM_LOG_LEVEL: DEBUG
-      CM_MONGO_API_USERNAME: ${CM_MONGO_API_USERNAME}
-      CM_MONGO_API_PASSWORD: ${CM_MONGO_API_PASSWORD}
+      CM_MONGO_API_USERNAME: ${CM_MONGO_READ_WRITE_USERNAME}
+      CM_MONGO_API_PASSWORD: ${CM_MONGO_READ_WRITE_PASSWORD}
       
       #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
       #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
