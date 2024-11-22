@@ -20,6 +20,9 @@ const EVENT_TYPES: Item[] = [
   { label: "SpatMinimumDataEvent", value: "spat_minimum_data" },
   { label: "MapBroadcastRateEvent", value: "map_broadcast_rate" },
   { label: "SpatBroadcastRateEvent", value: "spat_broadcast_rate" },
+  { label: "SpatMessageCountProgressionEvent", value: "spat_message_count_progression" },
+  { label: "MapMessageCountProgressionEvent", value: "map_message_count_progression" },
+  { label: "BsmMessageCountProgressionEvent", value: "bsm_message_count_progression" },
 ];
 
 class EventsApi {
