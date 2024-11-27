@@ -1,11 +1,10 @@
 name: Publish Java Package
 
 on:
-  # push:
-  #   tags:
-  #     - 'jpo-conflictvisualizer-*'
-  pull_request:
-    branches: [ "develop" ]
+  push:
+    tags:
+      - 'jpo-conflictvisualizer-*'
+
 
 jobs:
   build:
