@@ -18,6 +18,9 @@ class GraphsApi {
       SpatMinimumDataEventCount: 0,
       MapBroadcastRateEventCount: 0,
       SpatBroadcastRateEventCount: 0,
+      SpatMessageCountProgressionEventCount: 0,
+      MapMessageCountProgressionEventCount: 0,
+      BsmMessageCountProgressionEventCount: 0,
     };
     switch (event_type) {
       case "connection_of_travel":
