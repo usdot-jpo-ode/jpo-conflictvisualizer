@@ -27,7 +27,7 @@ import mbStyle from "../../intersectionMapStyle.json";
 
 const { publicRuntimeConfig } = getConfig();
 
-const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm"];
+const allInteractiveLayerIds = ["mapMessage", "connectingLanes", "signalStates", "bsm", "mapMessageCrosswalk"];
 
 const mapMessageLayer: LineLayer = {
   id: "mapMessage",
@@ -35,6 +35,15 @@ const mapMessageLayer: LineLayer = {
   paint: {
     "line-width": 5,
     "line-color": ["case", ["==", ["get", "ingressPath"], true], "#eb34e8", "#0004ff"],
+  },
+};
+
+const mapMessageCrosswalkLayer: LineLayer = {
+  id: "mapMessageCrosswalk",
+  type: "line",
+  paint: {
+    "line-width": ["interpolate", ["exponential", 2], ["zoom"], 0, 0, 14, 10, 19, 40, 20, 60, 21, 150, 22, 300],
+    "line-pattern": "crosswalk",
   },
 };
 
@@ -853,6 +862,18 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       };
     };
 
+    const getLaneTypeEnum = (laneType: J2735LaneTypeAttributes): LaneTypeEnum => {
+      if (laneType.vehicle) return "vehicle";
+      if (laneType.crosswalk) return "crosswalk";
+      if (laneType.bikeLane) return "bikeLane";
+      if (laneType.sidewalk) return "sidewalk";
+      if (laneType.median) return "median";
+      if (laneType.striping) return "striping";
+      if (laneType.trackedVehicle) return "trackedVehicle";
+      if (laneType.parking) return "parking";
+      return "vehicle";
+    };
+
     const handleImportedMessageData = ({
       mapData,
       bsmData,
@@ -865,8 +886,8 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       notificationData: any;
     }) => {
       const sortedSpatData = spatData.sort((x, y) => x.utcTimeStamp - y.utcTimeStamp);
-      const startTime = new Date(sortedSpatData[0].utcTimeStamp);
-      const endTime = new Date(sortedSpatData[sortedSpatData.length - 1].utcTimeStamp);
+      const startTime = new Date(sortedSpatData[0]?.utcTimeStamp ?? Date.now());
+      const endTime = new Date(sortedSpatData[sortedSpatData.length - 1]?.utcTimeStamp ?? Date.now() + 1);
       setImportedMessageData({ mapData, bsmData, spatData, notificationData });
       setQueryParams({
         startDate: startTime,
@@ -993,6 +1014,15 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
 
       // ######################### MAP Data #########################
       const latestMapMessage: ProcessedMap = rawMap.at(-1)!;
+      latestMapMessage.mapFeatureCollection.features = latestMapMessage.mapFeatureCollection.features.map(
+        (feature) => ({
+          ...feature,
+          properties: {
+            ...feature.properties,
+            laneTypeEnum: getLaneTypeEnum(feature.properties.laneType),
+          },
+        })
+      );
       const mapCoordinates: OdePosition3D = latestMapMessage?.properties.refPoint;
 
       setConnectingLanes(latestMapMessage.connectingLanesFeatureCollection);
@@ -1904,15 +1934,19 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
                 "traffic-light-icon-yellow-red-1",
                 "traffic-light-icon-green-1",
                 "traffic-light-icon-yellow-1",
+                "crosswalk",
               ];
               for (const image_name of images) {
+                console.debug("MAP IMAGE Before", image_name);
                 map.loadImage(`/icons/${image_name}.png`, (error, image) => {
+                  console.debug("MAP IMAGE After", image_name);
                   if (error) throw error;
                   if (image == undefined) {
                     console.error("Error loading image:", image_name, error, image, map.hasImage(image_name));
                     return;
                   }
                   console.debug("MAP IMAGE", image_name, map.hasImage(image_name));
+
                   if (!map.hasImage(image_name)) map.addImage(image_name, image);
                 });
               }
@@ -1922,7 +1956,10 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
             customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
             styleDiffing
             style={{ width: "100%", height: "100%" }}
-            onMove={(evt) => setViewState(evt.viewState)}
+            onMove={(evt) => {
+              setViewState(evt.viewState);
+              console.log(evt.viewState.zoom);
+            }}
             onClick={onClickMap}
             // onMouseDown={this.onMouseDown}
             // onMouseUp={this.onMouseUp}
@@ -1948,7 +1985,28 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
               setHoveredFeature(undefined);
             }}
           >
-            <Source type="geojson" data={mapData?.mapFeatureCollection ?? { type: "FeatureCollection", features: [] }}>
+            <Source
+              type="geojson"
+              data={{
+                type: "FeatureCollection",
+                features:
+                  mapData?.mapFeatureCollection?.features?.filter(
+                    (feature) => feature.properties.laneTypeEnum == "crosswalk"
+                  ) ?? [],
+              }}
+            >
+              <Layer {...mapMessageCrosswalkLayer} />
+            </Source>
+            <Source
+              type="geojson"
+              data={{
+                type: "FeatureCollection",
+                features:
+                  mapData?.mapFeatureCollection?.features?.filter(
+                    (feature) => feature.properties.laneTypeEnum == "vehicle"
+                  ) ?? [],
+              }}
+            >
               <Layer {...mapMessageLayer} />
             </Source>
             <Source
