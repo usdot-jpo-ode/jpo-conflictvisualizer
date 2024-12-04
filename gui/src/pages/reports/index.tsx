@@ -11,6 +11,7 @@ import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
 import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { ReportGenerationDialog } from "../../components/reports/report-generation-dialog";
+import ReportDetailsModal from '../../components/reports/report-details-modal';
 
 const applyPagination = (logs, page, rowsPerPage) => logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -135,6 +136,20 @@ const Page = () => {
   // Usually query is done on backend with indexing solutions
   const paginatedLogs = applyPagination(logs, page, rowsPerPage);
 
+  // Inside the parent component
+  const [selectedReport, setSelectedReport] = useState<ReportMetadata | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (report: ReportMetadata) => {
+    setSelectedReport(report);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedReport(null);
+  };
+
   return (
     <>
       <Head>
@@ -192,6 +207,7 @@ const Page = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             page={page}
             rowsPerPage={rowsPerPage}
+            onViewDetails={handleViewDetails}
           />
         </LogsListInner>
       </Box>
@@ -200,6 +216,11 @@ const Page = () => {
         onClose={() => {
           setOpenReportGenerationDialog(false);
         }}
+      />
+      <ReportDetailsModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        report={selectedReport}
       />
     </>
   );

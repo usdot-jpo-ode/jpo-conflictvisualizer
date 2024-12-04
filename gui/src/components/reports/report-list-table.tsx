@@ -19,14 +19,16 @@ import { ArrowDownward } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
+import { useRouter } from "next/router";
 
 interface ReportRowProps {
   report: ReportMetadata;
+  onViewDetails: (report: ReportMetadata) => void;
 }
 
 const ReportRow = (props: ReportRowProps) => {
   const { data: session } = useSession();
-  const { report } = props;
+  const { report, onViewDetails } = props;
 
   const downloadReport = async (reportName: string) => {
     if (!session?.accessToken) {
@@ -122,11 +124,12 @@ const ReportRow = (props: ReportRowProps) => {
       <TableCell align="right">
         <Button
           endIcon={<ArrowDownward fontSize="small" />}
-          onClick={() => {
-            downloadReport(report.reportName);
-          }}
+          onClick={() => downloadReport(report.reportName)}
         >
           Download
+        </Button>
+        <Button onClick={() => onViewDetails(report)}>
+          View Details
         </Button>
       </TableCell>
     </TableRow>
@@ -141,10 +144,11 @@ interface ReportListTableProps {
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   page: number;
   rowsPerPage: number;
+  onViewDetails: (report: ReportMetadata) => void;
 }
 
 export const ReportListTable = (props: ReportListTableProps) => {
-  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, ...other } = props;
+  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, onViewDetails, ...other } = props;
 
   return (
     <div {...other}>
@@ -161,7 +165,7 @@ export const ReportListTable = (props: ReportListTableProps) => {
           {
             <TableBody>
               {reports.map((report: ReportMetadata) => (
-                <ReportRow report={report} />
+                <ReportRow report={report} onViewDetails={onViewDetails} />
               ))}
             </TableBody>
           }

@@ -8,6 +8,12 @@ export type ReportMetadata = {
   reportStartTime: Date;
   reportStopTime: Date;
   reportContents: string[];
+  mapBroadcastRateEventCount: { id: string; count: number }[];
+  mapMinimumDataEventCount: { id: string; count: number }[];
+  timeChangeDetailsEventCount: { id: string; count: number }[];
+  spatMinimumDataEventCount: { id: string; count: number }[];
+  spatBroadcastRateEventCount: { id: string; count: number }[];
+  signalStateConflictEventCount: { id: string; count: number }[];
 };
 
 class ReportsApi {
