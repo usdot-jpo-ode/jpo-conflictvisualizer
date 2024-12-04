@@ -398,6 +398,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
       laneColors: {
         Ingress: "#eb34e8",
         Egress: "#0004ff",
+        Crosswalk: "#00E9FF",
       },
       travelConnectionColors: {
         UNAVAILABLE: ["#797979", [2, 1]],
