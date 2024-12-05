@@ -56,7 +56,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/connection_of_travel", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<List<ConnectionOfTravelAssessment>> findConnectionOfTravelAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -72,8 +72,7 @@ public class AssessmentController {
         } else {
             Query query = connectionOfTravelAssessmentRepo.getQuery(intersectionID, startTime, endTime, latest);
             long count = connectionOfTravelAssessmentRepo.getQueryResultCount(query);
-           
-             
+
             logger.info("Returning ProcessedMap Response with Size: " + count);
             return ResponseEntity.ok(connectionOfTravelAssessmentRepo.find(query));
         }
@@ -81,7 +80,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/connection_of_travel/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<Long> countConnectionOfTravelAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -96,12 +95,12 @@ public class AssessmentController {
             Query query = connectionOfTravelAssessmentRepo.getQuery(intersectionID, startTime, endTime, false);
 
             long count = 0;
-            if(fullCount){
+            if (fullCount) {
                 count = connectionOfTravelAssessmentRepo.getQueryFullCount(query);
-            }else{
+            } else {
                 count = connectionOfTravelAssessmentRepo.getQueryResultCount(query);
             }
-            
+
             logger.info("Found: " + count + " Connection of Travel Assessments");
             return ResponseEntity.ok(count);
         }
@@ -109,7 +108,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/lane_direction_of_travel", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<List<LaneDirectionOfTravelAssessment>> findLaneDirectionOfTravelAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -133,7 +132,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/lane_direction_of_travel/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<Long> countLaneDirectionOfTravelAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -148,9 +147,9 @@ public class AssessmentController {
             Query query = laneDirectionOfTravelAssessmentRepo.getQuery(intersectionID, startTime, endTime, false);
 
             long count = 0;
-            if(fullCount){
+            if (fullCount) {
                 count = laneDirectionOfTravelAssessmentRepo.getQueryFullCount(query);
-            }else{
+            } else {
                 count = laneDirectionOfTravelAssessmentRepo.getQueryResultCount(query);
             }
 
@@ -162,7 +161,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/signal_state_assessment", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<List<StopLineStopAssessment>> findSignalStateAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -176,7 +175,7 @@ public class AssessmentController {
             list.add(MockAssessmentGenerator.getStopLineStopAssessment());
             return ResponseEntity.ok(list);
         } else {
-            
+
             Query query = stopLineStopAssessmentRepo.getQuery(intersectionID, startTime, endTime, latest);
             long count = stopLineStopAssessmentRepo.getQueryResultCount(query);
             logger.info("Returning SignalStateAssessment Response with Size: " + count);
@@ -186,7 +185,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/signal_state_assessment/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<Long> countSignalStateAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -198,16 +197,15 @@ public class AssessmentController {
         if (testData) {
             return ResponseEntity.ok(1L);
         } else {
-            
+
             Query query = stopLineStopAssessmentRepo.getQuery(intersectionID, startTime, endTime, false);
 
             long count = 0;
-            if(fullCount){
+            if (fullCount) {
                 count = stopLineStopAssessmentRepo.getQueryFullCount(query);
-            }else{
+            } else {
                 count = stopLineStopAssessmentRepo.getQueryResultCount(query);
             }
-
 
             logger.info("Found: " + count + " Lane Direction of Travel Assessments");
             return ResponseEntity.ok(count);
@@ -216,7 +214,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/signal_state_event_assessment", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<List<StopLinePassageAssessment>> findSignalStateEventAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -239,7 +237,7 @@ public class AssessmentController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/assessments/signal_state_event_assessment/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')))")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER'))")
     public ResponseEntity<Long> countSignalStateEventAssessment(
             @RequestParam(name = "road_regulator_id", required = false) Integer roadRegulatorID,
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
@@ -253,9 +251,9 @@ public class AssessmentController {
         } else {
             Query query = signalStateEventAssessmentRepo.getQuery(intersectionID, startTime, endTime, false);
             long count = 0;
-            if(fullCount){
+            if (fullCount) {
                 count = signalStateEventAssessmentRepo.getQueryFullCount(query);
-            }else{
+            } else {
                 count = signalStateEventAssessmentRepo.getQueryResultCount(query);
             }
             logger.info("Found: " + count + " Signal State Event Assessments");

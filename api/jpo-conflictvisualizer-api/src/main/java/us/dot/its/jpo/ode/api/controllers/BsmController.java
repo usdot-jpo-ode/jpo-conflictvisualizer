@@ -39,7 +39,7 @@ public class BsmController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/bsm/json", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || @PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')")
+    @PreAuthorize("@PermissionService.isSuperUser() || @PermissionService.hasRole('USER')")
     public ResponseEntity<List<OdeBsmData>> findBSMs(
             @RequestParam(name = "origin_ip", required = false) String originIp,
             @RequestParam(name = "vehicle_id", required = false) String vehicleId,
@@ -53,7 +53,8 @@ public class BsmController {
         if (testData) {
             return ResponseEntity.ok(MockBsmGenerator.getJsonBsms());
         } else {
-            List<OdeBsmData> geoData = odeBsmJsonRepo.findOdeBsmDataGeo(originIp, vehicleId, startTime, endTime, longitude, latitude, distanceInMeters);
+            List<OdeBsmData> geoData = odeBsmJsonRepo.findOdeBsmDataGeo(originIp, vehicleId, startTime, endTime,
+                    longitude, latitude, distanceInMeters);
             logger.info("Found " + geoData.size() + " BSMs");
             return ResponseEntity.ok(geoData);
         }
@@ -61,7 +62,7 @@ public class BsmController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/bsm/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || @PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN')")
+    @PreAuthorize("@PermissionService.isSuperUser() || @PermissionService.hasRole('USER')")
     public ResponseEntity<Long> countBSMs(
             @RequestParam(name = "origin_ip", required = false) String originIp,
             @RequestParam(name = "vehicle_id", required = false) String vehicleId,
@@ -75,7 +76,8 @@ public class BsmController {
         if (testData) {
             return ResponseEntity.ok(10L);
         } else {
-            long counts =  odeBsmJsonRepo.countOdeBsmDataGeo(originIp, vehicleId, startTime, endTime, longitude, latitude, distanceInMeters);
+            long counts = odeBsmJsonRepo.countOdeBsmDataGeo(originIp, vehicleId, startTime, endTime, longitude,
+                    latitude, distanceInMeters);
             logger.info("Found " + counts + " BSMs");
             return ResponseEntity.ok(counts);
         }

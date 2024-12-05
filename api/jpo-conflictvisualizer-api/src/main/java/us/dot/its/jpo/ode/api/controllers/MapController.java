@@ -41,7 +41,7 @@ public class MapController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/map/json", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN'))) ")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER')) ")
     public ResponseEntity<List<ProcessedMap<LineString>>> findMaps(
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
             @RequestParam(name = "start_time_utc_millis", required = false) Long startTime,
@@ -55,16 +55,16 @@ public class MapController {
         } else {
             Query query = processedMapRepo.getQuery(intersectionID, startTime, endTime, latest, compact);
             long count = processedMapRepo.getQueryResultCount(query);
-            
+
             logger.info("Returning ProcessedMap Response with Size: " + count);
             return ResponseEntity.ok(processedMapRepo.findProcessedMaps(query));
-            
+
         }
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/map/count", method = RequestMethod.GET, produces = "application/json")
-    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and (@PermissionService.hasRole('USER') || @PermissionService.hasRole('ADMIN'))) ")
+    @PreAuthorize("@PermissionService.isSuperUser() || (@PermissionService.hasIntersection(#intersectionID) and @PermissionService.hasRole('USER')) ")
     public ResponseEntity<Long> countMaps(
             @RequestParam(name = "intersection_id", required = false) Integer intersectionID,
             @RequestParam(name = "start_time_utc_millis", required = false) Long startTime,
@@ -76,10 +76,10 @@ public class MapController {
         } else {
             Query query = processedMapRepo.getQuery(intersectionID, startTime, endTime, false, true);
             long count = processedMapRepo.getQueryResultCount(query);
-            
+
             logger.info("Found: " + count + "Processed Map Messages");
             return ResponseEntity.ok(count);
-            
+
         }
     }
 }
