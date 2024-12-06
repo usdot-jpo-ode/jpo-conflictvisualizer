@@ -23,12 +23,12 @@ import { useRouter } from "next/router";
 
 interface ReportRowProps {
   report: ReportMetadata;
-  onViewDetails: (report: ReportMetadata) => void;
+  onViewReport: (report: ReportMetadata) => void;
 }
 
 const ReportRow = (props: ReportRowProps) => {
   const { data: session } = useSession();
-  const { report, onViewDetails } = props;
+  const { report, onViewReport } = props;
 
   const downloadReport = async (reportName: string) => {
     if (!session?.accessToken) {
@@ -128,8 +128,8 @@ const ReportRow = (props: ReportRowProps) => {
         >
           Download
         </Button>
-        <Button onClick={() => onViewDetails(report)}>
-          View Details
+        <Button onClick={() => onViewReport(report)}>
+          View
         </Button>
       </TableCell>
     </TableRow>
@@ -144,11 +144,11 @@ interface ReportListTableProps {
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   page: number;
   rowsPerPage: number;
-  onViewDetails: (report: ReportMetadata) => void;
+  onViewReport: (report: ReportMetadata) => void;
 }
 
 export const ReportListTable = (props: ReportListTableProps) => {
-  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, onViewDetails, ...other } = props;
+  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, onViewReport, ...other } = props;
 
   return (
     <div {...other}>
@@ -165,7 +165,7 @@ export const ReportListTable = (props: ReportListTableProps) => {
           {
             <TableBody>
               {reports.map((report: ReportMetadata) => (
-                <ReportRow report={report} onViewDetails={onViewDetails} />
+                <ReportRow report={report} onViewReport={onViewReport} />
               ))}
             </TableBody>
           }

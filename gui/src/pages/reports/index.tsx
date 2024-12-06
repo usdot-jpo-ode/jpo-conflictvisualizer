@@ -38,7 +38,6 @@ const LogsListInner = styled("div", { shouldForwardProp: (prop) => prop !== "ope
     }),
   })
 );
-
 const Page = () => {
   const rootRef = useRef(null);
   const { data: session } = useSession();
@@ -140,12 +139,12 @@ const Page = () => {
   const [selectedReport, setSelectedReport] = useState<ReportMetadata | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleViewDetails = (report: ReportMetadata) => {
+  const handleViewReport = (report: ReportMetadata) => {
     setSelectedReport(report);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseReportModal = () => {
     setIsModalOpen(false);
     setSelectedReport(null);
   };
@@ -207,7 +206,7 @@ const Page = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             page={page}
             rowsPerPage={rowsPerPage}
-            onViewDetails={handleViewDetails}
+            onViewReport={handleViewReport}
           />
         </LogsListInner>
       </Box>
@@ -219,7 +218,7 @@ const Page = () => {
       />
       <ReportDetailsModal
         open={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={handleCloseReportModal}
         report={selectedReport}
       />
     </>

@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Modal, IconButton } from '@mui/material';
+import { Box, Typography, Modal, IconButton, Button, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { ReportMetadata } from '../../apis/reports-api';
 import { format, eachDayOfInterval } from 'date-fns';
+import SignalStateConflictGraph from './graphs/signal-state-conflict-graph';
+import TimeChangeDetailsGraph from './graphs/time-change-details-graph';
+import MapBroadcastRateGraph from './graphs/map-broadcast-rate-graph';
+import MapMinimumDataGraph from './graphs/map-minimum-data-graph';
+import SpatBroadcastRateGraph from './graphs/spat-broadcast-rate-graph';
+import SpatMinimumDataGraph from './graphs/spat-minimum-data-graph';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ReportDetailsModalProps {
   open: boolean;
@@ -18,6 +25,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [spatMinimumDataEventCount, setSpatMinimumDataEventCount] = useState<{ name: string; value: number }[]>([]);
   const [spatBroadcastRateEventCount, setSpatBroadcastRateEventCount] = useState<{ name: string; value: number }[]>([]);
   const [signalStateConflictEventCount, setSignalStateConflictEventCount] = useState<{ name: string; value: number }[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (report) {
@@ -79,139 +87,151 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   }, [report]);
 
   const getInterval = (dataLength: number) => {
-    return dataLength <= 15 ? 0 : Math.ceil(dataLength / 15);
+    return dataLength <= 15 ? 0 : Math.ceil(dataLength / 30);
+  };
+
+  const setPdfSectionTitleFormatting = (pdf: jsPDF) => {
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+  };
+
+  const setPdfDescriptionFormatting = (pdf: jsPDF) => {
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'italic');
+  };
+
+  const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number, y: number }) => {
+    const input = document.getElementById(elementId);
+    if (input) {
+
+      const canvas = await html2canvas(input);
+
+      // Restore the original size of the chart
+      input.style.width = '';
+      input.style.height = '';
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pdfWidth - 30;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight);
+    }
+  };
+
+  const generatePdf = async () => {
+    setLoading(true);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+
+    // Title page
+    pdf.setFontSize(36);
+    pdf.text('Conflict Monitor Report', pdfWidth / 2, pdfHeight / 2 - 50, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.text(`${report?.reportStartTime ? format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''} - ${report?.reportStopTime ? format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''}`,
+      pdfWidth / 2, pdfHeight / 2 - 30, { align: 'center' });
+    pdf.addPage();
+
+    // Signal State Events
+    setPdfSectionTitleFormatting(pdf);
+    pdf.text('Signal State Events', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+    await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: 25 });
+    setPdfDescriptionFormatting(pdf);
+    pdf.text('The number of times the system detected contradictory signal states, such as two perpendicular green lights.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: pdfHeight / 2 + 10 });
+    pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+    pdf.addPage();
+
+    // MAP
+    setPdfSectionTitleFormatting(pdf);
+    pdf.text('MAP', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+    await captureGraph(pdf, 'map-broadcast-rate-graph', { x: 0, y: 25 });
+    setPdfDescriptionFormatting(pdf);
+    pdf.text('The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    await captureGraph(pdf, 'map-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 });
+    pdf.text('The number of times the system flagged MAP messages with missing or incomplete data.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+    pdf.addPage();
+
+    // SPaT
+    setPdfSectionTitleFormatting(pdf);
+    pdf.text('SPaT', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+    await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 });
+    setPdfDescriptionFormatting(pdf);
+    pdf.text('The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 });
+    pdf.text('The number of times the system flagged SPaT messages with missing or incomplete data.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+
+    pdf.save(report?.reportName + ".pdf" || 'report.pdf');
+    setLoading(false);
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-    >
+    <Modal open={open} onClose={onClose}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', maxWidth: 600, maxHeight: '80vh', overflow: 'auto' }}>
-          <IconButton
-            aria-label="close"
-            onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+        <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', width: '820px', maxHeight: '90vh', overflow: 'auto' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+              <CloseIcon />
+            </IconButton>
+            <Button onClick={generatePdf} variant="contained" color="primary" disabled={loading} sx={{ mt: -2, ml: -2 }}>
+              {loading ? <CircularProgress size={24} /> : 'Download PDF'}
+            </Button>
+          </Box>
           {!report ? (
             <Typography>No report found</Typography>
           ) : (
-            <>
+              <>
               <Typography variant="h3" align="center">Conflict Monitor Report</Typography>
               <Typography variant="body1" align="center">
-                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd'T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd'T'HH:mm:ss'Z'")}`}
+                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
               </Typography>
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>Signal State Conflict Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={signalStateConflictEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(signalStateConflictEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
+              <Box id="signal-state-conflict-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <SignalStateConflictGraph data={signalStateConflictEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system detected contradictory signal states, such as two perpendicular green lights.
               </Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>Time Change Details Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={timeChangeDetailsEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(timeChangeDetailsEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
+              <Box id="time-change-details-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <TimeChangeDetailsGraph data={timeChangeDetailsEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system detected differences in timing between expected and actual signal state changes.
               </Typography>
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>MAP</Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>Map Broadcast Rate Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={mapBroadcastRateEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(mapBroadcastRateEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#82ca9d" />
-              </BarChart>
+              <Box id="map-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <MapBroadcastRateGraph data={mapBroadcastRateEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.
               </Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>Map Minimum Data Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={mapMinimumDataEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(mapMinimumDataEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#82ca9d" />
-              </BarChart>
+              <Box id="map-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <MapMinimumDataGraph data={mapMinimumDataEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system flagged MAP messages with missing or incomplete data.
               </Typography>
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>SPaT</Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>SPaT Broadcast Rate Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={spatBroadcastRateEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(spatBroadcastRateEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#ffc658" />
-              </BarChart>
+              <Box id="spat-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <SpatBroadcastRateGraph data={spatBroadcastRateEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.
               </Typography>
-              <Typography variant="h6" align="center" sx={{ mt: 2 }}>SPaT Minimum Data Event Count</Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={spatMinimumDataEventCount}
-                margin={{
-                  top: 20, right: 30, left: 20, bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" label={{ value: 'Day', position: 'insideBottom', offset: -60 }} angle={-45} textAnchor="end" interval={getInterval(spatMinimumDataEventCount.length)} />
-                <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#ffc658" />
-              </BarChart>
+              <Box id="spat-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <SpatMinimumDataGraph data={spatMinimumDataEventCount} getInterval={getInterval} />
+              </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of times the system flagged SPaT messages with missing or incomplete data.
               </Typography>
