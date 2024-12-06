@@ -40,6 +40,9 @@ export const DataVisualizer = (props: { data: any[]; onDownload: () => void }) =
             <Line type="monotone" dataKey="SpatMinimumDataEventCount" stroke="#ff0080" />
             <Line type="monotone" dataKey="MapBroadcastRateEventCount" stroke="#0080ff" />
             <Line type="monotone" dataKey="SpatBroadcastRateEventCount" stroke="#80ff00" />
+            <Line type="monotone" dataKey="SpatMessageCountProgressionEventCount" stroke="#80ff00" />
+            <Line type="monotone" dataKey="MapMessageCountProgressionEventCount" stroke="#80ff00" />
+            <Line type="monotone" dataKey="BsmMessageCountProgressionEventCount" stroke="#80ff00" />
           </LineChart>
         </Card>
         <Box sx={{ mb: 4 }}>
