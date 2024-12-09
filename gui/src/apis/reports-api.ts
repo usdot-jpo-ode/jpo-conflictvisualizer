@@ -8,12 +8,20 @@ export type ReportMetadata = {
   reportStartTime: Date;
   reportStopTime: Date;
   reportContents: string[];
+  laneDirectionOfTravelEventCounts: { id: string; count: number }[];
+  laneDirectionOfTravelMedianDistanceDistribution: { id: string; count: number }[];
+  laneDirectionOfTravelMedianHeadingDistribution: { id: string; count: number }[];
+  connectionOfTravelEventCounts: { id: string; count: number }[];
+  signalStateConflictEventCount: { id: string; count: number }[];
+  signalStateEventCounts: { id: string; count: number }[];
+  signalStateStopEventCounts: { id: string; count: number }[];
+  timeChangeDetailsEventCount: { id: string; count: number }[];
   mapBroadcastRateEventCount: { id: string; count: number }[];
   mapMinimumDataEventCount: { id: string; count: number }[];
-  timeChangeDetailsEventCount: { id: string; count: number }[];
   spatMinimumDataEventCount: { id: string; count: number }[];
   spatBroadcastRateEventCount: { id: string; count: number }[];
-  signalStateConflictEventCount: { id: string; count: number }[];
+  latestMapMinimumDataEventMissingElements: string[];
+  latestSpatMinimumDataEventMissingElements: string[];
 };
 
 class ReportsApi {
