@@ -10,6 +10,11 @@ import MapMinimumDataGraph from './graphs/map-minimum-data-graph';
 import SpatBroadcastRateGraph from './graphs/spat-broadcast-rate-graph';
 import SpatMinimumDataGraph from './graphs/spat-minimum-data-graph';
 import StopLinePassageGraph from './graphs/stop-line-passage-graph';
+import StopLineStopGraph from './graphs/stop-line-stop-graph';
+import ConnectionOfTravelGraph from './graphs/connection-of-travel-event-count-graph';
+import LaneDirectionOfTravelGraph from './graphs/lane-direction-of-travel-event-count-graph';
+import LaneDirectionDistanceGraph from './graphs/lane-direction-distance-graph';
+import LaneDirectionHeadingGraph from './graphs/lane-direction-heading-graph';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -27,72 +32,57 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [spatBroadcastRateEventCount, setSpatBroadcastRateEventCount] = useState<{ name: string; value: number }[]>([]);
   const [signalStateConflictEventCount, setSignalStateConflictEventCount] = useState<{ name: string; value: number }[]>([]);
   const [signalStateEventCounts, setSignalStateEventCounts] = useState<{ name: string; value: number }[]>([]);
+  const [stopLineStopEventCounts, setStopLineStopEventCounts] = useState<{ name: string; value: number }[]>([]);
+  const [connectionOfTravelEventCounts, setConnectionOfTravelEventCounts] = useState<{ name: string; value: number }[]>([]);
+  const [laneDirectionOfTravelEventCounts, setLaneDirectionOfTravelEventCounts] = useState<{ name: string; value: number }[]>([]);
+  const [laneDirectionDistanceDistribution, setLaneDirectionDistanceDistribution] = useState<{ name: string; value: number }[]>([]);
+  const [laneDirectionHeadingDistribution, setLaneDirectionHeadingDistribution] = useState<{ name: string; value: number }[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const generateMergedData = (eventCounts: { id: string; count: number }[], dateRange: string[]) => {
+    const eventCountMap = new Map(eventCounts.map((item: any) => [item.id, item.count]));
+    return dateRange.map(date => ({
+      name: date,
+      value: eventCountMap.get(date) || 0
+    }));
+  };
 
   useEffect(() => {
     if (report) {
-      if (report.mapBroadcastRateEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.mapBroadcastRateEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setMapBroadcastRateEventCount(mergedData);
+      const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
+  
+      const eventCounts = [
+        { data: report.mapBroadcastRateEventCount, setter: setMapBroadcastRateEventCount },
+        { data: report.mapMinimumDataEventCount, setter: setMapMinimumDataEventCount },
+        { data: report.timeChangeDetailsEventCount, setter: setTimeChangeDetailsEventCount },
+        { data: report.spatMinimumDataEventCount, setter: setSpatMinimumDataEventCount },
+        { data: report.spatBroadcastRateEventCount, setter: setSpatBroadcastRateEventCount },
+        { data: report.signalStateConflictEventCount, setter: setSignalStateConflictEventCount },
+        { data: report.signalStateEventCounts, setter: setSignalStateEventCounts },
+        { data: report.signalStateStopEventCounts, setter: setStopLineStopEventCounts },
+        { data: report.connectionOfTravelEventCounts, setter: setConnectionOfTravelEventCounts },
+        { data: report.laneDirectionOfTravelEventCounts, setter: setLaneDirectionOfTravelEventCounts },
+      ];
+  
+      eventCounts.forEach(({ data, setter }) => {
+        if (data) {
+          setter(generateMergedData(data, dateRange));
+        }
+      });
+  
+      // Set state for lane direction distance and heading distributions directly
+      if (report.laneDirectionOfTravelMedianDistanceDistribution) {
+        setLaneDirectionDistanceDistribution(report.laneDirectionOfTravelMedianDistanceDistribution.map(item => ({
+          name: item.id,
+          value: item.count
+        })));
       }
-      if (report.mapMinimumDataEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.mapMinimumDataEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setMapMinimumDataEventCount(mergedData);
-      }
-      if (report.timeChangeDetailsEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.timeChangeDetailsEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setTimeChangeDetailsEventCount(mergedData);
-      }
-      if (report.spatMinimumDataEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.spatMinimumDataEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setSpatMinimumDataEventCount(mergedData);
-      }
-      if (report.spatBroadcastRateEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.spatBroadcastRateEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setSpatBroadcastRateEventCount(mergedData);
-      }
-      if (report.signalStateConflictEventCount) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.signalStateConflictEventCount.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setSignalStateConflictEventCount(mergedData);
-      }
-      if (report.signalStateEventCounts) {
-        const dateRange = generateDateRange(new Date(report.reportStartTime), new Date(report.reportStopTime));
-        const eventCountMap = new Map(report.signalStateEventCounts.map((item: any) => [item.id, item.count]));
-        const mergedData = dateRange.map(date => ({
-          name: date,
-          value: eventCountMap.get(date) || 0
-        }));
-        setSignalStateEventCounts(mergedData);
+  
+      if (report.laneDirectionOfTravelMedianHeadingDistribution) {
+        setLaneDirectionHeadingDistribution(report.laneDirectionOfTravelMedianHeadingDistribution.map(item => ({
+          name: item.id,
+          value: item.count
+        })));
       }
     }
   }, [report]);
@@ -150,12 +140,45 @@ const generatePdf = async () => {
   pdf.addPage();
 
   setPdfSectionTitleFormatting(pdf);
+  pdf.text('Lane Direction of Travel', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+  await captureGraph(pdf, 'lane-direction-of-travel-graph', { x: 0, y: 25 });
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of events triggered when vehicles passed a lane segment.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 - 10, { align: 'center' });
+
+  await captureGraph(pdf, 'lane-direction-distance-graph', { x: 0, y: pdfHeight / 2 + 10 });
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The median deviation in distance between vehicles and the center of the lane as defined by the MAP.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+  pdf.addPage();
+
+  await captureGraph(pdf, 'lane-direction-heading-graph', { x: 0, y: 25 });
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The median deviation in heading between vehicles and the lanes as defined by the MAP.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  pdf.addPage();
+
+  setPdfSectionTitleFormatting(pdf);
+  pdf.text('Connection of Travel', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+  await captureGraph(pdf, 'connection-of-travel-graph', { x: 0, y: 25 });
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of events triggered when vehicles passed through the intersection.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  pdf.addPage();
+
+  setPdfSectionTitleFormatting(pdf);
   pdf.text('Signal State Events', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
   await captureGraph(pdf, 'signal-state-event-graph', { x: 0, y: 25 });
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of events triggered when vehicles passed through the intersection without stopping.',
+  pdf.text('The number of events triggered when vehicles passed the stop line.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+
+  await captureGraph(pdf, 'stop-line-stop-graph', { x: 0, y: pdfHeight / 2 + 10 });
+  pdf.text('The number of events triggered when vehicles stopped at the stop line.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
   pdf.addPage();
 
   setPdfSectionTitleFormatting(pdf);
@@ -184,7 +207,7 @@ const generatePdf = async () => {
   pdf.text('MAP Missing Data Elements', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
   setPdfBodyFormatting(pdf);
-  if (report?.latestMapMinimumDataEventMissingElements) {
+  if (report?.latestMapMinimumDataEventMissingElements?.length) {
     let yOffset = 30;
     report.latestMapMinimumDataEventMissingElements.forEach((element) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
@@ -210,7 +233,7 @@ const generatePdf = async () => {
   pdf.text('SPaT Missing Data Elements', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
   setPdfBodyFormatting(pdf);
-  if (report?.latestSpatMinimumDataEventMissingElements) {
+  if (report?.latestSpatMinimumDataEventMissingElements?.length) {
     let yOffset = 30;
     report.latestSpatMinimumDataEventMissingElements.forEach((element) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
@@ -223,7 +246,8 @@ const generatePdf = async () => {
   setLoading(false);
 };
 
-  const renderList = (title: string, data: string[]) => (
+const renderList = (title: string, data: string[]) => (
+  data.length > 0 && (
     <>
       <Typography variant="h6" align="center" sx={{ mt: 4 }}>{title}</Typography>
       <Box sx={{ mt: 2 }}>
@@ -234,93 +258,133 @@ const generatePdf = async () => {
         ))}
       </Box>
     </>
-  );
+  )
+);
 
-  return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', width: '820px', maxHeight: '90vh', overflow: 'auto' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-              <CloseIcon />
-            </IconButton>
-            <Button onClick={generatePdf} variant="contained" color="primary" disabled={loading} sx={{ mt: -2, ml: -2 }}>
-              {loading ? <CircularProgress size={24} /> : 'Download PDF'}
-            </Button>
-          </Box>
-          {!report ? (
-            <Typography>No report found</Typography>
-          ) : (
-            <>
-              <Typography variant="h3" align="center">Conflict Monitor Report</Typography>
-              <Typography variant="body1" align="center">
-                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
-              </Typography>
-
-              <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
-
-              <Box id="signal-state-event-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <StopLinePassageGraph data={signalStateEventCounts} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of events triggered when vehicles passed through the intersection without stopping.
-              </Typography>
-
-              <Box id="signal-state-conflict-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <SignalStateConflictGraph data={signalStateConflictEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system detected contradictory signal states, such as two perpendicular green lights.
-              </Typography>
-
-              <Box id="time-change-details-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <TimeChangeDetailsGraph data={timeChangeDetailsEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system detected differences in timing between expected and actual signal state changes.
-              </Typography>
-
-              <Typography variant="h4" align="center" sx={{ mt: 4 }}>MAP</Typography>
-
-              <Box id="map-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <MapBroadcastRateGraph data={mapBroadcastRateEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.
-              </Typography>
-
-              <Box id="map-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <MapMinimumDataGraph data={mapMinimumDataEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged MAP messages with missing or incomplete data.
-              </Typography>
-
-              {renderList('MAP Missing Data Elements', report.latestMapMinimumDataEventMissingElements)}
-
-              <Typography variant="h4" align="center" sx={{ mt: 4 }}>SPaT</Typography>
-
-              <Box id="spat-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <SpatBroadcastRateGraph data={spatBroadcastRateEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.
-              </Typography>
-
-              <Box id="spat-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <SpatMinimumDataGraph data={spatMinimumDataEventCount} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged SPaT messages with missing or incomplete data.
-              </Typography>
-
-              {renderList('SPaT Missing Data Elements', report.latestSpatMinimumDataEventMissingElements)}
-            </>
-          )}
+return (
+  <Modal open={open} onClose={onClose}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', width: '820px', maxHeight: '90vh', overflow: 'auto' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <CloseIcon />
+          </IconButton>
+          <Button onClick={generatePdf} variant="contained" color="primary" disabled={loading} sx={{ mt: -2, ml: -2 }}>
+            {loading ? <CircularProgress size={24} /> : 'Download PDF'}
+          </Button>
         </Box>
+        {!report ? (
+          <Typography>No report found</Typography>
+        ) : (
+          <>
+            <Typography variant="h3" align="center">Conflict Monitor Report</Typography>
+            <Typography variant="body1" align="center">
+              {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
+            </Typography>
+
+            <Typography variant="h4" align="center" sx={{ mt: 4 }}>Lane Direction of Travel</Typography>
+
+            <Box id="lane-direction-of-travel-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <LaneDirectionOfTravelGraph data={laneDirectionOfTravelEventCounts} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of events triggered when vehicles passed a lane segment.
+            </Typography>
+
+            <Box id="lane-direction-distance-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <LaneDirectionDistanceGraph data={laneDirectionDistanceDistribution} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The median deviation in distance between vehicles and the center of the lane as defined by the MAP.
+            </Typography>
+
+            <Box id="lane-direction-heading-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <LaneDirectionHeadingGraph data={laneDirectionHeadingDistribution} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The median deviation in heading between vehicles and the lanes as defined by the MAP.
+            </Typography>
+
+            <Typography variant="h4" align="center" sx={{ mt: 4 }}>Connection of Travel</Typography>
+
+            <Box id="connection-of-travel-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <ConnectionOfTravelGraph data={connectionOfTravelEventCounts} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of events triggered when vehicles passed through the intersection.
+            </Typography>
+
+            <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
+
+            <Box id="signal-state-event-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <StopLinePassageGraph data={signalStateEventCounts} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of events triggered when vehicles entered the intersection.
+            </Typography>
+
+            <Box id="stop-line-stop-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <StopLineStopGraph data={stopLineStopEventCounts} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of events triggered when vehicles stopped before passing through the intersection.
+            </Typography>
+
+            <Box id="signal-state-conflict-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <SignalStateConflictGraph data={signalStateConflictEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system detected contradictory signal states, such as two perpendicular green lights.
+            </Typography>
+
+            <Box id="time-change-details-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <TimeChangeDetailsGraph data={timeChangeDetailsEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system detected differences in timing between expected and actual signal state changes.
+            </Typography>
+
+            <Typography variant="h4" align="center" sx={{ mt: 4 }}>MAP</Typography>
+
+            <Box id="map-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <MapBroadcastRateGraph data={mapBroadcastRateEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.
+            </Typography>
+
+            <Box id="map-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <MapMinimumDataGraph data={mapMinimumDataEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system flagged MAP messages with missing or incomplete data.
+            </Typography>
+
+            {report.latestMapMinimumDataEventMissingElements?.length > 0 && renderList('MAP Missing Data Elements', report.latestMapMinimumDataEventMissingElements)}
+
+            <Typography variant="h4" align="center" sx={{ mt: 4 }}>SPaT</Typography>
+
+            <Box id="spat-broadcast-rate-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <SpatBroadcastRateGraph data={spatBroadcastRateEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.
+            </Typography>
+
+            <Box id="spat-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+              <SpatMinimumDataGraph data={spatMinimumDataEventCount} getInterval={getInterval} />
+            </Box>
+            <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+              The number of times the system flagged SPaT messages with missing or incomplete data.
+            </Typography>
+
+            {report.latestSpatMinimumDataEventMissingElements?.length > 0 && renderList('SPaT Missing Data Elements', report.latestSpatMinimumDataEventMissingElements)}
+          </>
+        )}
       </Box>
-    </Modal>
-  );
+    </Box>
+  </Modal>
+);
 };
 
 export default ReportDetailsModal;

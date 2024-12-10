@@ -1,18 +1,18 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
 
-interface MapMinimumDataGraphProps {
+interface LaneDirectionOfTravelGraphProps {
   data: { name: string; value: number }[];
   getInterval: (dataLength: number) => number;
 }
 
-const MapMinimumDataGraph: React.FC<MapMinimumDataGraphProps> = ({ data, getInterval }) => (
+const LaneDirectionOfTravelGraph: React.FC<LaneDirectionOfTravelGraphProps> = ({ data, getInterval }) => (
   <BarChartComponent
-    title="MAP Minimum Data Events per Day"
+    title="Lane Direction of Travel Events Per Day"
     data={data}
     getInterval={getInterval}
     barColor="#82ca9d"
   />
 );
 
-export default MapMinimumDataGraph;
+export default LaneDirectionOfTravelGraph;

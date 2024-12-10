@@ -1,18 +1,18 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
 
-interface SpatBroadcastRateGraphProps {
+interface StopLineStopGraphProps {
   data: { name: string; value: number }[];
   getInterval: (dataLength: number) => number;
 }
 
-const SpatBroadcastRateGraph: React.FC<SpatBroadcastRateGraphProps> = ({ data, getInterval }) => (
+const StopLineStopGraph: React.FC<StopLineStopGraphProps> = ({ data, getInterval }) => (
   <BarChartComponent
-    title="SPaT Broadcast Rate Events per Day"
+    title="Stop Line Stop Events Per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#ffc658"
+    barColor="#8884d8"
   />
 );
 
-export default SpatBroadcastRateGraph;
+export default StopLineStopGraph;

@@ -1,4 +1,3 @@
-// TimeChangeDetailsGraph.tsx
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
 
