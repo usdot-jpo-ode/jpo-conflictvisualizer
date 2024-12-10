@@ -37,4 +37,7 @@ type EVENT_TYPES =
   | "MapMinimumDataEvent"
   | "SpatMinimumDataEvent"
   | "MapBroadcastRateEvent"
-  | "SpatBroadcastRateEvent";
+  | "SpatBroadcastRateEvent"
+    "SpatMessageCountProgressionEventCount"
+    "MapMessageCountProgressionEventCount"
+    "BsmMessageCountProgressionEventCount";

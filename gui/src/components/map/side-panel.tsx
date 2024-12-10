@@ -227,7 +227,7 @@ export const SidePanel = (props: SidePanelProps) => {
                         headers={["Time", "Vehicle ID", "Speed", "Heading"]}
                         data={
                           bsms?.features.map((bsm) => [
-                            bsm.properties.secMark / 1000,
+                            format(bsm.properties.odeReceivedAt * 1000, "MM/dd/yyyy HH:mm:ss.SSS"),
                             bsm.properties.id,
                             bsm.properties.speed,
                             bsm.properties.heading,

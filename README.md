@@ -132,6 +132,7 @@ Once these components have been installed. Download and install additional depen
 ```
 cd api/jpo-conflictvisualizer-api
 mvn clean install
+mvn spring-boot:run
 ```
 
 ### 2. Running Conflict Visualizer GUI Locally
