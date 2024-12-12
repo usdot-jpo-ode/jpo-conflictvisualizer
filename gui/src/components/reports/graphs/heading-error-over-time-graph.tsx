@@ -110,7 +110,7 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
-            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} />
+            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} />
           ))}
         </LineChart>
       </Box>

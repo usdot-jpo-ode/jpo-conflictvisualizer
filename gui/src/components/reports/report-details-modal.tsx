@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Modal, IconButton, Button, CircularProgress } from '@mui/material';
+import { Box, Typography, Modal, IconButton, Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ReportMetadata } from '../../apis/reports-api';
-import { format, eachDayOfInterval } from 'date-fns';
+import { format } from 'date-fns';
 import SignalStateConflictGraph from './graphs/signal-state-conflict-graph';
 import TimeChangeDetailsGraph from './graphs/time-change-details-graph';
 import MapBroadcastRateGraph from './graphs/map-broadcast-rate-graph';
@@ -12,13 +12,16 @@ import SpatMinimumDataGraph from './graphs/spat-minimum-data-graph';
 import StopLinePassageGraph from './graphs/stop-line-passage-graph';
 import StopLineStopGraph from './graphs/stop-line-stop-graph';
 import ConnectionOfTravelGraph from './graphs/connection-of-travel-event-count-graph';
+import ValidConnectionOfTravelGraph from './graphs/valid-connection-of-travel-graph';
+import InvalidConnectionOfTravelGraph from './graphs/invalid-connection-of-travel-graph';
 import LaneDirectionOfTravelGraph from './graphs/lane-direction-of-travel-event-count-graph';
 import LaneDirectionDistanceGraph from './graphs/lane-direction-distance-graph';
 import LaneDirectionHeadingGraph from './graphs/lane-direction-heading-graph';
 import IntersectionReferenceAlignmentGraph from './graphs/intersection-reference-alignment-graph';
 import DistanceFromCenterlineGraphSet from './graphs/distance-from-centerline-graph-set';
-import HeadingErrorGraphSet from './graphs/heading-error-graph-set'; // Import the HeadingErrorGraphSet component
+import HeadingErrorGraphSet from './graphs/heading-error-graph-set';
 import { generatePdf } from './pdf-generator';
+import { generateDateRange } from './report-utils';
 
 interface ReportDetailsModalProps {
   open: boolean;
@@ -41,8 +44,9 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [laneDirectionHeadingDistribution, setLaneDirectionHeadingDistribution] = useState<{ name: string; value: number }[]>([]);
   const [intersectionReferenceAlignmentEventCounts, setIntersectionReferenceAlignmentEventCounts] = useState<{ name: string; value: number }[]>([]);
   const [distanceFromCenterlineOverTimeData, setDistanceFromCenterlineOverTimeData] = useState<LaneDirectionOfTravelAssessment[]>([]);
-  const [headingErrorOverTimeData, setHeadingErrorOverTimeData] = useState<LaneDirectionOfTravelAssessment[]>([]); // New state for heading error data
+  const [headingErrorOverTimeData, setHeadingErrorOverTimeData] = useState<LaneDirectionOfTravelAssessment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [includeLaneSpecificCharts, setIncludeLaneSpecificCharts] = useState(false); // Default to unchecked
 
   const generateMergedData = (eventCounts: { id: string; count: number }[], dateRange: string[]) => {
     const eventCountMap = new Map(eventCounts.map((item: any) => [item.id, item.count]));
@@ -94,7 +98,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
       // Set state for distance from centerline over time data
       if (report.laneDirectionOfTravelAssessmentCount) {
         setDistanceFromCenterlineOverTimeData(report.laneDirectionOfTravelAssessmentCount);
-        setHeadingErrorOverTimeData(report.laneDirectionOfTravelAssessmentCount); // Set state for heading error data
+        setHeadingErrorOverTimeData(report.laneDirectionOfTravelAssessmentCount);
       }
     }
   }, [report]);
@@ -118,17 +122,39 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
     )
   );
 
+  const handleGeneratePdf = async () => {
+    if (report) {
+      setLoading(true);
+      await generatePdf(report, setLoading, includeLaneSpecificCharts, () => open);
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', width: '820px', maxHeight: '90vh', overflow: 'auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }} >
               <CloseIcon />
             </IconButton>
-            <Button onClick={() => report && generatePdf(report, setLoading)} variant="contained" color="primary" disabled={loading} sx={{ mt: -2, ml: -2 }}>
-              {loading ? <CircularProgress size={24} /> : 'Download PDF'}
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button onClick={handleGeneratePdf} variant="contained" color="primary" disabled={loading} sx={{ mt: -2, ml: -2 }}>
+                {loading ? <CircularProgress size={24} /> : 'Download PDF'}
+              </Button>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={includeLaneSpecificCharts}
+                    onChange={(e) => setIncludeLaneSpecificCharts(e.target.checked)}
+                    color="primary"
+                    disabled={loading} // Disable the checkbox while loading
+                  />
+                }
+                label="Include lane-specific charts"
+                sx={{ mt: -2, ml: 2 }}
+              />
+            </Box>
           </Box>
           {!report ? (
             <Typography>No report found</Typography>
@@ -136,7 +162,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
             <>
               <Typography variant="h3" align="center">Conflict Monitor Report</Typography>
               <Typography variant="body1" align="center">
-                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
+                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Lane Direction of Travel</Typography>
@@ -161,23 +187,25 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 The median deviation in heading between vehicles and the lanes as defined by the MAP.
               </Typography>
 
-              <Typography variant="h4" align="center" sx={{ mt: 4 }}>Distance From Centerline Over Time</Typography>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The average of median distances between vehicles and the centerline of each lane as it changed over time.
-              </Typography>
+              {includeLaneSpecificCharts && (
+                <>
+                  <Typography variant="h4" align="center" sx={{ mt: 4 }}>Distance From Centerline Over Time</Typography>
+                  <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                    The average of median distances between vehicles and the centerline of each lane as it changed over time.
+                  </Typography>
+                  <Box id="distance-from-centerline-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+                    <DistanceFromCenterlineGraphSet data={distanceFromCenterlineOverTimeData} />
+                  </Box>
 
-              <Box id="distance-from-centerline-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                <DistanceFromCenterlineGraphSet data={distanceFromCenterlineOverTimeData} />
-              </Box>
-
-              <Typography variant="h4" align="center" sx={{ mt: 4 }}>Vehicle Heading Error Delta</Typography>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The median deviation in heading between vehicles and the expected heading as defined by the MAP.
-              </Typography>
-
-              <Box id="heading-error-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                <HeadingErrorGraphSet data={headingErrorOverTimeData} />
-              </Box>
+                  <Typography variant="h4" align="center" sx={{ mt: 4 }}>Vehicle Heading Error Delta</Typography>
+                  <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                    The median deviation in heading between vehicles and the expected heading as defined by the MAP.
+                  </Typography>
+                  <Box id="heading-error-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+                    <HeadingErrorGraphSet data={headingErrorOverTimeData} />
+                  </Box>
+                </>
+              )}
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Connection of Travel</Typography>
 
@@ -186,6 +214,20 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The number of events triggered when vehicles passed through the intersection.
+              </Typography>
+
+              <Box id="valid-connection-of-travel-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <ValidConnectionOfTravelGraph data={report.connectionOfTravelAssessmentCount} />
+              </Box>
+              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                The number of vehicles that followed the defined ingress-egress lane pairings for each lane at the intersection.
+              </Typography>
+              
+              <Box id="invalid-connection-of-travel-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <InvalidConnectionOfTravelGraph data={report.connectionOfTravelAssessmentCount} />
+              </Box>
+              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                The number of vehicles that did not follow the defined ingress-egress lane pairings for each lane at the intersection.
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
@@ -270,9 +312,3 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   );
 };
 export default ReportDetailsModal;
-
-// Utility function to generate date range
-function generateDateRange(startDate: Date, endDate: Date): string[] {
-  const dates = eachDayOfInterval({ start: startDate, end: endDate });
-  return dates.map(date => format(date, 'yyyy-MM-dd'));
-}

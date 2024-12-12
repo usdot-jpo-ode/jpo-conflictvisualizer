@@ -13,7 +13,7 @@ const IntersectionReferenceAlignmentGraph: React.FC<IntersectionReferenceAlignme
       title="Intersection Reference Alignments Per Day"
       data={data}
       getInterval={getInterval}
-      barColor={reportColorPalette[2]}
+      barColor={reportColorPalette[0]}
     />
   );
 };
