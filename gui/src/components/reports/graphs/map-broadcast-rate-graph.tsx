@@ -12,7 +12,7 @@ const MapBroadcastRateGraph: React.FC<MapBroadcastRateGraphProps> = ({ data, get
     title="MAP Broadcast Rate Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor={reportColorPalette[8]}
+    barColor={reportColorPalette[1]}
   />
 );
 

@@ -39,7 +39,6 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
       acc[minute] = {};
     }
     assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      // Calculate heading delta and round to the nearest 0.5 degrees
       const headingDelta = Math.round((group.medianHeading - group.expectedHeading) * 2) / 2;
       if (!acc[minute][`Segment ${group.segmentID}`]) {
         acc[minute][`Segment ${group.segmentID}`] = [];
@@ -56,13 +55,12 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
     const segments = Object.keys(aggregatedData[minute]).reduce((acc, segment) => {
       const values = aggregatedData[minute][segment];
       const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-      acc[segment] = Math.round(average * 2) / 2; // Ensure the average is also rounded to the nearest 0.5 degrees
+      acc[segment] = Math.round(average * 2) / 2;
       return acc;
     }, { name: formattedDate });
     return segments;
   });
 
-  // Custom tick formatter for the x-axis
   const uniqueDates = Array.from(new Set(processedData.map(d => d.name.split(' ')[0])));
   const tickFormatter = (tick: string) => {
     const date = new Date(Date.parse(tick));
@@ -73,7 +71,6 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
     }
   };
 
-  // Calculate the min and max values for the y-axis
   const allValues = processedData.flatMap(d => Object.values(d).filter(value => typeof value === 'number').map(Number));
   const minValue = Math.min(...allValues);
   const maxValue = Math.max(...allValues);
@@ -106,12 +103,12 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
           />
           <YAxis
             label={{ value: 'Heading Delta (Degrees)', angle: -90, position: 'insideLeft', dy: 80 }}
-            domain={[minValue - 1, maxValue + 1]} // Add 1 degree buffer to the top and bottom
+            domain={[minValue - 1, maxValue + 1]}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
-            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} />
+            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={2} />
           ))}
         </LineChart>
       </Box>

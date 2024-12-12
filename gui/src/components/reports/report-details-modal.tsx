@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Modal, IconButton, Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Typography, Modal, IconButton, Button, CircularProgress, Checkbox, FormControlLabel, LinearProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ReportMetadata } from '../../apis/reports-api';
 import { format } from 'date-fns';
@@ -47,6 +47,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [headingErrorOverTimeData, setHeadingErrorOverTimeData] = useState<LaneDirectionOfTravelAssessment[]>([]);
   const [loading, setLoading] = useState(false);
   const [includeLaneSpecificCharts, setIncludeLaneSpecificCharts] = useState(false); // Default to unchecked
+  const [progress, setProgress] = useState(0); // Progress state
 
   const generateMergedData = (eventCounts: { id: string; count: number }[], dateRange: string[]) => {
     const eventCountMap = new Map(eventCounts.map((item: any) => [item.id, item.count]));
@@ -125,7 +126,8 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const handleGeneratePdf = async () => {
     if (report) {
       setLoading(true);
-      await generatePdf(report, setLoading, includeLaneSpecificCharts, () => open);
+      setProgress(0); // Reset progress
+      await generatePdf(report, setLoading, includeLaneSpecificCharts, () => open, setProgress);
       setLoading(false);
     }
   };
@@ -156,13 +158,17 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
               />
             </Box>
           </Box>
+          {loading && <LinearProgress variant="determinate" value={progress} sx={{ mb: 2 }} />} {/* Progress bar */}
           {!report ? (
             <Typography>No report found</Typography>
           ) : (
             <>
-              <Typography variant="h3" align="center">Conflict Monitor Report</Typography>
+              <Typography variant="h2" align="center">Conflict Monitor Report</Typography>
+              <Typography variant="h6" align="center">
+                {`Intersection ${report.intersectionID}`}
+              </Typography>
               <Typography variant="body1" align="center">
-                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
+                {`${format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")} - ${format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'")}`}
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Lane Direction of Travel</Typography>
