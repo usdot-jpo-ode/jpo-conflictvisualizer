@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import HeadingErrorOverTimeGraph from './heading-error-over-time-graph';
 import { extractLaneIds } from '../report-utils';
 
@@ -27,11 +27,15 @@ const HeadingErrorGraphSet: React.FC<HeadingErrorGraphSetProps> = ({ data }) => 
 
   return (
     <Box>
-      {laneIds.map(laneID => (
-        <Box key={laneID} id={`heading-error-graph-${laneID}`} sx={{ mb: 6 }}>
-          <HeadingErrorOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} />
-        </Box>
-      ))}
+      {laneIds.length === 0 ? (
+        <Typography variant="body1" align="center">No Data</Typography>
+      ) : (
+        laneIds.map(laneID => (
+          <Box key={laneID} id={`heading-error-graph-${laneID}`} sx={{ mb: 6 }}>
+            <HeadingErrorOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} />
+          </Box>
+        ))
+      )}
     </Box>
   );
 };

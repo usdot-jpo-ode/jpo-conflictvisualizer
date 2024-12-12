@@ -104,6 +104,12 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
     }
   }, [report]);
 
+  useEffect(() => {
+    if (open) {
+      setIncludeLaneSpecificCharts(false); // Reset checkbox state when modal opens
+    }
+  }, [open]);
+  
   const getInterval = (dataLength: number) => {
     return dataLength <= 15 ? 0 : Math.ceil(dataLength / 30);
   };

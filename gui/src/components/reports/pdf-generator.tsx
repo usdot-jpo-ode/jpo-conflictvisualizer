@@ -41,6 +41,11 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
 };
 
 const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
+  if (laneIds.length === 0) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('No Data', pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    return;
+  }
   for (let i = 0; i < laneIds.length; i++) {
     if (i % 2 === 0 && i !== 0) {
       pdf.addPage();
@@ -51,6 +56,11 @@ const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pd
 };
 
 const addHeadingErrorGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
+  if (laneIds.length === 0) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('No Data', pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    return;
+  }
   for (let i = 0; i < laneIds.length; i++) {
     if (i % 2 === 0 && i !== 0) {
       pdf.addPage();
