@@ -1,5 +1,6 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface SpatBroadcastRateGraphProps {
   data: { name: string; value: number }[];
@@ -11,7 +12,7 @@ const SpatBroadcastRateGraph: React.FC<SpatBroadcastRateGraphProps> = ({ data, g
     title="SPaT Broadcast Rate Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#ffc658"
+    barColor={reportColorPalette[5]}
   />
 );
 

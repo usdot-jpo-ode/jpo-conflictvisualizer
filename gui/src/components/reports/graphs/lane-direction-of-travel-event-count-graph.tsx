@@ -1,5 +1,6 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface LaneDirectionOfTravelGraphProps {
   data: { name: string; value: number }[];
@@ -11,7 +12,7 @@ const LaneDirectionOfTravelGraph: React.FC<LaneDirectionOfTravelGraphProps> = ({
     title="Lane Direction of Travel Events Per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#82ca9d"
+    barColor={reportColorPalette[2]}
   />
 );
 

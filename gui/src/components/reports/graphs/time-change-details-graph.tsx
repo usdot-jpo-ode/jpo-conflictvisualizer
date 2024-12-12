@@ -1,5 +1,6 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface TimeChangeDetailsGraphProps {
   data: { name: string; value: number }[];
@@ -11,7 +12,7 @@ const TimeChangeDetailsGraph: React.FC<TimeChangeDetailsGraphProps> = ({ data, g
     title="Time Change Details Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#8884d8"
+    barColor={reportColorPalette[4]}
   />
 );
 

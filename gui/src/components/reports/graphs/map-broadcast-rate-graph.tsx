@@ -1,5 +1,6 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface MapBroadcastRateGraphProps {
   data: { name: string; value: number }[];
@@ -11,7 +12,7 @@ const MapBroadcastRateGraph: React.FC<MapBroadcastRateGraphProps> = ({ data, get
     title="MAP Broadcast Rate Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#82ca9d"
+    barColor={reportColorPalette[8]}
   />
 );
 

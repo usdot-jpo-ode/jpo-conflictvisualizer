@@ -1,5 +1,6 @@
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface StopLineStopGraphProps {
   data: { name: string; value: number }[];
@@ -11,7 +12,7 @@ const StopLineStopGraph: React.FC<StopLineStopGraphProps> = ({ data, getInterval
     title="Stop Line Stop Events Per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#8884d8"
+    barColor={reportColorPalette[4]}
   />
 );
 

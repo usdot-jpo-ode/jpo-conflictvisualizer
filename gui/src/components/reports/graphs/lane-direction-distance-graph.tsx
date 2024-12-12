@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
+import reportColorPalette from '../report-color-palette';
 
 interface LaneDirectionDistanceGraphProps {
   data: { name: string; value: number }[];
@@ -19,6 +20,17 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   }
 
   return null;
+};
+
+// Utility function to format numbers
+const formatNumber = (num: number) => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  } else {
+    return num.toString();
+  }
 };
 
 const LaneDirectionDistanceGraph: React.FC<LaneDirectionDistanceGraphProps> = ({ data, getInterval }) => {
@@ -50,9 +62,10 @@ const LaneDirectionDistanceGraph: React.FC<LaneDirectionDistanceGraphProps> = ({
           />
           <YAxis
             label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }}
+            tickFormatter={formatNumber}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#82ca9d" />
+          <Bar dataKey="value" fill={reportColorPalette[2]} />
         </BarChart>
       </Box>
     </Box>

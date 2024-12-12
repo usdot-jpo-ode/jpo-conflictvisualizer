@@ -1,6 +1,7 @@
 // SignalStateConflictGraph.tsx
 import React from 'react';
 import BarChartComponent from './bar-chart-component';
+import reportColorPalette from '../report-color-palette';
 
 interface SignalStateConflictGraphProps {
   data: { name: string; value: number }[];
@@ -12,7 +13,7 @@ const SignalStateConflictGraph: React.FC<SignalStateConflictGraphProps> = ({ dat
     title="Signal State Conflict Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor="#8884d8"
+    barColor={reportColorPalette[4]}
   />
 );
 

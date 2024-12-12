@@ -1,7 +1,8 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, TooltipProps } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, TooltipProps, ReferenceLine } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
+import reportColorPalette from '../report-color-palette';
 
 interface LaneDirectionHeadingGraphProps {
   data: { name: string; value: number }[];
@@ -11,49 +12,113 @@ interface LaneDirectionHeadingGraphProps {
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     return (
-      <Box sx={{ backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
-        <Typography variant="body2">{label}</Typography>
-        <Typography variant="body2">events: {payload[0].value}</Typography>
-      </Box>
+      <div style={{ backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+        <div>{label}</div>
+        <div>events: {payload[0].value}</div>
+      </div>
     );
   }
 
   return null;
 };
 
+// Utility function to format numbers
+const formatNumber = (num: number) => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  } else {
+    return num.toString();
+  }
+};
+
+// Normalize heading values to the range of -180 to 180 degrees
+const normalizeHeading = (heading: number) => {
+  if (heading < -180) {
+    return heading + 360;
+  } else if (heading > 180) {
+    return heading - 360;
+  }
+  return heading;
+};
+
+// Calculate the mean of the data
+const calculateMean = (data: { name: number; value: number }[]) => {
+  const total = data.reduce((sum, item) => sum + item.name * item.value, 0);
+  const count = data.reduce((sum, item) => sum + item.value, 0);
+  return total / count;
+};
+
+// Calculate the standard deviation of the data
+const calculateStandardDeviation = (data: { name: number; value: number }[]) => {
+  const mean = calculateMean(data);
+  const variance = data.reduce((sum, item) => sum + item.value * Math.pow(item.name - mean, 2), 0) / data.reduce((sum, item) => sum + item.value, 0);
+  return Math.sqrt(variance);
+};
+
+// Calculate the median of the data
+const calculateMedian = (data: { name: number; value: number }[]) => {
+  const totalCount = data.reduce((sum, item) => sum + item.value, 0);
+  const halfCount = totalCount / 2;
+  let cumulativeCount = 0;
+
+  for (const item of data) {
+    cumulativeCount += item.value;
+    if (cumulativeCount >= halfCount) {
+      return item.name;
+    }
+  }
+  return 0; // Default return value if something goes wrong
+};
+
 const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ data, getInterval }) => {
-  // Convert the name property to a number
-  const numericData = data.map(d => ({ ...d, name: Number(d.name) }));
-  const minX = Math.min(...numericData.map(d => d.name));
-  const maxX = Math.max(...numericData.map(d => d.name));
+  // Convert the name property to a number and normalize the heading values
+  const numericData = data
+    .map(d => ({ ...d, name: normalizeHeading(Number(d.name)) }))
+    .sort((a, b) => a.name - b.name);
+
+  // Calculate the standard deviation, mean, median, min, and max
+  const standardDeviation = Math.round(calculateStandardDeviation(numericData));
+  const mean = Math.round(calculateMean(numericData));
+  const median = Math.round(calculateMedian(numericData));
+  const min = Math.round(Math.min(...numericData.map(d => d.name)));
+  const max = Math.round(Math.max(...numericData.map(d => d.name)));
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
-      <Box>
-        <Typography variant="h6" align="center" sx={{ mt: 2 }}>Lane Direction Heading Distribution</Typography>
-        <BarChart
-          width={750}
-          height={450}
-          data={numericData}
-          margin={{
-            top: 20, right: 30, left: 20, bottom: 20,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="name"
-            label={{ value: 'Heading (degrees)', position: 'insideBottom', offset: -10 }}
-            scale="linear"
-            type="number"
-            domain={[minX - 0.5, maxX + 0.5]}
-            interval={getInterval(data.length)}
-          />
-          <YAxis
-            label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#82ca9d" />
-        </BarChart>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: 'auto' }}>
+      <Typography variant="h6" align="center" sx={{ mt: 2 }}>Lane Direction Heading Distribution</Typography>
+      <BarChart
+        width={750}
+        height={450}
+        data={numericData}
+        margin={{
+          top: 20, right: 30, left: 20, bottom: 15,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="name"
+          label={{ value: 'Heading (degrees)', position: 'insideBottom', offset: -10 }}
+          type="number"
+        />
+        <YAxis
+          label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }}
+          tickFormatter={formatNumber}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar dataKey="value" fill={reportColorPalette[2]} />
+        <ReferenceLine x={mean} stroke={reportColorPalette[3]} />
+        <ReferenceLine x={median} stroke={reportColorPalette[6]} />
+        <ReferenceLine x={standardDeviation} stroke={reportColorPalette[0]} />
+        <ReferenceLine x={-standardDeviation} stroke={reportColorPalette[0]} />
+      </BarChart>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Typography variant="body2" sx={{ color: reportColorPalette[3], mx: 1 }}>Mean: {mean}°</Typography>
+        <Typography variant="body2" sx={{ color: reportColorPalette[6], mx: 1 }}>Median: {median}°</Typography>
+        <Typography variant="body2" sx={{ color: reportColorPalette[0], mx: 1 }}>Std Dev: {standardDeviation}°</Typography>
+        <Typography variant="body2" sx={{ mx: 1 }}>Min: {min}°</Typography>
+        <Typography variant="body2" sx={{ mx: 1 }}>Max: {max}°</Typography>
       </Box>
     </Box>
   );
