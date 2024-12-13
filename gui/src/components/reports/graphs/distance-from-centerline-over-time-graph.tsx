@@ -3,9 +3,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, TooltipP
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
+import { LaneDirectionOfTravelReportData } from '../report-utils';
 
 interface DistanceFromCenterlineOverTimeGraphProps {
-  data: LaneDirectionOfTravelAssessment[];
+  data: LaneDirectionOfTravelReportData[];
   laneNumber: string;
 }
 
@@ -26,24 +27,21 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 
 const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTimeGraphProps> = ({ data, laneNumber }) => {
   // Sort data by timestamp in ascending order
-  const sortedData = data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sortedData = data.sort((a, b) => a.timestamp - b.timestamp);
 
   // Extract unique segment IDs for the lines
-  const segmentIDs = Array.from(new Set(data.flatMap(assessment => assessment.laneDirectionOfTravelAssessmentGroup.map(group => group.segmentID))));
+  const segmentIDs = Array.from(new Set(data.map(item => item.segmentID)));
 
   // Aggregate data by minute
-  const aggregatedData = sortedData.reduce((acc, assessment) => {
-    const date = new Date(assessment.timestamp);
-    const minute = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes()).getTime();
+  const aggregatedData = sortedData.reduce((acc, item) => {
+    const minute = new Date(item.timestamp).setSeconds(0, 0);
     if (!acc[minute]) {
       acc[minute] = {};
     }
-    assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      if (!acc[minute][`Segment ${group.segmentID}`]) {
-        acc[minute][`Segment ${group.segmentID}`] = [];
-      }
-      acc[minute][`Segment ${group.segmentID}`].push(group.medianCenterlineDistance);
-    });
+    if (!acc[minute][`Segment ${item.segmentID}`]) {
+      acc[minute][`Segment ${item.segmentID}`] = [];
+    }
+    acc[minute][`Segment ${item.segmentID}`].push(item.medianCenterlineDistance);
     return acc;
   }, {} as { [minute: number]: { [segment: string]: number[] } });
 
@@ -72,7 +70,8 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
 
   const lines = segmentIDs.map((segmentID, index) => ({
     dataKey: `Segment ${segmentID}`,
-    stroke: reportColorPalette[(index * 3 + 2) % reportColorPalette.length], strokewidth: 2,
+    stroke: reportColorPalette[(index * 3 + 2) % reportColorPalette.length],
+    strokeWidth: 2,
     name: `Segment ${segmentID}`
   }));
 

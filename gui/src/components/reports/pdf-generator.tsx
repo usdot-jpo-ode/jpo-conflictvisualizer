@@ -2,7 +2,6 @@ import jsPDF from 'jspdf';
 import { toPng } from 'html-to-image';
 import { format } from 'date-fns';
 import { ReportMetadata } from '../../apis/reports-api';
-import { extractLaneIds } from './report-utils';
 
 const setPdfSectionTitleFormatting = (pdf: jsPDF) => {
   pdf.setFontSize(24);
@@ -36,7 +35,10 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
       pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight, undefined, 'FAST');
       setProgress((currentGraph / totalGraphs) * 100);
     } catch (error) {
+      console.error('Error capturing graph:', error);
     }
+  } else {
+    console.error(`Element with id ${elementId} not found`);
   }
 };
 
@@ -76,8 +78,8 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   const pdfHeight = pdf.internal.pageSize.getHeight();
   const pdfWidth = pdf.internal.pageSize.getWidth();
 
-  // Calculate total number of graphs
-  const laneIds = extractLaneIds(report.laneDirectionOfTravelAssessmentCount || []);
+  // Extract unique lane IDs from laneDirectionOfTravelReportData
+  const laneIds = Array.from(new Set(report.laneDirectionOfTravelReportData.map(item => item.laneID)));
   const totalGraphs = 15 + (includeLaneSpecificCharts ? 2 * laneIds.length : 0);
 
   let currentGraph = 0;
@@ -197,7 +199,7 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
     report.latestMapMinimumDataEventMissingElements.forEach((element) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
       pdf.text(lines, 20, yOffset);
-      yOffset += lines.length * 7; // Adjust yOffset based on the number of lines, reduced spacing
+      yOffset += lines.length * 7;
     });
   }
 
@@ -222,7 +224,7 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
     report.latestSpatMinimumDataEventMissingElements.forEach((element) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
       pdf.text(lines, 20, yOffset);
-      yOffset += lines.length * 7; // Adjust yOffset based on the number of lines, reduced spacing
+      yOffset += lines.length * 7;
     });
   }
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import DistanceFromCenterlineOverTimeGraph from './distance-from-centerline-over-time-graph';
-import { extractLaneIds } from '../report-utils';
+import { extractLaneIds, LaneDirectionOfTravelReportData } from '../report-utils';
 
 interface DistanceFromCenterlineGraphSetProps {
-  data: LaneDirectionOfTravelAssessment[];
+  data: LaneDirectionOfTravelReportData[];
 }
 
 const DistanceFromCenterlineGraphSet: React.FC<DistanceFromCenterlineGraphSetProps> = ({ data }) => {
@@ -12,18 +12,13 @@ const DistanceFromCenterlineGraphSet: React.FC<DistanceFromCenterlineGraphSetPro
   const laneIds = extractLaneIds(data);
 
   // Group data by LaneID
-  const groupedData = data.reduce((acc, assessment) => {
-    assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      if (!acc[group.laneID]) {
-        acc[group.laneID] = [];
-      }
-      acc[group.laneID].push({
-        ...assessment,
-        laneDirectionOfTravelAssessmentGroup: [group]
-      });
-    });
+  const groupedData = data.reduce((acc, item) => {
+    if (!acc[item.laneID]) {
+      acc[item.laneID] = [];
+    }
+    acc[item.laneID].push(item);
     return acc;
-  }, {} as { [laneID: number]: LaneDirectionOfTravelAssessment[] });
+  }, {} as { [laneID: number]: LaneDirectionOfTravelReportData[] });
 
   return (
     <Box>

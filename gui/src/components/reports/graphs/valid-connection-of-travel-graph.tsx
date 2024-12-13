@@ -5,7 +5,7 @@ import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipCont
 import reportColorPalette from '../report-color-palette';
 
 interface ValidConnectionOfTravelGraphProps {
-  data: ConnectionOfTravelAssessment[];
+  data: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
 }
 
 const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
@@ -16,7 +16,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
         <Typography variant="body2">Connection ID: {obj.connectionID}</Typography>
         <Typography variant="body2">Ingress Lane ID: {obj.ingressLaneID}</Typography>
         <Typography variant="body2">Egress Lane ID: {obj.egressLaneID}</Typography>
-        <Typography variant="body2">Event Count: {obj.eventCountValid}</Typography>
+        <Typography variant="body2">Event Count: {obj.eventCount}</Typography>
       </Box>
     );
   }
@@ -24,32 +24,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 };
 
 const ValidConnectionOfTravelGraph: React.FC<ValidConnectionOfTravelGraphProps> = ({ data }) => {
-  // Aggregate data by ingress and egress lane IDs
-  const aggregatedData = data.reduce((acc, assessment) => {
-    assessment.connectionOfTravelAssessmentGroups.forEach(group => {
-      const key = `${group.ingressLaneID}-${group.egressLaneID}`;
-      if (!acc[key]) {
-        acc[key] = {
-          connectionID: group.connectionID,
-          ingressLaneID: group.ingressLaneID,
-          egressLaneID: group.egressLaneID,
-          eventCountValid: 0,
-          eventCountInvalid: 0,
-        };
-      }
-      if (group.connectionID !== -1) {
-        acc[key].eventCountValid += group.eventCount;
-      } else {
-        acc[key].eventCountInvalid += group.eventCount;
-      }
-    });
-    return acc;
-  }, {} as { [key: string]: any });
-
-  // Convert aggregated data to an array and filter out zero event counts
-  const processedData = Object.values(aggregatedData).filter(item => item.eventCountValid > 0);
-
-  const sortByName = (a, b) => {
+  // Sort data by ingress and egress lane IDs
+  const sortedData = data.sort((a, b) => {
     if (a.ingressLaneID < b.ingressLaneID) {
       return -1;
     }
@@ -63,7 +39,7 @@ const ValidConnectionOfTravelGraph: React.FC<ValidConnectionOfTravelGraphProps> 
       return 1;
     }
     return 0;
-  };
+  });
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
@@ -72,7 +48,7 @@ const ValidConnectionOfTravelGraph: React.FC<ValidConnectionOfTravelGraphProps> 
         <BarChart
           width={750}
           height={450}
-          data={processedData.sort(sortByName)}
+          data={sortedData}
           margin={{
             top: 20, right: 30, left: 20, bottom: 50,
           }}
@@ -85,11 +61,11 @@ const ValidConnectionOfTravelGraph: React.FC<ValidConnectionOfTravelGraphProps> 
             height={50}
             textAnchor="end"
             label={{ value: 'Ingress - Egress Lane ID', position: 'center', dy: 40 }}
-            tickFormatter={(tick, index) => `${processedData[index].ingressLaneID} - ${processedData[index].egressLaneID}`}
+            tickFormatter={(tick, index) => `${sortedData[index].ingressLaneID} - ${sortedData[index].egressLaneID}`}
           />
           <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft' }} />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="eventCountValid" fill={reportColorPalette[8]} />
+          <Bar dataKey="eventCount" fill={reportColorPalette[8]} />
         </BarChart>
       </Box>
     </Box>

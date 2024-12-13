@@ -1,3 +1,4 @@
+import { LaneDirectionOfTravelReportData } from "../components/reports/report-utils";
 import { authApiHelper } from "./api-helper";
 
 export type ReportMetadata = {
@@ -11,8 +12,7 @@ export type ReportMetadata = {
   laneDirectionOfTravelEventCounts: { id: string; count: number }[];
   laneDirectionOfTravelMedianDistanceDistribution: { id: string; count: number }[];
   laneDirectionOfTravelMedianHeadingDistribution: { id: string; count: number }[];
-  laneDirectionOfTravelAssessmentCount: LaneDirectionOfTravelAssessment[];
-  connectionOfTravelAssessmentCount: ConnectionOfTravelAssessment[];
+  laneDirectionOfTravelReportData: LaneDirectionOfTravelReportData[];
   connectionOfTravelEventCounts: { id: string; count: number }[];
   signalStateConflictEventCount: { id: string; count: number }[];
   signalStateEventCounts: { id: string; count: number }[];
@@ -25,6 +25,8 @@ export type ReportMetadata = {
   spatBroadcastRateEventCount: { id: string; count: number }[];
   latestMapMinimumDataEventMissingElements: string[];
   latestSpatMinimumDataEventMissingElements: string[];
+  validConnectionOfTravelData: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
+  invalidConnectionOfTravelData: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
 };
 
 class ReportsApi {

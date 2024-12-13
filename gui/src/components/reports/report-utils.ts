@@ -1,11 +1,17 @@
 import { format, eachDayOfInterval } from 'date-fns';
 
-export const extractLaneIds = (data: LaneDirectionOfTravelAssessment[]): number[] => {
+export type LaneDirectionOfTravelReportData = {
+    timestamp: number;
+    laneID: number;
+    segmentID: number;
+    headingDelta: number;
+    medianCenterlineDistance: number;
+  };
+
+export const extractLaneIds = (data: LaneDirectionOfTravelReportData[]): number[] => {
   const laneIds = new Set<number>();
   data.forEach(assessment => {
-    assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      laneIds.add(group.laneID);
-    });
+    laneIds.add(assessment.laneID);
   });
   return Array.from(laneIds).sort((a, b) => a - b);
 };

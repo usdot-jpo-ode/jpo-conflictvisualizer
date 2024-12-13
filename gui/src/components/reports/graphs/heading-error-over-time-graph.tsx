@@ -2,10 +2,11 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import reportColorPalette from '../report-color-palette'; // Import the color palette
+import reportColorPalette from '../report-color-palette';
+import { LaneDirectionOfTravelReportData } from '../report-utils';
 
 interface HeadingErrorOverTimeGraphProps {
-  data: LaneDirectionOfTravelAssessment[];
+  data: LaneDirectionOfTravelReportData[];
   laneNumber: string;
 }
 
@@ -26,26 +27,21 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 
 const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ data, laneNumber }) => {
   // Sort data by timestamp in ascending order
-  const sortedData = data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sortedData = data.sort((a, b) => a.timestamp - b.timestamp);
 
   // Extract unique segment IDs for the lines
-  const segmentIDs = Array.from(new Set(data.flatMap(assessment => assessment.laneDirectionOfTravelAssessmentGroup.map(group => group.segmentID))));
+  const segmentIDs = Array.from(new Set(data.map(item => item.segmentID)));
 
   // Aggregate data by minute
-  const aggregatedData = sortedData.reduce((acc, assessment) => {
-    const date = new Date(assessment.timestamp);
-    const minute = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes()).getTime();
+  const aggregatedData = sortedData.reduce((acc, item) => {
+    const minute = new Date(item.timestamp).setSeconds(0, 0);
     if (!acc[minute]) {
       acc[minute] = {};
     }
-    assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      // Calculate heading delta and round to the nearest 0.5 degrees
-      const headingDelta = Math.round((group.medianHeading - group.expectedHeading) * 2) / 2;
-      if (!acc[minute][`Segment ${group.segmentID}`]) {
-        acc[minute][`Segment ${group.segmentID}`] = [];
-      }
-      acc[minute][`Segment ${group.segmentID}`].push(headingDelta);
-    });
+    if (!acc[minute][`Segment ${item.segmentID}`]) {
+      acc[minute][`Segment ${item.segmentID}`] = [];
+    }
+    acc[minute][`Segment ${item.segmentID}`].push(item.headingDelta);
     return acc;
   }, {} as { [minute: number]: { [segment: string]: number[] } });
 
