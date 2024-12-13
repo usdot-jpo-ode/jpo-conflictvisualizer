@@ -12,7 +12,7 @@ const ConnectionOfTravelGraph: React.FC<ConnectionOfTravelGraphProps> = ({ data,
     title="Connection of Travel Events Per Day"
     data={data}
     getInterval={getInterval}
-    barColor={reportColorPalette[9]}
+    barColor={reportColorPalette[2]}
   />
 );
 

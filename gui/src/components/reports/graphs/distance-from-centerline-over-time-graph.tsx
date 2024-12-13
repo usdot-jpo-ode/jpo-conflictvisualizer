@@ -2,9 +2,9 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import reportColorPalette from '../report-color-palette'; // Import the color palette
+import reportColorPalette from '../report-color-palette';
 
-interface HeadingErrorOverTimeGraphProps {
+interface DistanceFromCenterlineOverTimeGraphProps {
   data: LaneDirectionOfTravelAssessment[];
   laneNumber: string;
 }
@@ -15,7 +15,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
       <Box sx={{ backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
         <Typography variant="body2">{label}</Typography>
         {payload.map((entry, index) => (
-          <Typography key={`item-${index}`} variant="body2">{`${entry.name}: ${Number(entry.value).toFixed(1)}°`}</Typography>
+          <Typography key={`item-${index}`} variant="body2">{`${entry.name}: ${Number(entry.value).toFixed(2)} cm`}</Typography>
         ))}
       </Box>
     );
@@ -24,7 +24,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   return null;
 };
 
-const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ data, laneNumber }) => {
+const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTimeGraphProps> = ({ data, laneNumber }) => {
   // Sort data by timestamp in ascending order
   const sortedData = data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
@@ -39,11 +39,10 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
       acc[minute] = {};
     }
     assessment.laneDirectionOfTravelAssessmentGroup.forEach(group => {
-      const headingDelta = Math.round((group.medianHeading - group.expectedHeading) * 2) / 2;
       if (!acc[minute][`Segment ${group.segmentID}`]) {
         acc[minute][`Segment ${group.segmentID}`] = [];
       }
-      acc[minute][`Segment ${group.segmentID}`].push(headingDelta);
+      acc[minute][`Segment ${group.segmentID}`].push(group.medianCenterlineDistance);
     });
     return acc;
   }, {} as { [minute: number]: { [segment: string]: number[] } });
@@ -55,7 +54,7 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
     const segments = Object.keys(aggregatedData[minute]).reduce((acc, segment) => {
       const values = aggregatedData[minute][segment];
       const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-      acc[segment] = Math.round(average * 2) / 2;
+      acc[segment] = average;
       return acc;
     }, { name: formattedDate });
     return segments;
@@ -71,20 +70,16 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
     }
   };
 
-  const allValues = processedData.flatMap(d => Object.values(d).filter(value => typeof value === 'number').map(Number));
-  const minValue = Math.min(...allValues);
-  const maxValue = Math.max(...allValues);
-
   const lines = segmentIDs.map((segmentID, index) => ({
     dataKey: `Segment ${segmentID}`,
-    stroke: reportColorPalette[(index * 3 + 3) % reportColorPalette.length],
+    stroke: reportColorPalette[(index * 3 + 2) % reportColorPalette.length], strokewidth: 2,
     name: `Segment ${segmentID}`
   }));
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
       <Box>
-        <Typography variant="h6" align="center" sx={{ mt: 2 }}>{`Heading Error for Lane ${laneNumber} Over Time`}</Typography>
+        <Typography variant="h6" align="center" sx={{ mt: 2 }}>{`Distance From Lane ${laneNumber} Centerline Over Time`}</Typography>
         <LineChart
           width={750}
           height={450}
@@ -102,8 +97,7 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
             textAnchor="end"
           />
           <YAxis
-            label={{ value: 'Heading Delta (Degrees)', angle: -90, position: 'insideLeft', dy: 80 }}
-            domain={[minValue - 1, maxValue + 1]}
+            label={{ value: 'Distance from Centerline (cm)', angle: -90, position: 'insideLeft', dy: 80 }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
@@ -116,4 +110,4 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
   );
 };
 
-export default HeadingErrorOverTimeGraph;
+export default DistanceFromCenterlineOverTimeGraph;

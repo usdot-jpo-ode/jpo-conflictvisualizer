@@ -105,7 +105,7 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
           />
           <YAxis
             label={{ value: 'Heading Delta (Degrees)', angle: -90, position: 'insideLeft', dy: 80 }}
-            domain={[minValue - 1, maxValue + 1]} // Add 1 degree buffer to the top and bottom
+            domain={[Math.round(minValue - 1), Math.round(maxValue + 1)]} // Add 1 degree buffer to the top and bottom
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />

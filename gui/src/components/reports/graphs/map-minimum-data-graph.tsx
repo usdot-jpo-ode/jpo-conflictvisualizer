@@ -12,7 +12,7 @@ const MapMinimumDataGraph: React.FC<MapMinimumDataGraphProps> = ({ data, getInte
     title="MAP Minimum Data Events per Day"
     data={data}
     getInterval={getInterval}
-    barColor={reportColorPalette[1]}
+    barColor={reportColorPalette[6]}
   />
 );
 

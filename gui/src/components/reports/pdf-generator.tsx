@@ -36,10 +36,7 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
       pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight, undefined, 'FAST');
       setProgress((currentGraph / totalGraphs) * 100);
     } catch (error) {
-      console.error('Error capturing graph:', error);
     }
-  } else {
-    console.error(`Element with id ${elementId} not found`);
   }
 };
 
@@ -156,24 +153,20 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   setPdfSectionTitleFormatting(pdf);
   pdf.text('Signal State Events', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
-  await captureGraph(pdf, 'signal-state-event-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'stop-line-stacked-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of events triggered when vehicles passed the stop line.',
+  pdf.text('A composite view comparing vehicles that stopped before passing through the intersection versus those that did not.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
 
-  await captureGraph(pdf, 'stop-line-stop-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
-  pdf.text('The number of events triggered when vehicles stopped at the stop line.',
+  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of times the system detected contradictory signal states, such as two perpendicular green lights.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
   pdf.addPage();
 
-  setPdfSectionTitleFormatting(pdf);
-  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
-  setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system detected contradictory signal states, such as two perpendicular green lights.',
-    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
   pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
-    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
   pdf.addPage();
 
   setPdfSectionTitleFormatting(pdf);
@@ -207,6 +200,17 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
       yOffset += lines.length * 7; // Adjust yOffset based on the number of lines, reduced spacing
     });
   }
+
+  pdf.addPage();
+  setPdfItemTitleFormatting(pdf);
+  pdf.text('SPaT', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+  await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  pdf.text('The number of times the system flagged SPaT messages with missing or incomplete data.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
 
   // Conditionally add SPaT Missing Data Elements page
   if (report?.latestSpatMinimumDataEventMissingElements?.length) {

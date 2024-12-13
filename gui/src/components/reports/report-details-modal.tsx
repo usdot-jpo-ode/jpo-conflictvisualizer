@@ -22,6 +22,7 @@ import DistanceFromCenterlineGraphSet from './graphs/distance-from-centerline-gr
 import HeadingErrorGraphSet from './graphs/heading-error-graph-set';
 import { generatePdf } from './pdf-generator';
 import { generateDateRange } from './report-utils';
+import StopLineStackedGraph from './graphs/stop-line-stacked-graph';
 
 interface ReportDetailsModalProps {
   open: boolean;
@@ -244,18 +245,11 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
 
-              <Box id="signal-state-event-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <StopLinePassageGraph data={signalStateEventCounts} getInterval={getInterval} />
+              <Box id="stop-line-stacked-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <StopLineStackedGraph stopData={stopLineStopEventCounts} passageData={signalStateEventCounts} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of events triggered when vehicles entered the intersection.
-              </Typography>
-
-              <Box id="stop-line-stop-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <StopLineStopGraph data={stopLineStopEventCounts} getInterval={getInterval} />
-              </Box>
-              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of events triggered when vehicles stopped before passing through the intersection.
+                A composite view comparing vehicles that stopped before passing through the intersection versus those that did not.
               </Typography>
 
               <Box id="signal-state-conflict-graph" sx={{ display: 'flex', justifyContent: 'center' }}>

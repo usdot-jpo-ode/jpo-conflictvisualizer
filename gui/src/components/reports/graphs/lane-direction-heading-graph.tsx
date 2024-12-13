@@ -107,19 +107,21 @@ const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ d
           tickFormatter={formatNumber}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="value" fill={reportColorPalette[2]} />
+        <Bar dataKey="value" fill={reportColorPalette[9]} />
         <ReferenceLine x={mean} stroke={reportColorPalette[3]} />
-        <ReferenceLine x={median} stroke={reportColorPalette[6]} />
+        <ReferenceLine x={median} stroke={reportColorPalette[7]} />
         <ReferenceLine x={standardDeviation} stroke={reportColorPalette[0]} />
         <ReferenceLine x={-standardDeviation} stroke={reportColorPalette[0]} />
       </BarChart>
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-        <Typography variant="body2" sx={{ color: reportColorPalette[3], mx: 1 }}>Mean: {mean}°</Typography>
-        <Typography variant="body2" sx={{ color: reportColorPalette[6], mx: 1 }}>Median: {median}°</Typography>
-        <Typography variant="body2" sx={{ color: reportColorPalette[0], mx: 1 }}>Std Dev: {standardDeviation}°</Typography>
-        <Typography variant="body2" sx={{ mx: 1 }}>Min: {min}°</Typography>
-        <Typography variant="body2" sx={{ mx: 1 }}>Max: {max}°</Typography>
-      </Box>
+      {data.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Typography variant="body2" sx={{ color: reportColorPalette[3], mx: 1 }}>Mean: {mean}°</Typography>
+          <Typography variant="body2" sx={{ color: reportColorPalette[7], mx: 1 }}>Median: {median}°</Typography>
+          <Typography variant="body2" sx={{ color: reportColorPalette[0], mx: 1 }}>Std Dev: {standardDeviation}°</Typography>
+          <Typography variant="body2" sx={{ mx: 1 }}>Min: {min}°</Typography>
+          <Typography variant="body2" sx={{ mx: 1 }}>Max: {max}°</Typography>
+        </Box>
+      )}
     </Box>
   );
 };

@@ -65,7 +65,7 @@ const LaneDirectionDistanceGraph: React.FC<LaneDirectionDistanceGraphProps> = ({
             tickFormatter={formatNumber}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill={reportColorPalette[2]} />
+          <Bar dataKey="value" fill={reportColorPalette[9]} />
         </BarChart>
       </Box>
     </Box>
