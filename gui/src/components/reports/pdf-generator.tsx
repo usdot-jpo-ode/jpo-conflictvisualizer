@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { format } from 'date-fns';
 import { ReportMetadata } from '../../apis/reports-api';
 import { extractLaneIds } from './report-utils';
@@ -27,16 +27,19 @@ const setPdfItemTitleFormatting = (pdf: jsPDF) => {
 const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number, y: number }, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
   const input = document.getElementById(elementId);
   if (input) {
-    const canvas = await html2canvas(input, { scale: 2 });
-    input.style.width = '';
-    input.style.height = '';
-    const imgData = canvas.toDataURL('image/png');
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const imgWidth = pdfWidth - 30;
-    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight, undefined, 'FAST');
-    setProgress((currentGraph / totalGraphs) * 100);
+    try {
+      const imgData = await toPng(input, { quality: 1 });
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pdfWidth - 30;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight, undefined, 'FAST');
+      setProgress((currentGraph / totalGraphs) * 100);
+    } catch (error) {
+      console.error('Error capturing graph:', error);
+    }
+  } else {
+    console.error(`Element with id ${elementId} not found`);
   }
 };
 
@@ -85,11 +88,8 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   pdf.setFontSize(36);
   pdf.text('Conflict Monitor Report', pdfWidth / 2, pdfHeight / 2 - 50, { align: 'center' });
   pdf.setFontSize(12);
-  pdf.text(`Intersection ${report.intersectionID}`,
-    pdfWidth / 2, pdfHeight / 2 - 30, { align: 'center' });
-  pdf.setFontSize(12);
   pdf.text(`${report?.reportStartTime ? format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''} - ${report?.reportStopTime ? format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''}`,
-    pdfWidth / 2, pdfHeight / 2 - 20, { align: 'center' });
+    pdfWidth / 2, pdfHeight / 2 - 30, { align: 'center' });
   pdf.addPage();
 
   setPdfSectionTitleFormatting(pdf);
@@ -207,17 +207,6 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
       yOffset += lines.length * 7; // Adjust yOffset based on the number of lines, reduced spacing
     });
   }
-
-  pdf.addPage();
-  setPdfItemTitleFormatting(pdf);
-  pdf.text('SPaT', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
-  setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.',
-    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
-  pdf.text('The number of times the system flagged SPaT messages with missing or incomplete data.',
-    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
 
   // Conditionally add SPaT Missing Data Elements page
   if (report?.latestSpatMinimumDataEventMissingElements?.length) {
