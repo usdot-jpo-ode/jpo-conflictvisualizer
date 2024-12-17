@@ -29,8 +29,8 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
   // Sort data by timestamp in ascending order
   const sortedData = data.sort((a, b) => a.timestamp - b.timestamp);
 
-  // Extract unique segment IDs for the lines
-  const segmentIDs = Array.from(new Set(data.map(item => item.segmentID)));
+  // Extract unique segment IDs for the lines and sort them numerically
+  const segmentIDs = Array.from(new Set(data.map(item => item.segmentID))).sort((a, b) => a - b);
 
   // Aggregate data by minute
   const aggregatedData = sortedData.reduce((acc, item) => {
@@ -101,7 +101,7 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
-            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={2} />
+            <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={3} />
           ))}
         </LineChart>
       </Box>

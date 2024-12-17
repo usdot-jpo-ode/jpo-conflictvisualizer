@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Modal, IconButton, Button, CircularProgress, Checkbox, FormControlLabel, LinearProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ReportMetadata } from '../../apis/reports-api';
@@ -19,7 +19,7 @@ import IntersectionReferenceAlignmentGraph from './graphs/intersection-reference
 import DistanceFromCenterlineGraphSet from './graphs/distance-from-centerline-graph-set';
 import HeadingErrorGraphSet from './graphs/heading-error-graph-set';
 import { generatePdf } from './pdf-generator';
-import { generateDateRange, LaneDirectionOfTravelReportData } from './report-utils';
+import { generateDateRange, LaneDirectionOfTravelReportData, processMissingElements } from './report-utils';
 import StopLineStackedGraph from './graphs/stop-line-stacked-graph';
 
 interface ReportDetailsModalProps {
@@ -43,10 +43,13 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [laneDirectionHeadingDistribution, setLaneDirectionHeadingDistribution] = useState<{ name: string; value: number }[]>([]);
   const [intersectionReferenceAlignmentEventCounts, setIntersectionReferenceAlignmentEventCounts] = useState<{ name: string; value: number }[]>([]);
   const [laneDirectionOfTravelReportData, setLaneDirectionOfTravelReportData] = useState<LaneDirectionOfTravelReportData[]>([]);
+  const [mapMissingElements, setMapMissingElements] = useState<string[]>([]);
+  const [spatMissingElements, setSpatMissingElements] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [includeLaneSpecificCharts, setIncludeLaneSpecificCharts] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isWindowWideEnough, setIsWindowWideEnough] = useState(window.innerWidth >= 820);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const generateMergedData = (eventCounts: { id: string; count: number }[], dateRange: string[]) => {
     const eventCountMap = new Map(eventCounts.map((item: any) => [item.id, item.count]));
@@ -99,8 +102,17 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
       if (report.laneDirectionOfTravelReportData) {
         setLaneDirectionOfTravelReportData(report.laneDirectionOfTravelReportData);
       }
+    
+    // Process and set missing elements
+    if (report.latestMapMinimumDataEventMissingElements) {
+      setMapMissingElements(processMissingElements(report.latestMapMinimumDataEventMissingElements));
     }
-  }, [report]);
+
+    if (report.latestSpatMinimumDataEventMissingElements) {
+      setSpatMissingElements(processMissingElements(report.latestSpatMinimumDataEventMissingElements));
+    }
+  }
+}, [report]);
 
   useEffect(() => {
     if (open) {
@@ -142,17 +154,26 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
     if (report) {
       setLoading(true);
       setProgress(0); // Reset progress
-      await generatePdf(report, setLoading, includeLaneSpecificCharts, () => open, setProgress);
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      await generatePdf(report, setLoading, includeLaneSpecificCharts, () => open, setProgress, abortController.signal);
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <Box sx={{ position: 'relative', p: 4, backgroundColor: 'white', margin: 'auto', width: '820px', maxHeight: '90vh', overflow: 'auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <IconButton aria-label="close" onClick={handleClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
               <CloseIcon />
             </IconButton>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -299,7 +320,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 The number of times the system flagged MAP messages with missing or incomplete data.
               </Typography>
 
-              {report.latestMapMinimumDataEventMissingElements?.length > 0 && renderList('MAP Missing Data Elements', report.latestMapMinimumDataEventMissingElements)}
+              {mapMissingElements.length > 0 && renderList('MAP Missing Data Elements', mapMissingElements)}
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>SPaT</Typography>
 
@@ -317,7 +338,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 The number of times the system flagged SPaT messages with missing or incomplete data.
               </Typography>
 
-              {report.latestSpatMinimumDataEventMissingElements?.length > 0 && renderList('SPaT Missing Data Elements', report.latestSpatMinimumDataEventMissingElements)}
+              {spatMissingElements.length > 0 && renderList('SPaT Missing Data Elements', spatMissingElements)}
             </>
           )}
         </Box>

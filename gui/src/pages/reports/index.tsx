@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
-import { endOfDay, startOfDay } from "date-fns";
-import { Box, Button, FormControlLabel, Grid, Stack, Switch, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DashboardLayout } from "../../components/dashboard-layout";
 import { FilterAlt } from "@mui/icons-material";
@@ -12,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { ReportGenerationDialog } from "../../components/reports/report-generation-dialog";
 import ReportDetailsModal from '../../components/reports/report-details-modal';
+import toast from "react-hot-toast";
 
 const applyPagination = (logs, page, rowsPerPage) => logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -38,6 +38,7 @@ const LogsListInner = styled("div", { shouldForwardProp: (prop) => prop !== "ope
     }),
   })
 );
+
 const Page = () => {
   const rootRef = useRef(null);
   const { data: session } = useSession();
@@ -57,16 +58,6 @@ const Page = () => {
     customer: [],
   });
   const [openReportGenerationDialog, setOpenReportGenerationDialog] = useState(false);
-
-  function sortReportByAge(a: ReportMetadata, b: ReportMetadata) {
-    if (a.reportGeneratedAt < b.reportGeneratedAt) {
-      return -1;
-    }
-    if (a.reportGeneratedAt > b.reportGeneratedAt) {
-      return 1;
-    }
-    return 0;
-  }
 
   const listReports = async (
     start_timestamp: Date,
@@ -89,7 +80,7 @@ const Page = () => {
           startTime: start_timestamp,
           endTime: end_timestamp,
         })) ?? [];
-      data = data.sort(sortReportByAge);
+      data = data.sort((a, b) => new Date(b.reportGeneratedAt).getTime() - new Date(a.reportGeneratedAt).getTime()); // Sort by reportGeneratedAt in descending order
       setLogs(data);
       setLoading(false);
     } catch (err) {
@@ -147,6 +138,12 @@ const Page = () => {
   const handleCloseReportModal = () => {
     setIsModalOpen(false);
     setSelectedReport(null);
+  };
+
+  const handleReportGenerated = () => {
+    setOpenReportGenerationDialog(false);
+    const refreshTime = new Date(Date.now() + 15 * 60 * 1000);
+    toast.success(`Reports usually take 10-15 minutes to generate. Please refresh the page at ${refreshTime.toLocaleTimeString()} to see the new report.`);
   };
 
   return (
@@ -215,6 +212,7 @@ const Page = () => {
         onClose={() => {
           setOpenReportGenerationDialog(false);
         }}
+        onReportGenerated={handleReportGenerated}
       />
       <ReportDetailsModal
         open={isModalOpen}

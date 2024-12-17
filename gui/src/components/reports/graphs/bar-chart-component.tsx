@@ -59,7 +59,7 @@ const BarChartComponent: React.FC<BarChartComponentProps> = ({ title, data, getI
           tickFormatter={formatNumber}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="value" fill={barColor} />
+        <Bar dataKey="value" fill={barColor} isAnimationActive={false} />
       </BarChart>
     </Box>
   </Box>

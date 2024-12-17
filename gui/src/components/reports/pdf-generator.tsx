@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import { toPng } from 'html-to-image';
 import { format } from 'date-fns';
 import { ReportMetadata } from '../../apis/reports-api';
+import { processMissingElements } from './report-utils';
 
 const setPdfSectionTitleFormatting = (pdf: jsPDF) => {
   pdf.setFontSize(24);
@@ -23,7 +24,7 @@ const setPdfItemTitleFormatting = (pdf: jsPDF) => {
   pdf.setFont('helvetica', 'bold');
 };
 
-const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number, y: number }, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
+const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number, y: number }, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number, signal: AbortSignal) => {
   const input = document.getElementById(elementId);
   if (input) {
     try {
@@ -35,14 +36,22 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
       pdf.addImage(imgData, 'PNG', position.x + 15, position.y, imgWidth, imgHeight, undefined, 'FAST');
       setProgress((currentGraph / totalGraphs) * 100);
     } catch (error) {
-      console.error('Error capturing graph:', error);
+      if (!signal.aborted) {
+        console.error('Error capturing graph:', error);
+      }
     }
   } else {
     console.error(`Element with id ${elementId} not found`);
   }
 };
 
-const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
+const addPageWithNumber = (pdf: jsPDF, pageNumber: number) => {
+  pdf.addPage();
+  pdf.setFontSize(10);
+  pdf.text(`Page ${pageNumber}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+};
+
+const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number, signal: AbortSignal) => {
   if (laneIds.length === 0) {
     pdf.setFont('helvetica', 'normal');
     pdf.text('No Data', pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
@@ -50,14 +59,14 @@ const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pd
   }
   for (let i = 0; i < laneIds.length; i++) {
     if (i % 2 === 0 && i !== 0) {
-      pdf.addPage();
+      addPageWithNumber(pdf, Math.ceil((currentGraph + i + 1) / 2));
     }
     const position = i % 2 === 0 ? { x: 0, y: 35 } : { x: 0, y: pdfHeight / 2 + 10 };
-    await captureGraph(pdf, `distance-from-centerline-graph-${laneIds[i]}`, position, setProgress, totalGraphs, currentGraph + i + 1);
+    await captureGraph(pdf, `distance-from-centerline-graph-${laneIds[i]}`, position, setProgress, totalGraphs, currentGraph + i + 1, signal);
   }
 };
 
-const addHeadingErrorGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number) => {
+const addHeadingErrorGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number, signal: AbortSignal) => {
   if (laneIds.length === 0) {
     pdf.setFont('helvetica', 'normal');
     pdf.text('No Data', pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
@@ -65,14 +74,14 @@ const addHeadingErrorGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: n
   }
   for (let i = 0; i < laneIds.length; i++) {
     if (i % 2 === 0 && i !== 0) {
-      pdf.addPage();
+      addPageWithNumber(pdf, Math.ceil((currentGraph + i + 1) / 2));
     }
     const position = i % 2 === 0 ? { x: 0, y: 35 } : { x: 0, y: pdfHeight / 2 + 10 };
-    await captureGraph(pdf, `heading-error-graph-${laneIds[i]}`, position, setProgress, totalGraphs, currentGraph + i + 1);
+    await captureGraph(pdf, `heading-error-graph-${laneIds[i]}`, position, setProgress, totalGraphs, currentGraph + i + 1, signal);
   }
 };
 
-export const generatePdf = async (report: ReportMetadata, setLoading: (loading: boolean) => void, includeLaneSpecificCharts: boolean, isModalOpen: () => boolean, setProgress: (progress: number) => void) => {
+export const generatePdf = async (report: ReportMetadata, setLoading: (loading: boolean) => void, includeLaneSpecificCharts: boolean, isModalOpen: () => boolean, setProgress: (progress: number) => void, signal: AbortSignal) => {
   setLoading(true);
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -80,34 +89,35 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
 
   // Extract unique lane IDs from laneDirectionOfTravelReportData
   const laneIds = Array.from(new Set(report.laneDirectionOfTravelReportData.map(item => item.laneID)));
-  const totalGraphs = 15 + (includeLaneSpecificCharts ? 2 * laneIds.length : 0);
+  const totalGraphs = 14 + (includeLaneSpecificCharts ? 2 * laneIds.length : 0);
 
   let currentGraph = 0;
+  let currentPage = 1;
 
   pdf.setFontSize(36);
   pdf.text('Conflict Monitor Report', pdfWidth / 2, pdfHeight / 2 - 50, { align: 'center' });
   pdf.setFontSize(12);
   pdf.text(`${report?.reportStartTime ? format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''} - ${report?.reportStopTime ? format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''}`,
     pdfWidth / 2, pdfHeight / 2 - 30, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   setPdfSectionTitleFormatting(pdf);
   pdf.text('Lane Direction of Travel', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'lane-direction-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'lane-direction-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of events triggered when vehicles passed a lane segment.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'lane-direction-distance-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'lane-direction-distance-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The median deviation in distance between vehicles and the center of the lane as defined by the MAP.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
-  await captureGraph(pdf, 'lane-direction-heading-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'lane-direction-heading-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The median deviation in heading between vehicles and the lanes as defined by the MAP.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 10, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   if (includeLaneSpecificCharts) {
     // Add Distance From Centerline Graphs
@@ -117,9 +127,9 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
     setPdfDescriptionFormatting(pdf);
     pdf.text('The average of median distances between vehicles and the centerline of each lane as it changed over time.',
       pdf.internal.pageSize.getWidth() / 2, 32, { align: 'center' });
-    await addDistanceFromCenterlineGraphs(pdf, laneIds, pdfHeight, setProgress, totalGraphs, currentGraph);
+    await addDistanceFromCenterlineGraphs(pdf, laneIds, pdfHeight, setProgress, totalGraphs, currentGraph, signal);
     currentGraph += laneIds.length;
-    pdf.addPage();
+    addPageWithNumber(pdf, currentPage++);
 
     // Add Heading Error Graphs
     setPdfSectionTitleFormatting(pdf);
@@ -128,105 +138,116 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
     setPdfDescriptionFormatting(pdf);
     pdf.text('The median deviation in heading between vehicles and the expected heading as defined by the MAP.',
       pdf.internal.pageSize.getWidth() / 2, 32, { align: 'center' });
-    await addHeadingErrorGraphs(pdf, laneIds, pdfHeight, setProgress, totalGraphs, currentGraph);
+    await addHeadingErrorGraphs(pdf, laneIds, pdfHeight, setProgress, totalGraphs, currentGraph, signal);
     currentGraph += laneIds.length;
-    pdf.addPage();
+    addPageWithNumber(pdf, currentPage++);
   }
 
   setPdfSectionTitleFormatting(pdf);
   pdf.text('Connection of Travel', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'connection-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'connection-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of events triggered when vehicles passed through the intersection.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   // Add Valid and Invalid Connection of Travel Graphs
-  await captureGraph(pdf, 'valid-connection-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'valid-connection-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of vehicles that followed the defined ingress-egress lane pairings for each lane at the intersection.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'invalid-connection-of-travel-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'invalid-connection-of-travel-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of vehicles that did not follow the defined ingress-egress lane pairings for each lane at the intersection.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   setPdfSectionTitleFormatting(pdf);
   pdf.text('Signal State Events', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
-  await captureGraph(pdf, 'stop-line-stacked-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'stop-line-stacked-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('A composite view comparing vehicles that stopped before passing through the intersection versus those that did not.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
 
-  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of times the system detected contradictory signal states, such as two perpendicular green lights.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
-  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   setPdfSectionTitleFormatting(pdf);
   pdf.text('Intersection Reference Alignments Per Day', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'intersection-reference-alignment-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'intersection-reference-alignment-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of events flagging a mismatch between intersection ID and road regulator ID.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
 
   setPdfItemTitleFormatting(pdf);
   pdf.text('MAP', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'map-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'map-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'map-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'map-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system flagged MAP messages with missing or incomplete data.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
 
-  // Conditionally add MAP Missing Data Elements page
+  // Process and add MAP Missing Data Elements page
   if (report?.latestMapMinimumDataEventMissingElements?.length) {
-    pdf.addPage();
+    addPageWithNumber(pdf, currentPage++);
     setPdfItemTitleFormatting(pdf);
     pdf.text('MAP Missing Data Elements', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
     setPdfBodyFormatting(pdf);
+    const processedMapElements = processMissingElements(report.latestMapMinimumDataEventMissingElements);
     let yOffset = 30;
-    report.latestMapMinimumDataEventMissingElements.forEach((element) => {
+    processedMapElements.forEach((element, index) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
+      if (yOffset + lines.length * 7 > pdfHeight - 20) {
+        addPageWithNumber(pdf, currentPage++);
+        yOffset = 30;
+      }
       pdf.text(lines, 20, yOffset);
       yOffset += lines.length * 7;
     });
   }
 
-  pdf.addPage();
+  addPageWithNumber(pdf, currentPage++);
   setPdfItemTitleFormatting(pdf);
   pdf.text('SPaT', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-  await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph);
+  await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system flagged SPaT messages with missing or incomplete data.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
 
-  // Conditionally add SPaT Missing Data Elements page
+  // Process and add SPaT Missing Data Elements page
   if (report?.latestSpatMinimumDataEventMissingElements?.length) {
-    pdf.addPage();
-    setPdfSectionTitleFormatting(pdf);
+    addPageWithNumber(pdf, currentPage++);
+    setPdfItemTitleFormatting(pdf);
     pdf.text('SPaT Missing Data Elements', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
     setPdfBodyFormatting(pdf);
+    const processedSpatElements = processMissingElements(report.latestSpatMinimumDataEventMissingElements);
     let yOffset = 30;
-    report.latestSpatMinimumDataEventMissingElements.forEach((element) => {
+    processedSpatElements.forEach((element, index) => {
       const lines = pdf.splitTextToSize(element, pdf.internal.pageSize.getWidth() - 40);
+      if (yOffset + lines.length * 7 > pdfHeight - 20) {
+        addPageWithNumber(pdf, currentPage++);
+        yOffset = 30;
+      }
       pdf.text(lines, 20, yOffset);
       yOffset += lines.length * 7;
     });
   }
+  if (signal.aborted) return;
 
   if (isModalOpen()) {
     pdf.save(report?.reportName + ".pdf" || 'report.pdf');
