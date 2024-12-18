@@ -34,8 +34,6 @@ export const processMissingElements = (elements: string[]): string[] => {
     // Remove "payload.data." prefix if it exists
     if (element.startsWith("payload.data.")) {
       element = element.substring("payload.data.".length);
-    } else {
-      return element;
     }
 
     // Remove the first colon and anything that comes after it

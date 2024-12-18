@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
@@ -79,6 +79,8 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
   const allValues = processedData.flatMap(d => Object.values(d).filter(value => typeof value === 'number').map(Number));
   const minValue = Math.min(...allValues);
   const maxValue = Math.max(...allValues);
+  const domainMin = Math.floor(minValue / 5) * 5;
+  const domainMax = Math.ceil(maxValue / 5) * 5;
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
@@ -102,15 +104,21 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
           />
           <YAxis
             label={{ value: 'Distance from Centerline (cm)', angle: -90, position: 'insideLeft', dy: 80 }}
-            domain={[Math.round(minValue - 1), Math.round(maxValue + 1)]} // Add 1 cm buffer to the top and bottom
+            domain={[domainMin, domainMax]} // Extend to nearest multiple of 5
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
             <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={3} />
           ))}
-          {distanceTolerance >= minValue && distanceTolerance <= maxValue && (
-            <ReferenceLine y={distanceTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${distanceTolerance} cm`, position: 'top', offset: 10 }} />
+          {distanceTolerance !== domainMax && (
+            <>
+              <ReferenceLine y={distanceTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${distanceTolerance} cm`, position: 'top', offset: 5 }} />
+              <ReferenceArea y1={distanceTolerance} y2={domainMax} fill={reportColorPalette[3]} fillOpacity={0.1} />
+            </>
+          )}
+          {distanceTolerance < minValue && (
+            <ReferenceArea y1={domainMin} y2={domainMax} fill={reportColorPalette[3]} fillOpacity={0.1} />
           )}
         </LineChart>
       </Box>

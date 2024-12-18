@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
@@ -83,6 +83,8 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
   const allValues = processedData.flatMap(d => Object.values(d).filter(value => typeof value === 'number').map(Number));
   const minValue = Math.min(...allValues);
   const maxValue = Math.max(...allValues);
+  const domainMin = Math.round(minValue - 1);
+  const domainMax = Math.round(maxValue + 1);
 
   const lines = segmentIDs.map((segmentID, index) => ({
     dataKey: `Segment ${segmentID}`,
@@ -112,18 +114,19 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
           />
           <YAxis
             label={{ value: 'Heading Delta (Degrees)', angle: -90, position: 'insideLeft', dy: 80 }}
-            domain={[Math.round(minValue - 1), Math.round(maxValue + 1)]} // Add 1 degree buffer to the top and bottom
+            domain={[domainMin, domainMax]} // Use calculated domain edges
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
             <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={3} />
           ))}
-          {headingTolerance >= minValue && headingTolerance <= maxValue && (
-            <ReferenceLine y={headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 10 }} />
-          )}
-          {-headingTolerance >= minValue && -headingTolerance <= maxValue && (
-            <ReferenceLine y={-headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 10 }} />
+          <ReferenceLine y={headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 5 }} />
+          <ReferenceArea y1={headingTolerance} y2={domainMax} fill={reportColorPalette[3]} fillOpacity={0.1} />
+          <ReferenceLine y={-headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 5 }} />
+          <ReferenceArea y1={domainMin} y2={-headingTolerance} fill={reportColorPalette[3]} fillOpacity={0.1} />
+          {headingTolerance < minValue && (
+            <ReferenceArea y1={domainMin} y2={domainMax} fill={reportColorPalette[3]} fillOpacity={0.1} />
           )}
         </LineChart>
       </Box>

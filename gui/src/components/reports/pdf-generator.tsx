@@ -48,7 +48,7 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
 const addPageWithNumber = (pdf: jsPDF, pageNumber: number) => {
   pdf.addPage();
   pdf.setFontSize(10);
-  pdf.text(`Page ${pageNumber}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+  pdf.text(`Page ${pageNumber}`, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 10);
 };
 
 const addDistanceFromCenterlineGraphs = async (pdf: jsPDF, laneIds: number[], pdfHeight: number, setProgress: (progress: number) => void, totalGraphs: number, currentGraph: number, signal: AbortSignal) => {

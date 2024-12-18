@@ -21,6 +21,7 @@ import HeadingErrorGraphSet from './graphs/heading-error-graph-set';
 import { generatePdf } from './pdf-generator';
 import { generateDateRange, LaneDirectionOfTravelReportData, processMissingElements } from './report-utils';
 import StopLineStackedGraph from './graphs/stop-line-stacked-graph';
+import reportColorPalette from './report-color-palette';
 
 interface ReportDetailsModalProps {
   open: boolean;
@@ -134,17 +135,28 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const getInterval = (dataLength: number) => {
     return dataLength <= 15 ? 0 : Math.ceil(dataLength / 30);
   };
-
+  
   const renderList = (title: string, data: string[]) => (
     data.length > 0 && (
       <>
         <Typography variant="h6" align="center" sx={{ mt: 4 }}>{title}</Typography>
         <Box sx={{ mt: 2 }}>
-          {data.map((element, index) => (
-            <Typography key={index} variant="body1" sx={{ mb: 1 }}>
-              {element}
-            </Typography>
-          ))}
+          {data.map((element, index) => {
+            const missingIndex = element.indexOf('missing');
+            let firstWords = '';
+            let restOfWords = element;
+  
+            if (missingIndex !== -1) {
+              firstWords = element.substring(0, missingIndex).trim();
+              restOfWords = element.substring(missingIndex);
+            }
+  
+            return (
+              <Typography key={index} variant="body1" sx={{ mb: 1 }}>
+                {firstWords && <span style={{ fontWeight: 'bold', color: reportColorPalette[8] }}>{firstWords}</span>} {restOfWords}
+              </Typography>
+            );
+          })}
         </Box>
       </>
     )
