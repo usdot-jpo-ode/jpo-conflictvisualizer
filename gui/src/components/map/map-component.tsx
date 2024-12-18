@@ -1938,16 +1938,13 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
                 "crosswalk",
               ];
               for (const image_name of images) {
-                console.debug("MAP IMAGE Before", image_name);
                 map.loadImage(`/icons/${image_name}.png`, (error, image) => {
-                  console.debug("MAP IMAGE After", image_name);
                   if (error) throw error;
                   if (image == undefined) {
                     console.error("Error loading image:", image_name, error, image, map.hasImage(image_name));
                     return;
                   }
                   console.debug("MAP IMAGE", image_name, map.hasImage(image_name));
-
                   if (!map.hasImage(image_name)) map.addImage(image_name, image);
                 });
               }
@@ -1957,10 +1954,7 @@ const MapTab = forwardRef<MAP_REFERENCE_TYPE | undefined, MapProps>(
             customAttribution={['<a href="https://www.cotrip.com/" target="_blank">© CDOT</a>']}
             styleDiffing
             style={{ width: "100%", height: "100%" }}
-            onMove={(evt) => {
-              setViewState(evt.viewState);
-              console.log(evt.viewState.zoom);
-            }}
+            onMove={(evt) => setViewState(evt.viewState)}
             onClick={onClickMap}
             // onMouseDown={this.onMouseDown}
             // onMouseUp={this.onMouseUp}
