@@ -1,4 +1,4 @@
-import { format, eachDayOfInterval } from 'date-fns';
+import { eachDayOfInterval, format, isEqual, subDays } from 'date-fns';
 
 export type LaneDirectionOfTravelReportData = {
     timestamp: number;
@@ -17,8 +17,12 @@ export const extractLaneIds = (data: LaneDirectionOfTravelReportData[]): number[
 };
 
 export const generateDateRange = (startDate: Date, endDate: Date): string[] => {
-    const dates = eachDayOfInterval({ start: startDate, end: endDate });
-    return dates.map(date => format(date, 'yyyy-MM-dd'));
+  // If endDate is exactly midnight, do not include it in the range
+  const isMidnight = endDate.getHours() === 0 && endDate.getMinutes() === 0 && endDate.getSeconds() === 0 && endDate.getMilliseconds() === 0;
+  const adjustedEndDate = isMidnight ? subDays(endDate, 1) : endDate;
+
+  const dates = eachDayOfInterval({ start: startDate, end: adjustedEndDate });
+  return dates.map(date => format(date, 'yyyy-MM-dd'));
 };
 
 
