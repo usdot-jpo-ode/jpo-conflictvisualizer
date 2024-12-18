@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
@@ -8,6 +8,7 @@ import { LaneDirectionOfTravelReportData } from '../report-utils';
 interface DistanceFromCenterlineOverTimeGraphProps {
   data: LaneDirectionOfTravelReportData[];
   laneNumber: string;
+  distanceTolerance: number; // New prop
 }
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
@@ -25,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   return null;
 };
 
-const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTimeGraphProps> = ({ data, laneNumber }) => {
+const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTimeGraphProps> = ({ data, laneNumber, distanceTolerance }) => {
   // Sort data by timestamp in ascending order
   const sortedData = data.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -75,6 +76,10 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
     name: `Segment ${segmentID}`
   }));
 
+  const allValues = processedData.flatMap(d => Object.values(d).filter(value => typeof value === 'number').map(Number));
+  const minValue = Math.min(...allValues);
+  const maxValue = Math.max(...allValues);
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
       <Box>
@@ -97,12 +102,16 @@ const DistanceFromCenterlineOverTimeGraph: React.FC<DistanceFromCenterlineOverTi
           />
           <YAxis
             label={{ value: 'Distance from Centerline (cm)', angle: -90, position: 'insideLeft', dy: 80 }}
+            domain={[Math.round(minValue - 1), Math.round(maxValue + 1)]} // Add 1 cm buffer to the top and bottom
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" height={36} />
           {lines.map((line, index) => (
             <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={3} />
           ))}
+          {distanceTolerance >= minValue && distanceTolerance <= maxValue && (
+            <ReferenceLine y={distanceTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${distanceTolerance} cm`, position: 'top', offset: 10 }} />
+          )}
         </LineChart>
       </Box>
     </Box>

@@ -223,7 +223,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
               </Typography>
 
               <Box id="lane-direction-heading-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <LaneDirectionHeadingGraph data={laneDirectionHeadingDistribution} getInterval={getInterval} />
+                <LaneDirectionHeadingGraph data={laneDirectionHeadingDistribution} getInterval={getInterval} headingTolerance={report.headingTolerance} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The median deviation in heading between vehicles and the lanes as defined by the MAP.
@@ -236,7 +236,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                     The average of median distances between vehicles and the centerline of each lane as it changed over time.
                   </Typography>
                   <Box id="distance-from-centerline-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                   <DistanceFromCenterlineGraphSet data={laneDirectionOfTravelReportData} />
+                    <DistanceFromCenterlineGraphSet data={laneDirectionOfTravelReportData} distanceTolerance={report.distanceTolerance} />
                   </Box>
 
                   <Typography variant="h4" align="center" sx={{ mt: 4 }}>Vehicle Heading Error Delta</Typography>
@@ -244,7 +244,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                     The median deviation in heading between vehicles and the expected heading as defined by the MAP.
                   </Typography>
                   <Box id="heading-error-over-time-graphs" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                    <HeadingErrorGraphSet data={laneDirectionOfTravelReportData} />
+                    <HeadingErrorGraphSet data={laneDirectionOfTravelReportData} headingTolerance={report.headingTolerance} />
                   </Box>
                 </>
               )}

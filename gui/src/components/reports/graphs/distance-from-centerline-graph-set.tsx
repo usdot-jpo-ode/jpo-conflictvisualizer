@@ -5,9 +5,10 @@ import { extractLaneIds, LaneDirectionOfTravelReportData } from '../report-utils
 
 interface DistanceFromCenterlineGraphSetProps {
   data: LaneDirectionOfTravelReportData[];
+  distanceTolerance: number; // New prop
 }
 
-const DistanceFromCenterlineGraphSet: React.FC<DistanceFromCenterlineGraphSetProps> = ({ data }) => {
+const DistanceFromCenterlineGraphSet: React.FC<DistanceFromCenterlineGraphSetProps> = ({ data, distanceTolerance }) => {
   // Extract lane IDs using the helper function
   const laneIds = extractLaneIds(data);
 
@@ -27,7 +28,7 @@ const DistanceFromCenterlineGraphSet: React.FC<DistanceFromCenterlineGraphSetPro
       ) : (
         laneIds.map(laneID => (
           <Box key={laneID} id={`distance-from-centerline-graph-${laneID}`} sx={{ mb: 6 }}>
-            <DistanceFromCenterlineOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} />
+            <DistanceFromCenterlineOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} distanceTolerance={distanceTolerance} />
           </Box>
         ))
       )}

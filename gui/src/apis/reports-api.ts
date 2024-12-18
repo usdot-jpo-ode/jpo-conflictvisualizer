@@ -27,6 +27,8 @@ export type ReportMetadata = {
   latestSpatMinimumDataEventMissingElements: string[];
   validConnectionOfTravelData: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
   invalidConnectionOfTravelData: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
+  headingTolerance: number;
+  distanceTolerance: number;
 };
 
 class ReportsApi {

@@ -7,6 +7,7 @@ import reportColorPalette from '../report-color-palette';
 interface LaneDirectionHeadingGraphProps {
   data: { name: string; value: number }[];
   getInterval: (dataLength: number) => number;
+  headingTolerance: number; // New prop
 }
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
@@ -72,7 +73,7 @@ const calculateMedian = (data: { name: number; value: number }[]) => {
   return 0; // Default return value if something goes wrong
 };
 
-const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ data, getInterval }) => {
+const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ data, getInterval, headingTolerance }) => {
   // Convert the name property to a number and normalize the heading values
   const numericData = data
     .map(d => ({ ...d, name: normalizeHeading(Number(d.name)) }))
@@ -112,6 +113,12 @@ const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ d
         <ReferenceLine x={median} stroke={reportColorPalette[7]} />
         <ReferenceLine x={standardDeviation} stroke={reportColorPalette[0]} />
         <ReferenceLine x={-standardDeviation} stroke={reportColorPalette[0]} />
+        {headingTolerance >= min && headingTolerance <= max && (
+          <ReferenceLine x={headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 15 }} />
+        )}
+        {-headingTolerance >= min && -headingTolerance <= max && (
+          <ReferenceLine x={-headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 15 }} />
+        )}
       </BarChart>
       {data.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

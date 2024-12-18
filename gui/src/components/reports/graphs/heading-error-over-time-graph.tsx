@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
@@ -8,6 +8,7 @@ import { LaneDirectionOfTravelReportData } from '../report-utils';
 interface HeadingErrorOverTimeGraphProps {
   data: LaneDirectionOfTravelReportData[];
   laneNumber: string;
+  headingTolerance: number; // New prop
 }
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
@@ -25,7 +26,17 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   return null;
 };
 
-const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ data, laneNumber }) => {
+// Function to normalize heading error values to the range -180 to +180 degrees
+const normalizeHeadingError = (value: number): number => {
+  if (value < -180) {
+    return value + 360;
+  } else if (value > 180) {
+    return value - 360;
+  }
+  return value;
+};
+
+const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ data, laneNumber, headingTolerance }) => {
   // Sort data by timestamp in ascending order
   const sortedData = data.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -41,7 +52,7 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
     if (!acc[minute][`Segment ${item.segmentID}`]) {
       acc[minute][`Segment ${item.segmentID}`] = [];
     }
-    acc[minute][`Segment ${item.segmentID}`].push(item.headingDelta);
+    acc[minute][`Segment ${item.segmentID}`].push(normalizeHeadingError(item.headingDelta));
     return acc;
   }, {} as { [minute: number]: { [segment: string]: number[] } });
 
@@ -108,6 +119,12 @@ const HeadingErrorOverTimeGraph: React.FC<HeadingErrorOverTimeGraphProps> = ({ d
           {lines.map((line, index) => (
             <Line key={index} type="monotone" dataKey={line.dataKey} stroke={line.stroke} name={line.name} connectNulls dot={false} isAnimationActive={false} strokeWidth={3} />
           ))}
+          {headingTolerance >= minValue && headingTolerance <= maxValue && (
+            <ReferenceLine y={headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 10 }} />
+          )}
+          {-headingTolerance >= minValue && -headingTolerance <= maxValue && (
+            <ReferenceLine y={-headingTolerance} stroke={reportColorPalette[0]} strokeDasharray="3 3" label={{ value: `Tolerance: ${headingTolerance}°`, position: 'top', offset: 10 }} />
+          )}
         </LineChart>
       </Box>
     </Box>

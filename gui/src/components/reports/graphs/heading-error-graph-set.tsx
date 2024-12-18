@@ -5,9 +5,10 @@ import { extractLaneIds, LaneDirectionOfTravelReportData } from '../report-utils
 
 interface HeadingErrorGraphSetProps {
   data: LaneDirectionOfTravelReportData[];
+  headingTolerance: number; // New prop
 }
 
-const HeadingErrorGraphSet: React.FC<HeadingErrorGraphSetProps> = ({ data }) => {
+const HeadingErrorGraphSet: React.FC<HeadingErrorGraphSetProps> = ({ data, headingTolerance }) => {
   // Extract lane IDs using the helper function
   const laneIds = extractLaneIds(data);
 
@@ -27,7 +28,7 @@ const HeadingErrorGraphSet: React.FC<HeadingErrorGraphSetProps> = ({ data }) => 
       ) : (
         laneIds.map(laneID => (
           <Box key={laneID} id={`heading-error-graph-${laneID}`} sx={{ mb: 6 }}>
-            <HeadingErrorOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} />
+            <HeadingErrorOverTimeGraph data={groupedData[laneID]} laneNumber={laneID.toString()} headingTolerance={headingTolerance} />
           </Box>
         ))
       )}

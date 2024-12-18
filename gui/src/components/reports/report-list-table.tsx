@@ -15,11 +15,9 @@ import {
   Typography,
 } from "@mui/material";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { ArrowDownward } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
-import { useRouter } from "next/router";
 
 interface ReportRowProps {
   report: ReportMetadata;
@@ -122,12 +120,6 @@ const ReportRow = (props: ReportRowProps) => {
         </Box>
       </TableCell>
       <TableCell align="right">
-        <Button
-          endIcon={<ArrowDownward fontSize="small" />}
-          onClick={() => downloadReport(report.reportName)}
-        >
-          Download
-        </Button>
         <Button onClick={() => onViewReport(report)}>
           View
         </Button>
