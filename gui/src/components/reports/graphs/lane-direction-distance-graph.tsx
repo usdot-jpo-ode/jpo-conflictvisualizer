@@ -42,7 +42,7 @@ const LaneDirectionDistanceGraph: React.FC<LaneDirectionDistanceGraphProps> = ({
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
       <Box>
-        <Typography variant="h6" align="center" sx={{ mt: 2 }}>Lane Direction Distance Distribution</Typography>
+        <Typography variant="h6" align="center" sx={{ mt: 2 }}>Deviation from Lane Centerline Distribution</Typography>
         <BarChart
           width={750}
           height={450}

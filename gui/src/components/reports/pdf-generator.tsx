@@ -48,6 +48,7 @@ const captureGraph = async (pdf: jsPDF, elementId: string, position: { x: number
 const addPageWithNumber = (pdf: jsPDF, pageNumber: number) => {
   pdf.addPage();
   pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
   pdf.text(`Page ${pageNumber}`, pdf.internal.pageSize.getWidth() - 20, pdf.internal.pageSize.getHeight() - 10);
 };
 
@@ -96,6 +97,9 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
 
   pdf.setFontSize(36);
   pdf.text('Conflict Monitor Report', pdfWidth / 2, pdfHeight / 2 - 50, { align: 'center' });
+  pdf.setFontSize(18);
+  pdf.text(`Intersection ${report?.intersectionID}`,
+    pdfWidth / 2, pdfHeight / 2 - 38, { align: 'center' });
   pdf.setFontSize(12);
   pdf.text(`${report?.reportStartTime ? format(new Date(report.reportStartTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''} - ${report?.reportStopTime ? format(new Date(report.reportStopTime), "yyyy-MM-dd' T'HH:mm:ss'Z'") : ''}`,
     pdfWidth / 2, pdfHeight / 2 - 30, { align: 'center' });
@@ -147,7 +151,7 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   pdf.text('Connection of Travel', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
   await captureGraph(pdf, 'connection-of-travel-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of events triggered when vehicles passed through the intersection.',
+  pdf.text('The number of events triggered when a vehicle entered and exited the intersection.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
   addPageWithNumber(pdf, currentPage++);
 
@@ -170,15 +174,20 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   pdf.text('A composite view comparing vehicles that stopped before passing through the intersection versus those that did not.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
 
-  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
+  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 5 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system detected contradictory signal states, such as two perpendicular green lights.',
+  pdf.text('The number of times the system detected contradictory signal states, such as conflicting green lights.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 20, { align: 'center' });
+  pdf.text('Lower numbers indicate better performance.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
-  addPageWithNumber(pdf, currentPage++);
+    addPageWithNumber(pdf, currentPage++);
 
   await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+    pdf.text('Lower numbers indicate better performance.',
+      pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 5, { align: 'center' });
+  
   addPageWithNumber(pdf, currentPage++);
 
   setPdfSectionTitleFormatting(pdf);
@@ -187,17 +196,24 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of events flagging a mismatch between intersection ID and road regulator ID.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  pdf.text('Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 5, { align: 'center' });  
   addPageWithNumber(pdf, currentPage++);
 
   setPdfItemTitleFormatting(pdf);
   pdf.text('MAP', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
   await captureGraph(pdf, 'map-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.',
+  pdf.text('The number of broadcast windows in which the system flagged more or less frequent MAP broadcasts than the expected',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  pdf.text('rate of 1 Hz. Each day has a total of 8,640 broadcast windows. Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 5, { align: 'center' });
   await captureGraph(pdf, 'map-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system flagged MAP messages with missing or incomplete data.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+  pdf.text('Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 10, { align: 'center' });
+  
 
   // Process and add MAP Missing Data Elements page
   if (report?.latestMapMinimumDataEventMissingElements?.length) {
@@ -223,11 +239,16 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   pdf.text('SPaT', pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
   await captureGraph(pdf, 'spat-broadcast-rate-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.',
+  pdf.text('The number of broadcast windows in which the system flagged more or less frequent SPaT broadcasts than the expected',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+  pdf.text('rate of 10 Hz. Each day has a total of 8,640 broadcast windows. Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 5, { align: 'center' });
   await captureGraph(pdf, 'spat-minimum-data-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
   pdf.text('The number of times the system flagged SPaT messages with missing or incomplete data.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
+  pdf.text('Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 10, { align: 'center' });
+  
 
   // Process and add SPaT Missing Data Elements page
   if (report?.latestSpatMinimumDataEventMissingElements?.length) {

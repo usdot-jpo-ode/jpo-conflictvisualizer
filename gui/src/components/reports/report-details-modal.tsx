@@ -267,7 +267,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 <ConnectionOfTravelGraph data={connectionOfTravelEventCounts} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of events triggered when vehicles passed through the intersection.
+                The number of events triggered when a vehicle entered and exited the intersection.
               </Typography>
 
               <Box id="valid-connection-of-travel-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -297,14 +297,16 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 <SignalStateConflictGraph data={signalStateConflictEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system detected contradictory signal states, such as two perpendicular green lights.
+                The number of times the system detected contradictory signal states, such as conflicting green lights.<br />
+                Lower numbers indicate better performance.
               </Typography>
 
               <Box id="time-change-details-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
                 <TimeChangeDetailsGraph data={timeChangeDetailsEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system detected differences in timing between expected and actual signal state changes.
+                The number of times the system detected differences in timing between expected and actual signal state changes.<br />
+                Lower numbers indicate better performance.
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Intersection Reference Alignments Per Day</Typography>
@@ -313,7 +315,8 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 <IntersectionReferenceAlignmentGraph data={intersectionReferenceAlignmentEventCounts} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of events flagging a mismatch between intersection ID and road regulator ID.
+                The number of events flagging a mismatch between intersection ID and road regulator ID.<br />
+                Lower numbers indicate better performance.
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>MAP</Typography>
@@ -322,14 +325,16 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 <MapBroadcastRateGraph data={mapBroadcastRateEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.
+                The number of broadcast windows in which the system flagged more or less frequent MAP broadcasts than the expected rate of 1 Hz.
+                Each day has a total of 8,640 broadcast windows. Lower numbers indicate better performance.
               </Typography>
 
               <Box id="map-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
                 <MapMinimumDataGraph data={mapMinimumDataEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged MAP messages with missing or incomplete data.
+                The number of times the system flagged MAP messages with missing or incomplete data.<br />
+                Lower numbers indicate better performance.
               </Typography>
 
               {mapMissingElements.length > 0 && renderList('MAP Missing Data Elements', mapMissingElements)}
@@ -340,14 +345,16 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
                 <SpatBroadcastRateGraph data={spatBroadcastRateEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.
+              The number of broadcast windows in which the system flagged more or less frequent SPaT broadcasts than the expected rate of 10 Hz.
+              Each day has a total of 8,640 broadcast windows. Lower numbers indicate better performance. 
               </Typography>
 
               <Box id="spat-minimum-data-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
                 <SpatMinimumDataGraph data={spatMinimumDataEventCount} getInterval={getInterval} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
-                The number of times the system flagged SPaT messages with missing or incomplete data.
+                The number of times the system flagged SPaT messages with missing or incomplete data.<br />
+                Lower numbers indicate better performance.
               </Typography>
 
               {spatMissingElements.length > 0 && renderList('SPaT Missing Data Elements', spatMissingElements)}

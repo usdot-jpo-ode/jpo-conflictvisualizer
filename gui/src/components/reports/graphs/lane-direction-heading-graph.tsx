@@ -96,7 +96,7 @@ const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ d
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: 'auto' }}>
-      <Typography variant="h6" align="center" sx={{ mt: 2 }}>Lane Direction Heading Distribution</Typography>
+      <Typography variant="h6" align="center" sx={{ mt: 2 }}>Deviation from Lane Heading Distribution</Typography>
       <BarChart
         width={750}
         height={450}
