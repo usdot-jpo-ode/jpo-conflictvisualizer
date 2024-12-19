@@ -114,7 +114,7 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   setPdfDescriptionFormatting(pdf);
   pdf.text('The number of events triggered when vehicles passed a lane segment.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-  await captureGraph(pdf, 'lane-direction-distance-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
+  await captureGraph(pdf, 'lane-direction-distance-graph', { x: 0, y: pdfHeight / 2 + 3}, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
   pdf.text('The median deviation in distance between vehicles and the center of the lane as defined by the MAP.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });

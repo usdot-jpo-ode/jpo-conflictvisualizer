@@ -119,7 +119,7 @@ const LaneDirectionDistanceGraph: React.FC<LaneDirectionDistanceGraphProps> = ({
           <ReferenceArea x1={minX - 0.5} x2={-cmToFeet(distanceTolerance)} fill={reportColorPalette[3]} fillOpacity={0.1} />
         </BarChart>
         {data.length > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
             <Typography variant="body2" sx={{ color: reportColorPalette[3], mx: 1 }}>Mean: {mean} ft</Typography>
             <Typography variant="body2" sx={{ color: reportColorPalette[7], mx: 1 }}>Median: {median} ft</Typography>
             <Typography variant="body2" sx={{ color: reportColorPalette[0], mx: 1 }}>Tolerance: {cmToFeet(distanceTolerance).toFixed(2)} ft</Typography>
