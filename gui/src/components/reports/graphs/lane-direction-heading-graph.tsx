@@ -115,7 +115,7 @@ const LaneDirectionHeadingGraph: React.FC<LaneDirectionHeadingGraphProps> = ({ d
         />
         <YAxis
           label={{ value: 'Event Count', angle: -90, position: 'insideLeft', offset: 0 }}
-          tickFormatter={(value) => `${formatNumber(value)}°`}
+          tickFormatter={(value) => `${formatNumber(value)}`}
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar dataKey="value" fill={reportColorPalette[9]} />

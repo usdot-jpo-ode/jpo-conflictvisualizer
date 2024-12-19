@@ -50,7 +50,7 @@ export const processMissingElements = (elements: string[]): string[] => {
     element = element.replace(/\[/g, ' ').replace(/\]/g, '');
 
     return element;
-  });
+  }).filter(element => !element.includes("metadata")); // Remove elements containing "metadata"
 
   // Step 2: Group elements by the last part of the string
   const groupedElements: { [key: string]: string[] } = {};

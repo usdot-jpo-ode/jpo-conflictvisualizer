@@ -41,6 +41,10 @@ const InvalidConnectionOfTravelGraph: React.FC<InvalidConnectionOfTravelGraphPro
     return 0;
   });
 
+  // Calculate the maximum event count to set the ticks
+  const maxEventCount = Math.max(...sortedData.map(d => d.eventCount));
+  const ticks = Array.from({ length: maxEventCount + 1 }, (_, i) => i);
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: 'auto' }}>
       <Box>
@@ -63,7 +67,11 @@ const InvalidConnectionOfTravelGraph: React.FC<InvalidConnectionOfTravelGraphPro
             label={{ value: 'Ingress - Egress Lane ID', position: 'center', dy: 40 }}
             tickFormatter={(tick, index) => `${sortedData[index].ingressLaneID} - ${sortedData[index].egressLaneID}`}
           />
-          <YAxis label={{ value: 'Event Count', angle: -90, position: 'insideLeft' }} />
+          <YAxis
+            label={{ value: 'Event Count', angle: -90, position: 'insideLeft' }}
+            tickFormatter={(tick) => tick.toString()}
+            ticks={ticks}
+          />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="eventCount" fill={reportColorPalette[0]} />
         </BarChart>

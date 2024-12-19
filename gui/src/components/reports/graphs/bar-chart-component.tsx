@@ -26,9 +26,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 // Utility function to format numbers
 const formatNumber = (num: number) => {
   if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
+    return (num % 1000000 === 0) ? `${num / 1000000}M` : `${(num / 1000000).toFixed(1)}M`;
   } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
+    return (num % 1000 === 0) ? `${num / 1000}K` : `${(num / 1000).toFixed(1)}K`;
   } else {
     return num.toString();
   }
