@@ -7,7 +7,7 @@ import reportColorPalette from '../report-color-palette';
 interface LaneDirectionHeadingGraphProps {
   data: { name: string; value: number }[];
   getInterval: (dataLength: number) => number;
-  headingTolerance: number; // New prop
+  headingTolerance: number;
 }
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {

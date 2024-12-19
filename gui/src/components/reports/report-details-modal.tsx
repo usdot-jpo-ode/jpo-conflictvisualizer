@@ -228,7 +228,7 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
               </Typography>
 
               <Box id="lane-direction-distance-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
-                <LaneDirectionDistanceGraph data={laneDirectionDistanceDistribution} getInterval={getInterval} />
+                <LaneDirectionDistanceGraph data={laneDirectionDistanceDistribution} getInterval={getInterval} distanceTolerance={report.distanceTolerance} />
               </Box>
               <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
                 The median deviation in distance between vehicles and the center of the lane as defined by the MAP.
