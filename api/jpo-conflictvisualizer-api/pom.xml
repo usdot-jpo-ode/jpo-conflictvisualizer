@@ -140,16 +140,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- <dependency>
-			<groupId>usdot.jpo.ode</groupId>
-			<artifactId>jpo-conflictmonitor</artifactId>
-			<version>1.5.0</version>
-			<classifier>jpo-conflictmonitor</classifier>
-		</dependency> -->
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-conflictmonitor</artifactId>
 			<version>1.5.0</version>
+			<!-- <classifier>jpo-conflictmonitor</classifier> -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -353,7 +348,7 @@
 		<repository>
 		<id>github</id>
 		<name>GitHub Packages</name>
-		<url>https://maven.pkg.github.com/${github_organization}/jpo-conflictmonitor</url>
+		<url>https://maven.pkg.github.com/${github_organization}/jpo-conflictvisualizer</url>
 		</repository>
 	</distributionManagement>
 
