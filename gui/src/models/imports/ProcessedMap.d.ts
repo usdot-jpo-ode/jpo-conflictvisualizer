@@ -23,6 +23,15 @@ type MapSharedProperties = {
 };
 
 type MapSource = "RSU" | "V2X" | "MMITSS" | "unknown";
+type LaneTypeEnum =
+  | "vehicle"
+  | "crosswalk"
+  | "bikeLane"
+  | "sidewalk"
+  | "median"
+  | "striping"
+  | "trackedVehicle"
+  | "parking";
 
 // enum MapSource {
 //     RSU,
@@ -52,6 +61,8 @@ type MapProperties = {
   nodes: MapNode[];
   laneId: number;
   laneName?: string;
+  laneType: J2735LaneTypeAttributes;
+  laneTypeEnum: str;
   sharedWith: J2735LaneSharing;
   egressApproach: number;
   ingressApproach: number;
