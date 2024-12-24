@@ -25,6 +25,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin' 
+          cache: 'maven'
 
       # Step 3: Build and run SonarQube analysis without executing tests
       # This step involves navigating through project directories and using Maven for building each submodule project before conflict-visualizer repo 
