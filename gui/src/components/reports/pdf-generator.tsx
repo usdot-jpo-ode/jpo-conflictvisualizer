@@ -176,20 +176,32 @@ export const generatePdf = async (report: ReportMetadata, setLoading: (loading: 
   setPdfDescriptionFormatting(pdf);
   pdf.text('A composite view comparing vehicles that stopped before passing through the intersection versus those that did not.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
-
-  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: pdfHeight / 2 + 5 }, setProgress, totalGraphs, ++currentGraph, signal);
+  currentPage = addPageWithNumber(pdf, currentPage);
+  
+  await captureGraph(pdf, 'signal-group-stop-line-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
   setPdfDescriptionFormatting(pdf);
-  pdf.text('The number of times the system detected contradictory signal states, such as conflicting green lights.',
-    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 20, { align: 'center' });
-  pdf.text('Lower numbers indicate better performance.',
+  pdf.text('The percentage of time vehicles spent stopped at a light depending on the color of the light.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
+
+  await captureGraph(pdf, 'signal-group-passage-line-graph', { x: 0, y: pdfHeight / 2 + 10 }, setProgress, totalGraphs, ++currentGraph, signal);
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The percentage of vehicles that passed through a light depending on the color of the signal light.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
   currentPage = addPageWithNumber(pdf, currentPage);
 
-  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
-  pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
+  await captureGraph(pdf, 'signal-state-conflict-graph', { x: 0, y: 25 }, setProgress, totalGraphs, ++currentGraph, signal);
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of times the system detected contradictory signal states, such as conflicting green lights.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2, { align: 'center' });
   pdf.text('Lower numbers indicate better performance.',
     pdf.internal.pageSize.getWidth() / 2, pdfHeight / 2 + 5, { align: 'center' });
+
+  await captureGraph(pdf, 'time-change-details-graph', { x: 0, y: pdfHeight / 2 + 5 }, setProgress, totalGraphs, ++currentGraph, signal);
+  setPdfDescriptionFormatting(pdf);
+  pdf.text('The number of times the system detected differences in timing between expected and actual signal state changes.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 20, { align: 'center' });
+  pdf.text('Lower numbers indicate better performance.',
+    pdf.internal.pageSize.getWidth() / 2, pdfHeight - 15, { align: 'center' });
   currentPage = addPageWithNumber(pdf, currentPage);
 
   setPdfSectionTitleFormatting(pdf);

@@ -19,8 +19,10 @@ import IntersectionReferenceAlignmentGraph from './graphs/intersection-reference
 import DistanceFromCenterlineGraphSet from './graphs/distance-from-centerline-graph-set';
 import HeadingErrorGraphSet from './graphs/heading-error-graph-set';
 import { generatePdf } from './pdf-generator';
-import { generateDateRange, LaneDirectionOfTravelReportData, processMissingElements } from './report-utils';
+import { generateDateRange, LaneDirectionOfTravelReportData, processMissingElements, StopLineStopReportData, StopLinePassageReportData } from './report-utils';
 import StopLineStackedGraph from './graphs/stop-line-stacked-graph';
+import SignalGroupPassageGraph from './graphs/signal-group-passage-graph';
+import SignalGroupStopGraph from './graphs/signal-group-stop-graph';
 import reportColorPalette from './report-color-palette';
 
 interface ReportDetailsModalProps {
@@ -38,6 +40,8 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
   const [signalStateConflictEventCount, setSignalStateConflictEventCount] = useState<{ name: string; value: number }[]>([]);
   const [signalStateEventCounts, setSignalStateEventCounts] = useState<{ name: string; value: number }[]>([]);
   const [stopLineStopEventCounts, setStopLineStopEventCounts] = useState<{ name: string; value: number }[]>([]);
+  const [signalGroupStopLineData, setSignalGroupStopLineData] = useState<StopLineStopReportData[]>([]);
+  const [signalGroupPassageData, setSignalGroupPassageData] = useState<StopLinePassageReportData[]>([]);
   const [connectionOfTravelEventCounts, setConnectionOfTravelEventCounts] = useState<{ name: string; value: number }[]>([]);
   const [laneDirectionOfTravelEventCounts, setLaneDirectionOfTravelEventCounts] = useState<{ name: string; value: number }[]>([]);
   const [laneDirectionDistanceDistribution, setLaneDirectionDistanceDistribution] = useState<{ name: string; value: number }[]>([]);
@@ -103,17 +107,27 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
       if (report.laneDirectionOfTravelReportData) {
         setLaneDirectionOfTravelReportData(report.laneDirectionOfTravelReportData);
       }
-    
-    // Process and set missing elements
-    if (report.latestMapMinimumDataEventMissingElements) {
-      setMapMissingElements(processMissingElements(report.latestMapMinimumDataEventMissingElements));
-    }
 
-    if (report.latestSpatMinimumDataEventMissingElements) {
-      setSpatMissingElements(processMissingElements(report.latestSpatMinimumDataEventMissingElements));
+      // Set state for signal group stop line data
+      if (report.stopLineStopReportData) {
+        setSignalGroupStopLineData(report.stopLineStopReportData);
+      }
+
+      // Set state for signal group passage data
+      if (report.stopLinePassageReportData) {
+        setSignalGroupPassageData(report.stopLinePassageReportData);
+      }
+    
+      // Process and set missing elements
+      if (report.latestMapMinimumDataEventMissingElements) {
+        setMapMissingElements(processMissingElements(report.latestMapMinimumDataEventMissingElements));
+      }
+
+      if (report.latestSpatMinimumDataEventMissingElements) {
+        setSpatMissingElements(processMissingElements(report.latestSpatMinimumDataEventMissingElements));
+      }
     }
-  }
-}, [report]);
+  }, [report]);
 
   useEffect(() => {
     if (open) {
@@ -285,6 +299,20 @@ const ReportDetailsModal = ({ open, onClose, report }: ReportDetailsModalProps) 
               </Typography>
 
               <Typography variant="h4" align="center" sx={{ mt: 4 }}>Signal State Events</Typography>
+
+              <Box id="signal-group-stop-line-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <SignalGroupStopGraph data={signalGroupStopLineData} />
+              </Box>
+              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                The percentage of time vehicles spent stopped at a light depending on the color of the light.
+              </Typography>
+
+              <Box id="signal-group-passage-line-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
+                <SignalGroupPassageGraph data={signalGroupPassageData} />
+              </Box>
+              <Typography variant="body2" align="center" sx={{ mt: 0.5, mb: 6, fontStyle: 'italic' }}>
+                The percentage of vehicles that passed through a light depending on the color of the signal light.
+              </Typography>
 
               <Box id="stop-line-stacked-graph" sx={{ display: 'flex', justifyContent: 'center' }}>
                 <StopLineStackedGraph stopData={stopLineStopEventCounts} passageData={signalStateEventCounts} getInterval={getInterval} />

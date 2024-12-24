@@ -1,4 +1,4 @@
-import { LaneDirectionOfTravelReportData } from "../components/reports/report-utils";
+import { LaneDirectionOfTravelReportData, StopLineStopReportData, StopLinePassageReportData } from "../components/reports/report-utils";
 import { authApiHelper } from "./api-helper";
 
 export type ReportMetadata = {
@@ -29,6 +29,8 @@ export type ReportMetadata = {
   invalidConnectionOfTravelData: { connectionID: number; ingressLaneID: number; egressLaneID: number; eventCount: number }[];
   headingTolerance: number;
   distanceTolerance: number;
+  stopLineStopReportData: StopLineStopReportData[];
+  stopLinePassageReportData: StopLinePassageReportData[];
 };
 
 class ReportsApi {
