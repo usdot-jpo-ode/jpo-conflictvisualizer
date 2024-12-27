@@ -43,8 +43,6 @@ export const generateDateRange = (startDate: Date, endDate: Date): string[] => {
   return dates.map(date => format(date, 'yyyy-MM-dd'));
 };
 
-
-
 export const processMissingElements = (elements: string[]): string[] => {
   // Step 1: Process each element to remove prefixes and format the string
   const processedElements = elements.map(element => {
@@ -98,4 +96,14 @@ export const processMissingElements = (elements: string[]): string[] => {
   });
 
   return readableStrings;
+};
+
+export const formatNumber = (num: number) => {
+  if (num >= 1000000) {
+    return (num % 1000000 === 0) ? `${num / 1000000}M` : `${(num / 1000000).toFixed(1)}M`;
+  } else if (num >= 1000) {
+    return (num % 1000 === 0) ? `${num / 1000}K` : `${(num / 1000).toFixed(1)}K`;
+  } else {
+    return num.toString();
+  }
 };

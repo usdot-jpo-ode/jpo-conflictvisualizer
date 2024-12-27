@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, TooltipProps } from 'recharts';
 import { Box, Typography } from '@mui/material';
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
+import { formatNumber } from '../report-utils';
 
 interface BarChartComponentProps {
   title: string;
@@ -21,17 +22,6 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   }
 
   return null;
-};
-
-// Utility function to format numbers
-const formatNumber = (num: number) => {
-  if (num >= 1000000) {
-    return (num % 1000000 === 0) ? `${num / 1000000}M` : `${(num / 1000000).toFixed(1)}M`;
-  } else if (num >= 1000) {
-    return (num % 1000 === 0) ? `${num / 1000}K` : `${(num / 1000).toFixed(1)}K`;
-  } else {
-    return num.toString();
-  }
 };
 
 const BarChartComponent: React.FC<BarChartComponentProps> = ({ title, data, getInterval, barColor }) => (

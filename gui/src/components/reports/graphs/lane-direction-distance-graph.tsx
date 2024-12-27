@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, TooltipProps, Refe
 import { Box, Typography } from '@mui/material';
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import reportColorPalette from '../report-color-palette';
+import { formatNumber } from '../report-utils';
 
 interface LaneDirectionDistanceGraphProps {
   data: { name: string; value: number }[];
@@ -21,17 +22,6 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
   }
 
   return null;
-};
-
-// Utility function to format numbers
-const formatNumber = (num: number) => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  } else {
-    return num.toString();
-  }
 };
 
 // Convert cm to feet
