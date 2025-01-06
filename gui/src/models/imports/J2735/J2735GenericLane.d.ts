@@ -44,13 +44,13 @@ type J2735LaneAttributes = {
 
 type J2735LaneTypeAttributes = {
   vehicle?: J2735BitString; // motor vehicle lanes - J2735LaneAttributesVehicle
-  crosswalk: J2735BitString; // pedestrian crosswalks - J2735LaneAttributesCrosswalk
-  bikeLane: J2735BitString; // bike lanes - J2735LaneAttributesBike
-  sidewalk: J2735BitString; // pedestrian sidewalk paths - J2735LaneAttributesSidewalk
-  median: J2735BitString; // medians & channelization - J2735LaneAttributesBarrier
-  striping: J2735BitString; // roadway markings - J2735LaneAttributesStriping
-  trackedVehicle: J2735BitString; // trains and trolleys - J2735LaneAttributesTrackedVehicle
-  parking: J2735BitString; // parking and stopping lanes - J2735LaneAttributesParking
+  crosswalk?: J2735BitString; // pedestrian crosswalks - J2735LaneAttributesCrosswalk
+  bikeLane?: J2735BitString; // bike lanes - J2735LaneAttributesBike
+  sidewalk?: J2735BitString; // pedestrian sidewalk paths - J2735LaneAttributesSidewalk
+  median?: J2735BitString; // medians & channelization - J2735LaneAttributesBarrier
+  striping?: J2735BitString; // roadway markings - J2735LaneAttributesStriping
+  trackedVehicle?: J2735BitString; // trains and trolleys - J2735LaneAttributesTrackedVehicle
+  parking?: J2735BitString; // parking and stopping lanes - J2735LaneAttributesParking
 };
 
 type J2735BitString = string;
