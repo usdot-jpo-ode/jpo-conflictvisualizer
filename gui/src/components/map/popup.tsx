@@ -26,18 +26,23 @@ export const getSelectedLayerPopupContent = (feature: any) => {
           />
         </Box>
       );
+    case "mapMessageCrosswalk":
     case "mapMessage":
       let map = feature.properties;
-      let connectedObjs: any[] = [];
+      let optionalObjects: any[] = [];
+      if (map.laneTypeEnum) {
+        optionalObjects.push(["Lane Type", map.laneTypeEnum]);
+      }
       JSON.parse(map?.connectsTo ?? "[]")?.forEach((connectsTo) => {
-        connectedObjs.push(["Connected Lane", connectsTo.connectingLane.lane]);
-        connectedObjs.push(["Signal Group", connectsTo.signalGroup]);
-        connectedObjs.push(["Connection ID", connectsTo.connectionID]);
+        optionalObjects.push(["Connected Lane", connectsTo.connectingLane.lane]);
+        optionalObjects.push(["Signal Group", connectsTo.signalGroup]);
+        optionalObjects.push(["Connection ID", connectsTo.connectionID]);
       });
+
       return (
         <Box>
           <Typography>MAP Lane</Typography>
-          <CustomTable headers={["Field", "Value"]} data={[["Lane Id", map.laneId], ...connectedObjs]} />
+          <CustomTable headers={["Field", "Value"]} data={[["Lane Id", map.laneId], ...optionalObjects]} />
         </Box>
       );
 
