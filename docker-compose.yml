@@ -43,12 +43,21 @@ services:
       dockerfile: Dockerfile
     container_name: jpo-conflictvisualizer-keycloak
     restart: always
+    depends_on:
+      - postgres
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
+      KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       GUI_SERVER_URL: ${GUI_SERVER_URL}
       API_SERVER_URL: ${API_SERVER_URL}
+      POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
+      KEYCLOAK_DB_USERNAME: ${POSTGRES_USER}
+      KEYCLOAK_DB_PASSWORD: ${POSTGRES_PASSWORD}
     command:
       - start-dev
       - --log-level=INFO
@@ -59,6 +68,21 @@ services:
       - ${DOCKER_HOST_DIR}/keycloak/realm.json:/tmp/realm.json
     ports:
       - "8084:8080"
+
+  postgres:
+    image: postgis/postgis:15-master
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdb:/var/lib/postgresql/data
+      - ./postgres/sql_scripts:/docker-entrypoint-initdb.d
+    logging:
+      options:
+        max-size: "10m"
 
   conflictvisualizer-api:
     profiles:
@@ -78,8 +102,6 @@ services:
     restart: always
     environment:
       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       DB_HOST_IP: ${DB_HOST_IP}
       DB_HOST_PORT: ${DB_HOST_PORT}
       SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
@@ -94,6 +116,16 @@ services:
       CM_MONGO_API_PASSWORD: ${CM_MONGO_READ_WRITE_PASSWORD}
       CM_MONGO_AUTH_DB: ${CM_MONGO_AUTH_DB}
       CM_MONGO_URI: ${CM_MONGO_URI:-}
+
+      KEYCLOAK_CLIENT_API_ID: ${KEYCLOAK_CLIENT_API_ID}
+      KEYCLOAK_CLIENT_API_SECRET: ${KEYCLOAK_CLIENT_API_SECRET}
+
+      KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
+      KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
+
+      PG_DB_USER: ${POSTGRES_USER}
+      PG_DB_HOST: ${POSTGRES_PASSWORD}
+      POSTGRES_SERVER_URL: ${POSTGRES_SERVER_URL}
     logging:
       options:
         max-size: "10m"
@@ -104,3 +136,5 @@ services:
 
 volumes:
   keycloak:
+  pgdb:
+    driver: local
