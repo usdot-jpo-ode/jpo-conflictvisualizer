@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
-import { endOfDay, startOfDay } from "date-fns";
-import { Box, Button, FormControlLabel, Grid, Stack, Switch, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DashboardLayout } from "../../components/dashboard-layout";
 import { FilterAlt } from "@mui/icons-material";
@@ -11,6 +10,8 @@ import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
 import { useSession } from "next-auth/react";
 import { useDashboardContext } from "../../contexts/dashboard-context";
 import { ReportGenerationDialog } from "../../components/reports/report-generation-dialog";
+import ReportDetailsModal from '../../components/reports/report-details-modal';
+import toast from "react-hot-toast";
 
 const applyPagination = (logs, page, rowsPerPage) => logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -58,16 +59,6 @@ const Page = () => {
   });
   const [openReportGenerationDialog, setOpenReportGenerationDialog] = useState(false);
 
-  function sortReportByAge(a: ReportMetadata, b: ReportMetadata) {
-    if (a.reportGeneratedAt < b.reportGeneratedAt) {
-      return -1;
-    }
-    if (a.reportGeneratedAt > b.reportGeneratedAt) {
-      return 1;
-    }
-    return 0;
-  }
-
   const listReports = async (
     start_timestamp: Date,
     end_timestamp: Date,
@@ -89,7 +80,7 @@ const Page = () => {
           startTime: start_timestamp,
           endTime: end_timestamp,
         })) ?? [];
-      data = data.sort(sortReportByAge);
+      data = data.sort((a, b) => new Date(b.reportGeneratedAt).getTime() - new Date(a.reportGeneratedAt).getTime()); // Sort by reportGeneratedAt in descending order
       setLogs(data);
       setLoading(false);
     } catch (err) {
@@ -134,6 +125,26 @@ const Page = () => {
 
   // Usually query is done on backend with indexing solutions
   const paginatedLogs = applyPagination(logs, page, rowsPerPage);
+
+  // Inside the parent component
+  const [selectedReport, setSelectedReport] = useState<ReportMetadata | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewReport = (report: ReportMetadata) => {
+    setSelectedReport(report);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseReportModal = () => {
+    setIsModalOpen(false);
+    setSelectedReport(null);
+  };
+
+  const handleReportGenerated = () => {
+    setOpenReportGenerationDialog(false);
+    const refreshTime = new Date(Date.now() + 15 * 60 * 1000);
+    toast.success(`Reports usually take 10-15 minutes to generate. Please refresh the page at ${refreshTime.toLocaleTimeString()} to see the new report.`);
+  };
 
   return (
     <>
@@ -192,6 +203,7 @@ const Page = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             page={page}
             rowsPerPage={rowsPerPage}
+            onViewReport={handleViewReport}
           />
         </LogsListInner>
       </Box>
@@ -200,6 +212,12 @@ const Page = () => {
         onClose={() => {
           setOpenReportGenerationDialog(false);
         }}
+        onReportGenerated={handleReportGenerated}
+      />
+      <ReportDetailsModal
+        open={isModalOpen}
+        onClose={handleCloseReportModal}
+        report={selectedReport}
       />
     </>
   );
