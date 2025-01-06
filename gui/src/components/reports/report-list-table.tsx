@@ -15,18 +15,18 @@ import {
   Typography,
 } from "@mui/material";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { ArrowDownward } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ReportsApi, { ReportMetadata } from "../../apis/reports-api";
 
 interface ReportRowProps {
   report: ReportMetadata;
+  onViewReport: (report: ReportMetadata) => void;
 }
 
 const ReportRow = (props: ReportRowProps) => {
   const { data: session } = useSession();
-  const { report } = props;
+  const { report, onViewReport } = props;
 
   const downloadReport = async (reportName: string) => {
     if (!session?.accessToken) {
@@ -120,13 +120,8 @@ const ReportRow = (props: ReportRowProps) => {
         </Box>
       </TableCell>
       <TableCell align="right">
-        <Button
-          endIcon={<ArrowDownward fontSize="small" />}
-          onClick={() => {
-            downloadReport(report.reportName);
-          }}
-        >
-          Download
+        <Button onClick={() => onViewReport(report)}>
+          View
         </Button>
       </TableCell>
     </TableRow>
@@ -141,10 +136,11 @@ interface ReportListTableProps {
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   page: number;
   rowsPerPage: number;
+  onViewReport: (report: ReportMetadata) => void;
 }
 
 export const ReportListTable = (props: ReportListTableProps) => {
-  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, ...other } = props;
+  const { group, reports, reportsCount, onPageChange, onRowsPerPageChange, page, rowsPerPage, onViewReport, ...other } = props;
 
   return (
     <div {...other}>
@@ -161,7 +157,7 @@ export const ReportListTable = (props: ReportListTableProps) => {
           {
             <TableBody>
               {reports.map((report: ReportMetadata) => (
-                <ReportRow report={report} />
+                <ReportRow report={report} onViewReport={onViewReport} />
               ))}
             </TableBody>
           }
