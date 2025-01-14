@@ -76,11 +76,6 @@ public class PermissionService {
             return false;
         }
 
-        if(!properties.getEnableOrganizationIntersectionChecking()){
-            // Skip Validation if not enabled
-            return true;
-        }
-
         String username = getUsername(auth);
         List<Integer> allowedIntersectionIds = postgresService.getAllowedIntersectionIdByEmail(username);
         allowedIntersectionIds.add(-1); // all users all allowed to access the empty intersection ID.
@@ -99,11 +94,6 @@ public class PermissionService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(!isAuthValid(auth)){
             return false;
-        }
-
-        if(!properties.getEnableOrganizationIntersectionChecking()){
-            // Skip Validation if not enabled
-            return true;
         }
 
         String username = getUsername(auth);
