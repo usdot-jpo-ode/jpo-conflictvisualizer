@@ -29,7 +29,7 @@ services:
       kafka:
         condition: service_healthy
         required: false
-  # ODE Services:
+
   ode:
     profiles:
       - all
@@ -58,9 +58,17 @@ services:
       - "6666:6666/udp"
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP:?error}
-#      KAFKA_TYPE: ${KAFKA_TYPE}
-#      CONFLUENT_KEY: ${CONFLUENT_KEY}
-#      CONFLUENT_SECRET: ${CONFLUENT_SECRET}
+      KAFKA_TYPE: ${KAFKA_TYPE}
+      CONFLUENT_KEY: ${CONFLUENT_KEY}
+      CONFLUENT_SECRET: ${CONFLUENT_SECRET}
+      ODE_TIM_INGEST_MONITORING_ENABLED: true
+      ODE_TIM_INGEST_MONITORING_INTERVAL: 60
+      DATA_SIGNING_ENABLED_RSU: false
+      DATA_SIGNING_ENABLED_SDW: false
+      ODE_KAFKA_BROKERS: ${DOCKER_HOST_IP}:9092
+      KAFKA_LINGER_MS: 1
+      KAFKA_BATCH_SIZE: 16384
+      KAFKA_RETRIES: 0
     depends_on:
       kafka:
         condition: service_healthy
@@ -120,6 +128,42 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?error}
       kafka.topics.autoCreateTopics: false
       spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:?error}
+    healthcheck:
+      test: ["CMD", "java", "-version"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+    depends_on:
+      kafka:
+        condition: service_healthy
+        required: false
+
+  deduplicator:
+    profiles:
+      - all
+      - cm_api_full
+      - deduplicator
+    image: usdotjpoode/jpo-deduplicator:2025-q1
+    restart: ${RESTART_POLICY}
+    environment:
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?error}
+      spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:?error}
+      enableProcessedMapDeduplication: ${ENABLE_PROCESSED_MAP_DEDUPLICATION}
+      enableProcessedMapWktDeduplication: ${ENABLE_PROCESSED_MAP_WKT_DEDUPLICATION}
+      enableOdeMapDeduplication: ${ENABLE_ODE_MAP_DEDUPLICATION}
+      enableOdeTimDeduplication: ${ENABLE_ODE_TIM_DEDUPLICATION}
+      enableOdeRawEncodedTimDeduplication: ${ENABLE_ODE_RAW_ENCODED_TIM_DEDUPLICATION}
+      enableProcessedSpatDeduplication: ${ENABLE_PROCESSED_SPAT_DEDUPLICATION}
+      enableOdeBsmDeduplication: ${ENABLE_ODE_BSM_DEDUPLICATION}
     healthcheck:
       test: ["CMD", "java", "-version"]
       interval: 10s
