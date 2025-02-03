@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>usdot.jpo.ode</groupId>
 	<artifactId>jpo-conflictvisualizer-api</artifactId>
-	<version>1.4.0-SNAPSHOT</version>
+	<version>1.5.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>jpo-conflictvisualizer-api</name>
 	<description>Conflict Visualizer</description>
@@ -21,8 +21,8 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.language>java</sonar.language>
-		<!-- <thymeleaf.version>3.0.3.RELEASE</thymeleaf.version>
-    	<thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version> -->
+		<!-- Allow override of github organization when publishing artifacts to github -->
+    	<github_organization>usdot-jpo-ode</github_organization>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -90,11 +90,6 @@
 			<artifactId>spring-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework.restdocs</groupId>
-			<artifactId>spring-restdocs-mockmvc</artifactId>
-			<scope>test</scope>
-		</dependency> -->
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-ode-core</artifactId>
@@ -109,25 +104,40 @@
 		</dependency>
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
+			<artifactId>jpo-ode-core</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-ode-plugins</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-ode-svcs</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-geojsonconverter</artifactId>
-			<version>1.4.2-SNAPSHOT</version>
-			<classifier>jpo-geojsonconverter</classifier>
+			<version>1.4.2</version>
+			<!-- Allow using newer streams version than geojsonconverter -->
+			<exclusions>
+				<exclusion>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka-streams</artifactId>
+				</exclusion>
+				<exclusion>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka-streams-test-utils</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>usdot.jpo.ode</groupId>
 			<artifactId>jpo-conflictmonitor</artifactId>
-			<version>1.4.1-SNAPSHOT</version>
-			<classifier>jpo-conflictmonitor</classifier>
+			<version>1.5.0</version>
+			<!-- <classifier>jpo-conflictmonitor</classifier> -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -165,12 +175,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.keycloak</groupId>-->
-<!--			<artifactId>keycloak-spring-boot-starter</artifactId>-->
-<!--			<version>21.0.2</version>-->
-<!--			&lt;!&ndash; <version>20.0.3</version> &ndash;&gt;-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-admin-client</artifactId>
@@ -290,5 +294,49 @@
 			</plugin>
 		</plugins>
 	</build>
+	<!-- profile to output only source code and not include any spring boot dependencies in
+    published jar -->
+	<profiles>
+		<profile>
+		<id>package-jar</id>
+		<build>
+			<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+				<archive>
+					<manifest>
+					<addClasspath>true</addClasspath>
+					<classpathPrefix>lib/</classpathPrefix>
+					<mainClass>
+						us.dot.its.jpo.ode.api.ConflictApiApplication</mainClass>
+					</manifest>
+				</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+				<execution>
+					<id>repackage</id>
+					<phase>none</phase>
+				</execution>
+				</executions>
+			</plugin>
+			</plugins>
+		</build>
+		</profile>
+	</profiles>
+	<!-- GitHub Artifact publishing configuration -->
+	<distributionManagement>
+		<repository>
+		<id>github</id>
+		<name>GitHub Packages</name>
+		<url>https://maven.pkg.github.com/${MAVEN_GITHUB_ORG}/jpo-conflictvisualizer</url>
+		</repository>
+	</distributionManagement>
 
 </project>

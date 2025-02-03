@@ -15,27 +15,21 @@ import us.dot.its.jpo.ode.api.keycloak.support.AccessController;
 import us.dot.its.jpo.ode.api.keycloak.support.CorsUtil;
 import us.dot.its.jpo.ode.api.keycloak.support.KeycloakJwtAuthenticationConverter;
 
-
 /**
  * Provides keycloak based spring security configuration.
  */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "security",
-        name = "enabled",
-        havingValue = "true")   // Allow disabling security
+@ConditionalOnProperty(prefix = "security", name = "enabled", havingValue = "true") // Allow disabling security
 public class KeycloakSecurityConfig {
 
     final ConflictMonitorApiProperties properties;
 
     final KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-
-        System.out.println("Running with KeyCloak Authentication");
 
         return httpSecurity
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -44,8 +38,7 @@ public class KeycloakSecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
                         .requestMatchers("/**").access(AccessController::checkAccess)
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServerConfigurer -> resourceServerConfigurer.jwt(
                         jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)
 
@@ -54,12 +47,9 @@ public class KeycloakSecurityConfig {
 
     }
 
-
     @Bean
     AccessController accessController() {
         return new AccessController();
     }
-
-
 
 }

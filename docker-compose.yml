@@ -1,6 +1,16 @@
 version: "3"
+
+include:
+  - docker-compose-ode.yml
+
+
 services:
   conflictvisualizer-gui:
+    profiles:
+      - all
+      - cm_api_full
+      - cm_api_base
+      - cm_gui
     build:
       context: gui
       dockerfile: Dockerfile
@@ -25,6 +35,10 @@ services:
         max-file: "5"
 
   keycloak:
+    profiles:
+    - all
+    - cm_api_full
+    - keycloak
     build:
       context: keycloak
       dockerfile: Dockerfile
@@ -48,9 +62,17 @@ services:
       - "8084:8080"
 
   conflictvisualizer-api:
+    profiles:
+      - all
+      - cm_api_full
+      - cm_api_base
+      - cm_api
     build:
       context: api
       dockerfile: Dockerfile
+      args:
+        MAVEN_GITHUB_TOKEN: ${MAVEN_GITHUB_TOKEN:?error}
+        MAVEN_GITHUB_ORG: ${MAVEN_GITHUB_ORG:?error}
     ports:
       - "8081:8081"
     image: jpo-conflictvisualizer-api:latest
@@ -61,7 +83,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       DB_HOST_IP: ${DB_HOST_IP}
       DB_HOST_PORT: ${DB_HOST_PORT}
-      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BROKER_IP}:${KAFKA_BROKER_PORT}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       CM_SERVER_URL: ${CM_SERVER_URL}
       load: "false"
       KAFKA_TYPE: "ON-PREM"
@@ -69,18 +91,17 @@ services:
       ACM_LOG_TO_CONSOLE: true
       ACM_LOG_TO_FILE: false
       ACM_LOG_LEVEL: DEBUG
-      CM_MONGO_API_USERNAME: ${CM_MONGO_API_USERNAME}
-      CM_MONGO_API_PASSWORD: ${CM_MONGO_API_PASSWORD}
-      
-      #KAFKA_BROKER_IP: ${KAFKA_BROKER_IP}
-      #KAFKA_BROKER_PORT: ${KAFKA_BROKER_PORT}
+      CM_MONGO_API_USERNAME: ${CM_MONGO_READ_WRITE_USERNAME}
+      CM_MONGO_API_PASSWORD: ${CM_MONGO_READ_WRITE_PASSWORD}
+      CM_MONGO_AUTH_DB: ${CM_MONGO_AUTH_DB}
+      CM_MONGO_URI: ${CM_MONGO_URI:-}
     logging:
       options:
         max-size: "10m"
         max-file: "5"
-    depends_on:
-      keycloak:
-        condition: service_started
+    # depends_on:
+    #   keycloak:
+    #     condition: service_started
 
 volumes:
   keycloak:
