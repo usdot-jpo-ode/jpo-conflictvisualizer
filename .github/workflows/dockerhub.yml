@@ -1,72 +1,32 @@
-name: "DockerHub Build and Push"
+name: DockerHub Build and Push
 
-# Trigger the workflow on pushes to 'develop', 'master', and any 'release/*' branches
 on:
   push:
     branches:
       - "develop"
       - "master"
       - "release/*"
+    tags:
+      - "*"
+  workflow_dispatch:
 
 jobs:
-  # Define the job to build and push Docker images
-  build-and-push:
-    # Use the latest Ubuntu runner
-    runs-on: ubuntu-latest
-    
-    # Define a matrix strategy to run jobs for multiple components in parallel
+  dockerhub-build:
     strategy:
       matrix:
-        component: ['api', 'keycloak'] # List of components to build and push
+        component: ['api', 'keycloak']
 
-    # Environment variables used across all steps of the job
-    env:
-      # Sanitize the branch name to be used as part of the Docker tag
-      # Fallback to the commit SHA if branch name is not available
-      CLEAN_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-      DOCKER_TAG: ${{ (github.head_ref || github.ref_name) == '' && github.sha || (github.head_ref || github.ref_name) }}
-    
-    steps:
-      # Step 1: Check out the codebase including all submodules
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive' # Ensure all submodules are checked out
-
-      # Step 2: Prepare the GUI environment 
-      - run: |
-          cp sample.env ./gui/.env # Copy a sample environment file
-          npm install --save-dev eslint # Install ESLint as a dev dependency
-
-      # Step 3: Set up Docker Buildx for advanced build capabilities
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Step 4: Log in to DockerHub to enable pushing images
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }} # Use DockerHub username from secrets
-          password: ${{ secrets.DOCKERHUB_TOKEN }} # Use DockerHub token from secrets
-
-      # Step 5: Sanitize the reference name to be Docker tag compliant
-      - name: Sanitize Reference Name for Docker Tag
-        run: echo "DOCKER_TAG=$(echo $DOCKER_TAG | sed 's|/|-|g' | sed 's|[^a-zA-Z0-9_.-]|-|g')" >> $GITHUB_ENV
-
-      # Step 6: Build and push the Docker image to DockerHub
-      # Uses a matrix to handle multiple components
-      - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ matrix.component }} # Set the build context to the component directory
-          file: ./${{ matrix.component }}/Dockerfile # Specify the Dockerfile path to build 
-          push: true # Enable pushing the built image to DockerHub this only for Dockerhub.yml
-          tags: usdotjpoode/jpo-conflictvisualizer-${{ matrix.component }}:${{ env.DOCKER_TAG }} 
-          build-args: |
-            MAVEN_GITHUB_TOKEN_NAME=${{ vars.MAVEN_GITHUB_TOKEN_NAME }}
-            MAVEN_GITHUB_TOKEN=${{ secrets.MAVEN_GITHUB_TOKEN }}
-            MAVEN_GITHUB_ORG=${{ github.repository_owner }}
-          secrets: |
-            MAVEN_GITHUB_TOKEN: ${{ secrets.MAVEN_GITHUB_TOKEN }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: usdot-jpo-ode/actions/.github/workflows/dockerhub.yml@main
+    with:
+      image: usdotjpoode/jpo-conflictvisualizer-${{ matrix.component }}
+      context: ./${{ matrix.component }}
+      file: ./${{ matrix.component }}/Dockerfile
+      build-args: |
+        MAVEN_GITHUB_TOKEN_NAME=${{ vars.MAVEN_GITHUB_TOKEN_NAME }}
+        MAVEN_GITHUB_TOKEN=${{ secrets.MAVEN_GITHUB_TOKEN }}
+        MAVEN_GITHUB_ORG=${{ github.repository_owner }}
+      secrets: |
+        MAVEN_GITHUB_TOKEN=${{ secrets.MAVEN_GITHUB_TOKEN }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN:   ${{ secrets.DOCKERHUB_TOKEN }}
