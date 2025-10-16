@@ -1,5 +1,8 @@
 ## JPO COnflict Visualizer Release Notes
 
+## Project Deprecated - October 2025
+Project marked as deprecated in favor of the jpo-cvmanager https://github.com/usdot-jpo-ode/jpo-cvmanager
+
 ## Version 1.4.0
 
 ### **Summary**
