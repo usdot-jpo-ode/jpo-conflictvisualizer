@@ -3,6 +3,25 @@
 ## Project Deprecated - October 2025
 Project marked as deprecated in favor of the jpo-cvmanager https://github.com/usdot-jpo-ode/jpo-cvmanager
 
+
+## Version 2.0.0
+
+### **Summary**
+
+Enhancements in this release:
+- Updated Reporting Framework to use Client Side rendering for report generation
+- Updated report generation to store data fields in mongoDB for later usage with client side report generation
+- Added Github workflow for automatically building components of the Conflict Visualizer
+- Added unique consumer groups for each instance of the conflict monitor API
+- Added automatic disconnection from Kafka when not in use to save data transmission costs
+- Remove Data loader from conflict monitor API in favor of using Kafka Connect for loading Data into mongoDB
+- Added Crosswalk rendering to Conflict Visualizer
+- Added support for querying and downloading message progression events
+- Added in compression for data received from kafka
+- Updated MongoDB connection strategy to allow more flexible connection
+- Bug Fixes
+
+
 ## Version 1.4.0
 
 ### **Summary**
