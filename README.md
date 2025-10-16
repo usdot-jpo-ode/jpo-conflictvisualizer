@@ -1,3 +1,13 @@
+<span style="color:red">
+<H1>
+Deprecation Notice - October 2025
+</H1>
+This repository has been deprecated as the features used here are better encapsulated in the jpo-cvmanager project. All future development and deployments should be conducted using the cv-manager.
+<ref>https://github.com/usdot-jpo-ode/jpo-cvmanager</ref>
+</span>
+
+
+
 # jpo-conflictvisualizer
 
 The CIMMS Conflict Visualizer is a web-based user interface for configuring the [CIMMS Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor), as well as displaying notifications, downloading data, and visualizing conflicts. This repository also contains the associated API, which hosts endpoints for the GUI to access data from the jpo-conflictmonitor MongoDB database.
